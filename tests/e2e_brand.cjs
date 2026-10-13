@@ -52,6 +52,7 @@ const img = (i) => `${process.cwd()}/tests/img/p${String(i).padStart(2, '0')}.jp
   const loaded = await g.$eval('.hero-avatar', (i) => i.complete && i.naturalWidth > 0);
   check('perfil carga', loaded);
   await g.screenshot({ path: '/tmp/picfy_shots/b2_invitado.png' });
+  await g.setViewportSize({ width: 1360, height: 900 }); await g.waitForTimeout(500); await g.screenshot({ path: '/tmp/picfy_shots/b2d_invitado.png' }); await g.setViewportSize({ width: 430, height: 860 });
 
   // Editar: cambiar color y quitar cabecera
   await p.click('[data-open=setDlg]');
