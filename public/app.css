@@ -245,12 +245,7 @@ body.app main.wrap { max-width: 1240px; padding: 0 20px; }
 body.app .hero { margin-bottom: 44px; }
 .gsec { text-align: center; font-size: clamp(1.3rem, 3vw, 1.7rem); letter-spacing: -.01em; margin: 0 0 4px; }
 .gsub { text-align: center; color: var(--muted); margin: 0 0 30px; }
-body.app .grid.gguest { grid-template-columns: repeat(2, 1fr); gap: 26px 14px; padding: 0 0 36px; }
-body.app .grid.gguest[style*="--cw"] { grid-template-columns: repeat(auto-fill, minmax(var(--cw), 1fr)); }
-@media (min-width: 760px) { body.app .grid.gguest { grid-template-columns: repeat(3, 1fr); gap: 34px 18px; } body.app .grid.gguest[style*="--cw"] { grid-template-columns: repeat(auto-fill, minmax(var(--cw), 1fr)); } }
-.gitem { margin: 0; }
-body.app .gguest .tile { aspect-ratio: 1; border-radius: 6px; box-shadow: none; background: #f3ece0; }
-.gitem figcaption { padding-top: 8px; font-size: .86rem; color: var(--muted); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (min-width: 760px) { .gitem figcaption { padding-top: 8px; font-size: .86rem; color: var(--muted); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---- Cabecera de invitados: sin caja, la foto ocupa todo el ancho y se funde con la página ---- */
 body.app .hero { max-width: 760px; width: 100%; margin: 0 auto 28px; padding: 36px 16px 0; background: none; border: 0; box-shadow: none; border-radius: 0; -webkit-backdrop-filter: none; backdrop-filter: none; overflow: visible; }
@@ -295,11 +290,6 @@ body.app .hero { margin-bottom: 48px; } body.app .hero.has-cover { margin-bottom
 .sizer { display: flex; align-items: center; gap: 8px; color: var(--muted); }
 .sizer svg { width: 14px; height: 14px; flex: none; } .sizer svg:last-child { width: 20px; height: 20px; }
 .sizer input { width: clamp(80px, 22vw, 160px); accent-color: var(--accent-strong, var(--accent)); }
-body.app .grid.gguest.list { display: flex; flex-wrap: wrap; gap: 8px; }
-body.app .gguest.list .gitem { flex: calc(var(--ar, 1.5) * 100) 1 calc(var(--ar, 1.5) * var(--rh, 200px)); min-width: 0; }
-body.app .gguest.list::after { content: ''; flex: 1000 1 0; }
-body.app .gguest.list .tile { aspect-ratio: var(--ar, 1.5); border-radius: 8px; }
-body.app .gguest.list figcaption { display: none; }
 /* tarjetas de sede en el panel */
 .gcard-wrap { position: relative; }
 .cardtools { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 3; }
@@ -308,3 +298,29 @@ body.app .gguest.list figcaption { display: none; }
 .sizer input { height: 4px; border-radius: 4px; background: rgba(0,0,0,.14); appearance: none; -webkit-appearance: none; outline-offset: 6px; }
 .sizer input::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
 .sizer input::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; }
+
+/* Cuadrícula: cada foto con su proporción real (columnas tipo mosaico) */
+body.app .grid.gguest { display: block; column-count: 2; column-gap: 14px; padding: 0 0 36px; }
+@media (min-width: 760px) { body.app .grid.gguest { column-count: 3; column-gap: 18px; } }
+body.app .grid.gguest[style*="--cw"] { column-count: auto; column-width: var(--cw); }
+.gitem { margin: 0 0 22px; break-inside: avoid; -webkit-column-break-inside: avoid; }
+body.app .gguest .tile { display: block; aspect-ratio: var(--ar, 1); border-radius: 8px; box-shadow: none; background: #f3ece0; overflow: hidden; }
+.gitem .det { display: none; }
+/* Lineal: foto a la izquierda y detalles a la derecha, en 2 columnas */
+body.app .grid.gguest.list { display: grid; column-count: auto; column-width: auto; grid-template-columns: 1fr; gap: 14px 18px; }
+@media (min-width: 900px) { body.app .grid.gguest.list { grid-template-columns: 1fr 1fr; } }
+body.app .gguest.list .gitem { display: flex; align-items: center; gap: 16px; margin: 0; padding: 10px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.9); -webkit-backdrop-filter: blur(18px) saturate(170%); backdrop-filter: blur(18px) saturate(170%); }
+body.app .gguest.list .tile { flex: none; width: var(--lw, 200px); max-width: 55%; }
+body.app .gguest.list figcaption { display: none; }
+body.app .gguest.list .det { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.det strong { font-size: .95rem; overflow: hidden; text-overflow: ellipsis; }
+.det span { font-size: .82rem; color: var(--muted); }
+/* sedes: algo más grandes + botón compartir */
+.subs-grid { max-width: none; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (min-width: 760px) { .subs-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; } }
+.subimg { aspect-ratio: 16/10; }
+.subname { padding: 12px 16px 0; font-size: 1.02rem; }
+.subn { padding: 2px 16px 14px; font-size: .84rem; }
+.subwrap { position: relative; }
+.subwrap .subcard { height: 100%; }
+.subshare { position: absolute; top: 10px; right: 10px; z-index: 3; }

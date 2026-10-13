@@ -53,9 +53,13 @@ export function pagination(base, page, pages) {
 }
 
 export function tile(p, extra = '') {
-  const by = p.gname ? `<figcaption>Compartida por ${esc(p.gname)}</figcaption>` : '';
-  return `<figure class="gitem"><a class="tile" href="/m/${p.id}/l" data-id="${p.id}" data-full="/m/${p.id}/l">
-  <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="" ${p.w && p.h ? `width="${p.w}" height="${p.h}"` : ''}>${extra}</a>${by}</figure>`;
+  const by = p.gname ? `Compartida por ${esc(p.gname)}` : '';
+  const ts = p.taken_at || p.uploaded_at;
+  const when = ts ? new Date(Number(ts)).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+  const ar = p.w && p.h ? ` style="--ar:${(p.w / p.h).toFixed(4)}"` : '';
+  const det = `<div class="det">${by ? `<strong>${by}</strong>` : ''}${when ? `<span>${esc(when)}</span>` : ''}${p.w && p.h ? `<span>${p.w} × ${p.h} px</span>` : ''}</div>`;
+  return `<figure class="gitem"${ar}><a class="tile" href="/m/${p.id}/l" data-id="${p.id}" data-full="/m/${p.id}/l">
+  <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="" ${p.w && p.h ? `width="${p.w}" height="${p.h}"` : ''}>${extra}</a>${by ? `<figcaption>${by}</figcaption>` : ''}${det}</figure>`;
 }
 
 export function lightbox() {
@@ -173,9 +177,9 @@ export function uploadDialog() {
 
 function subCards(subs) {
   if (!subs || !subs.length) return '';
-  return `<section class="subs-g"><div class="subs-grid">${subs.map((s) => `<a class="subcard" href="/e/${s.guest_token}">
+  return `<section class="subs-g"><div class="subs-grid">${subs.map((s) => `<div class="subwrap"><a class="subcard" href="/e/${s.guest_token}">
 <span class="subimg"${s.thumb_v ? ` style="background-image:url('/c/${s.guest_token}/thumb?v=${s.thumb_v}')"` : s.first_id ? ` style="background-image:url('/m/${s.first_id}/m')"` : ''}></span>
-<span class="subname">${esc(s.name)}</span><span class="subn">${s.n} ${s.n === 1 ? 'foto' : 'fotos'}</span></a>`).join('')}</div></section>`;
+<span class="subname">${esc(s.name)}</span><span class="subn">${s.n} ${s.n === 1 ? 'foto' : 'fotos'}</span></a><button type="button" class="cardbtn subshare" data-sharelink="/e/${s.guest_token}" aria-label="Compartir ${esc(s.name)}" title="Compartir enlace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg></button></div>`).join('')}</div></section>`;
 }
 
 export function guestPage({ event, photos, total, page, pages, subs = [] }) {
