@@ -71,9 +71,9 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   check('zip bloqueado sin permiso', nodl.status() === 404);
   await p.goto(parentUrl); await p.click('[data-open=setDlg]'); await p.check('#setDlg input[name=allow_download]'); await p.click('#setDlg button.primary');
   await p.waitForSelector('.alert.ok:has-text("Ajustes guardados")');
-  // en la sede: activar y probar selección, descarga individual y ZIP
-  await p.goto(subUrls[0]); await p.click('[data-open=setDlg]'); await p.check('#setDlg input[name=allow_download]'); await p.click('#setDlg button.primary');
-  await p.waitForSelector('.alert.ok:has-text("Ajustes guardados")');
+  await p.goto(subUrls[0]); await p.click('[data-open=setDlg]');
+  check('la sede hereda el permiso de descarga', await p.isChecked('#setDlg input[name=allow_download]'));
+  // en la sede: probar selección, descarga individual y ZIP
   await gp.goto(pl); await gp.click('.subcard >> nth=0'); await gp.waitForSelector('#gallery .tile');
   check('descargas activadas en la sede', !!(await gp.$('#selToggle')));
   check('botón descargar por foto', (await gp.$$('.dlbtn')).length === 4);
