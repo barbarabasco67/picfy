@@ -22,6 +22,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.click('button:has-text("Crear evento")');
   await p.waitForSelector('text=Enlace para invitados');
   const links = await p.$$eval('.linkbox', (n) => n.map((x) => x.textContent));
+  await p.waitForSelector('.qr svg', { timeout: 5000 }).catch(() => {});
   check('QR dibujado', (await p.$$('.qr svg')).length === 1);
   const [guestUrl, manageUrl] = links.map((l) => l.replace(/^https?:\/\/[^/]+/, B));
   check('enlaces con formato', /\/e\/[0-9a-f]{32}$/.test(guestUrl) && /\/o\/[0-9a-f]{64}$/.test(manageUrl), guestUrl);
