@@ -265,3 +265,19 @@
     count();
   });
 })();
+
+(() => {
+  const grid = document.getElementById('gallery');
+  const btns = document.querySelectorAll('.vtog button');
+  if (!grid || !btns.length) return;
+  const key = 'picfy_view';
+  function set(v) {
+    grid.classList.toggle('list', v === 'list');
+    btns.forEach((b) => b.classList.toggle('on', b.dataset.view === v));
+    if (v === 'list') grid.querySelectorAll('.tile img').forEach((i) => { const f = i.closest('.tile').dataset.full; if (f && i.getAttribute('src') !== f) i.src = f; });
+    try { localStorage.setItem(key, v); } catch (e) {}
+  }
+  btns.forEach((b) => b.addEventListener('click', () => set(b.dataset.view)));
+  let saved = null; try { saved = localStorage.getItem(key); } catch (e) {}
+  if (saved === 'list') set('list');
+})();

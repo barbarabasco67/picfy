@@ -173,7 +173,7 @@ export function uploadDialog() {
 
 export function guestPage({ event, photos, total, page, pages }) {
   const grid = photos.length
-    ? `<h2 class="gsec">Las fotos de todos</h2><p class="gsub">${total} ${total === 1 ? 'foto compartida' : 'fotos compartidas'} por los invitados.</p><div class="grid gguest" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
+    ? `<div class="gbar"><span class="gsub">${total} ${total === 1 ? 'foto' : 'fotos'}</span><div class="vtog" role="group" aria-label="Vista"><button type="button" class="on" data-view="grid" aria-label="Cuadrícula"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></button><button type="button" data-view="list" aria-label="Lineal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="7" rx="1"/><rect x="4" y="13" width="16" height="7" rx="1"/></svg></button></div></div><div class="grid gguest" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
     : `<div class="empty">Aún no hay fotos. ¡Sé el primero en subir una!</div>`;
   const base = `/e/${event.guest_token}`;
   return layout({
