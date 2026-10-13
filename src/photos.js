@@ -30,7 +30,7 @@ export async function listApproved(db, event, limit, offset) {
     .prepare(
       `SELECT p.id, p.w, p.h, p.taken_at, p.uploaded_at, g.name AS gname FROM photos p
        JOIN guests g ON g.id = p.guest_id
-       WHERE p.event_id = ?1 AND p.state = 'approved'
+       WHERE p.event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND p.state = 'approved'
        ORDER BY ${orderSql(event.sort_mode, 'p')} LIMIT ?2 OFFSET ?3`,
     )
     .bind(event.id, limit, offset)
@@ -39,7 +39,7 @@ export async function listApproved(db, event, limit, offset) {
 }
 
 export async function countApproved(db, eventId) {
-  const r = await db.prepare(`SELECT COUNT(*) AS n FROM photos WHERE event_id = ? AND state = 'approved'`).bind(eventId).first();
+  const r = await db.prepare(`SELECT COUNT(*) AS n FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND state = 'approved'`).bind(eventId).first();
   return r ? r.n : 0;
 }
 
@@ -52,9 +52,9 @@ export async function materialize(db, event) {
       `UPDATE photos SET sort_order = (
          SELECT r FROM (
            SELECT id, ROW_NUMBER() OVER (ORDER BY ${orderSql(event.sort_mode)}) AS r
-           FROM photos WHERE event_id = ?1
+           FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1)
          ) x WHERE x.id = photos.id
-       ) WHERE event_id = ?1`,
+       ) WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1)`,
     )
     .bind(event.id)
     .run();
@@ -72,7 +72,7 @@ export async function applyOrder(db, event, ids) {
   await materialize(db, event);
   const list = ids.map((i) => `'${i}'`).join(',');
   const rows = await db
-    .prepare(`SELECT id, sort_order FROM photos WHERE event_id = ? AND id IN (${list})`)
+    .prepare(`SELECT id, sort_order FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND id IN (${list})`)
     .bind(event.id)
     .all();
   const known = new Set(rows.results.map((r) => r.id));
@@ -84,7 +84,7 @@ export async function applyOrder(db, event, ids) {
     const part = valid.slice(s, s + CH);
     const cases = part.map((id, k) => `WHEN '${id}' THEN ${Number(slots[s + k])}`).join(' ');
     const inList = part.map((id) => `'${id}'`).join(',');
-    stmts.push(db.prepare(`UPDATE photos SET sort_order = CASE id ${cases} END WHERE event_id = ? AND id IN (${inList})`).bind(event.id));
+    stmts.push(db.prepare(`UPDATE photos SET sort_order = CASE id ${cases} END WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND id IN (${inList})`).bind(event.id));
   }
   if (stmts.length) await db.batch(stmts);
   if (event.sort_mode !== 'manual') await setSortMode(db, event.id, 'manual');
@@ -101,7 +101,7 @@ export async function deletePhotos(env, eventId, ids, guestId = null) {
   ids = [...new Set(ids.filter((i) => isHex(i, 32)))];
   if (!ids.length) return 0;
   const list = ids.map((i) => `'${i}'`).join(',');
-  let sql = `SELECT id FROM photos WHERE event_id = ?1 AND id IN (${list})`;
+  let sql = `SELECT id FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND id IN (${list})`;
   const binds = [eventId];
   if (guestId) { sql += ' AND guest_id = ?2'; binds.push(guestId); }
   const rows = await env.DB.prepare(sql).bind(...binds).all();
@@ -110,6 +110,6 @@ export async function deletePhotos(env, eventId, ids, guestId = null) {
   const keys = del.flatMap((id) => ['o', 'm', 'l'].map((s) => `p/${id}/${s}`));
   for (let i = 0; i < keys.length; i += 500) await env.PHOTOS.delete(keys.slice(i, i + 500));
   const dl = del.map((i) => `'${i}'`).join(',');
-  await env.DB.prepare(`DELETE FROM photos WHERE event_id = ? AND id IN (${dl})`).bind(eventId).run();
+  await env.DB.prepare(`DELETE FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND id IN (${dl})`).bind(eventId).run();
   return del.length;
 }

@@ -98,6 +98,27 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await gp.waitForSelector('h1:has-text("Sede")');
   check('botón volver a la galería', await gp.isVisible('.backbtn') && (await gp.getAttribute('.backbtn', 'href')) === pl.replace(B, ''));
   check('la tarjeta lleva a la sede', /\/e\//.test(gp.url()) && gp.url() !== pl);
+  // la galería principal incluye las fotos de las sedes
+  await p.goto(parentUrl);
+  const nAll = (await p.$$('#sortGrid .tile.ph')).length;
+  check('la principal muestra las fotos de las sedes (3+4+1)', nAll === 8, nAll);
+  check('chip de sede en las fotos', (await p.$$('.sedechip')).length === 8);
+  await gp.goto(pl);
+  check('invitados: la principal muestra todas', (await gp.$$('#gallery .tile')).length === 8);
+  await p.click('#openUpload'); check('subida del panel con selector de destino', (await p.$$eval('#upTarget option', (o) => o.length)) === 3); await p.keyboard.press('Escape');
+  // mover varias fotos de la principal a una sede
+  await p.click('#sortGrid .tile.ph >> nth=0 >> .chk'); await p.click('#sortGrid .tile.ph >> nth=1 >> .chk');
+  const opts = await p.$$eval('#folderTo option', (o) => o.map((x) => x.textContent));
+  check('selector de carpeta', opts.length === 4, opts.join('|'));
+  await p.selectOption('#folderTo', { index: 3 });
+  await p.waitForLoadState('load'); await p.waitForTimeout(1500);
+  await p.goto(parentUrl);
+  check('tras mover, sigue habiendo 8 en la principal', (await p.$$('#sortGrid .tile.ph')).length === 8);
+  // portada de sede desde una foto
+  await p.goto(subUrls[1]);
+  await p.click('#sortGrid .tile.ph >> nth=0 >> .chk'); await p.click('#asCover'); await p.waitForTimeout(800);
+  await p.goto(parentUrl);
+  check('portada elegida desde foto', (await p.$$('.gcard-wrap img[src*="/thumb"]')).length >= 1);
   await p.goto(B + '/galerias');
   check('solo la galería principal en la lista', (await p.$$('#gcards .gcard')).length === 1);
   check('chip de subgalerías', await p.isVisible('.chip.subc:has-text("2 subgalerías")'));

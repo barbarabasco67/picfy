@@ -74,8 +74,8 @@ export function galleryRoutes(app) {
     const approve = x.body.action === 'approve';
     if (!approve && x.body.action !== 'reject') return json({ error: 'action' }, 400);
     const from = approve ? `('pending','rejected')` : `('pending','approved')`;
-    let where = `event_id = ?1 AND state IN ${from}`;
-    if (approve && x.body.all === true) where = `event_id = ?1 AND state = 'pending'`;
+    let where = `event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND state IN ${from}`;
+    if (approve && x.body.all === true) where = `event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND state = 'pending'`;
     else {
       const ids = validIds(x.body.ids);
       if (!ids.length) return json({ ok: true, changed: 0 });
@@ -113,7 +113,7 @@ export function galleryRoutes(app) {
     }
     if ('fav' in x.body) sets.push(`fav = ?${binds.push(x.body.fav ? 1 : 0)}`);
     if (!sets.length) return json({ error: 'nothing' }, 400);
-    await c.env.DB.prepare(`UPDATE photos SET ${sets.join(', ')} WHERE event_id = ?1 AND id IN (${inList(ids)})`).bind(...binds).run();
+    await c.env.DB.prepare(`UPDATE photos SET ${sets.join(', ')} WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND id IN (${inList(ids)})`).bind(...binds).run();
     return json({ ok: true });
   });
 
@@ -125,6 +125,34 @@ export function galleryRoutes(app) {
     if (!g) return json({ error: 'guest' }, 404);
     const r = await c.env.DB.prepare(`UPDATE photos SET guest_id = ? WHERE event_id = ? AND id IN (${inList(ids)})`).bind(g.id, x.event.id).run();
     return json({ ok: true, moved: r.meta?.changes ?? 0 });
+  });
+
+  // Mover fotos a otra carpeta (galería principal o una de sus subgalerías)
+  app.post('/api/g/:id/folder', async (c) => {
+    const x = await api(c); if (!x) return json({ error: 'auth' }, 403);
+    const ids = validIds(x.body.ids);
+    const rootId = x.event.parent_id || x.event.id;
+    const target = String(x.body.target || '');
+    const dest = await c.env.DB.prepare('SELECT id FROM events WHERE id = ?1 AND (id = ?2 OR parent_id = ?2) AND owner_id = ?3').bind(target, rootId, x.event.owner_id).first();
+    if (!ids.length || !dest) return json({ error: 'bad' }, 400);
+    const r = await c.env.DB.prepare(
+      `UPDATE photos SET event_id = ?1 WHERE id IN (${inList(ids)}) AND event_id IN (SELECT id FROM events WHERE id = ?2 OR parent_id = ?2)`,
+    ).bind(dest.id, rootId).run();
+    return json({ ok: true, moved: r.meta?.changes ?? 0 });
+  });
+
+  // Usar una foto como portada del cuadro de esta (sub)galería
+  app.post('/api/g/:id/thumb-from', async (c) => {
+    const x = await api(c); if (!x) return json({ error: 'auth' }, 403);
+    const id = String(x.body.id || '');
+    if (!isHex(id, 32)) return json({ error: 'bad' }, 400);
+    const ok = await c.env.DB.prepare('SELECT id FROM photos WHERE id = ?1 AND event_id IN (SELECT id FROM events WHERE id = ?2 OR parent_id = ?2)').bind(id, x.event.id).first();
+    const obj = ok && await c.env.PHOTOS.get(`p/${id}/l`);
+    if (!obj) return json({ error: 'photo' }, 404);
+    await c.env.PHOTOS.put(`c/${x.event.id}/thumb`, obj.body, { httpMetadata: { contentType: 'image/jpeg' } });
+    const v = Date.now();
+    await c.env.DB.prepare('UPDATE events SET thumb_v = ? WHERE id = ?').bind(v, x.event.id).run();
+    return json({ ok: true, v });
   });
 
   // Ajustes (formulario normal)
@@ -173,7 +201,7 @@ export function galleryRoutes(app) {
     const pick = validIds(String(c.req.query('ids') || '').split(',')).slice(0, partSize);
     const rows = (await c.env.DB.prepare(
       `SELECT p.id, p.filename, p.size, p.crc32, p.taken_at, p.uploaded_at
-       FROM photos p WHERE p.event_id = ? AND p.state IN ('approved','pending','rejected') ${pick.length ? `AND p.id IN (${inList(pick)})` : `AND p.state = 'approved'`}
+       FROM photos p WHERE p.event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND p.state IN ('approved','pending','rejected') ${pick.length ? `AND p.id IN (${inList(pick)})` : `AND p.state = 'approved'`}
        ORDER BY ${orderSql(event.sort_mode, 'p')}`,
     ).bind(event.id).all()).results;
     const parts = pick.length ? [rows] : splitParts(rows, partSize);

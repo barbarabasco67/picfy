@@ -81,7 +81,7 @@ app.get('/e/:token/dl/:id', async (c) => {
   const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
   const id = c.req.param('id');
   if (!event || !event.allow_download || !event.gallery_open || !isHex(id, 32)) return c.notFound();
-  const row = await c.env.DB.prepare("SELECT filename FROM photos WHERE id = ? AND event_id = ? AND state = 'approved'").bind(id, event.id).first();
+  const row = await c.env.DB.prepare("SELECT filename FROM photos WHERE id = ?1 AND event_id IN (SELECT id FROM events WHERE id = ?2 OR parent_id = ?2) AND state = 'approved'").bind(id, event.id).first();
   if (!row) return c.notFound();
   const obj = await c.env.PHOTOS.get(`p/${id}/o`);
   if (!obj) return c.notFound();
@@ -100,7 +100,7 @@ app.get('/e/:token/zip', async (c) => {
   const pick = [...new Set(String(c.req.query('ids') || '').split(',').filter((x) => isHex(x, 32)))].slice(0, partSize);
   const rows = (await c.env.DB.prepare(
     `SELECT p.id, p.filename, p.size, p.crc32, p.taken_at, p.uploaded_at FROM photos p
-     WHERE p.event_id = ? AND p.state = 'approved' ${pick.length ? `AND p.id IN (${pick.map((x) => `'${x}'`).join(',')})` : ''}
+     WHERE p.event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND p.state = 'approved' ${pick.length ? `AND p.id IN (${pick.map((x) => `'${x}'`).join(',')})` : ''}
      ORDER BY ${orderSql(event.sort_mode, 'p')}`,
   ).bind(event.id).all()).results;
   const parts = pick.length ? [rows] : splitParts(rows, partSize);
@@ -155,7 +155,10 @@ async function guestFor(db, event, key) {
 app.post('/api/e/:token/upload/init', async (c) => {
   const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
   if (!event) return json({ error: 'event' }, 404);
-  if (!event.upload_open) return json({ error: 'closed' }, 403);
+  if (!event.upload_open) {
+    const who = await currentUser(c);
+    if (!(who && event.owner_id && who.id === event.owner_id)) return json({ error: 'closed' }, 403);
+  }
   let b;
   try { b = await c.req.json(); } catch { return json({ error: 'json' }, 400); }
   if (!isHex(b.key, 32)) return json({ error: 'key' }, 400);

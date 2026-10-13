@@ -150,11 +150,12 @@ ${brandFields()}
 const FLAG_NAMES = { red: 'Roja', orange: 'Naranja', green: 'Verde', black: 'Negra' };
 const flagDot = (f) => `<span class="fdot ${f}"></span>`;
 
-export function galleryPage({ user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, note = '' }) {
+export function galleryPage({ user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
   const guestUrl = `${origin}/e/${event.guest_token}`;
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
-    .map((p) => `<div class="tile ph" data-id="${p.id}" data-full="/m/${p.id}/l" data-state="${p.state}" data-flag="${p.flag || ''}" data-fav="${p.fav ? 1 : 0}" data-name="${esc((p.filename || '').toLowerCase())}" title="${esc(gname.get(p.guest_id) || '')}">
+    .map((p) => `<div class="tile ph" data-id="${p.id}" data-full="/m/${p.id}/l" data-state="${p.state}" data-flag="${p.flag || ''}" data-fav="${p.fav ? 1 : 0}" data-name="${esc((p.filename || '').toLowerCase())}" title="${esc(gname.get(p.guest_id) || '')}${p.event_id !== event.id && p.ename ? ' · ' + esc(p.ename) : ''}">
+${p.event_id !== event.id && p.ename ? `<span class="sedechip">${esc(p.ename)}</span>` : ''}
 <input class="chk" type="checkbox" aria-label="Seleccionar foto">
 <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="">
 <button class="mk flagb" type="button" data-mk="flag" aria-label="Bandera">${ICON.flag}</button>
@@ -205,7 +206,7 @@ ${counts.pending ? `<button class="btn" type="button" id="approveAll">Aprobar la
 ${event.parent_id ? '' : `<div class="subs"><div class="bar"><h2 class="sec" style="margin:0">Subgalerías</h2><span class="spacer"></span><button class="btn sm" type="button" data-open="subDlg">${ICON.plus} Crear subgalería</button></div>
 <form method="post" action="/galerias/${event.id}/mostrar-subs" class="subtog"><label class="check"><input type="checkbox" name="show_subs" value="1" ${event.show_subs ? 'checked' : ''} onchange="this.form.submit()"> Mostrarlas en la página de invitados</label></form>
 ${subs.length ? `<div class="gcards small">${subs.map((s) => `<div class="gcard-wrap"><a class="gcard glass" href="/galerias/${s.id}"><div class="cover">${s.thumb_v ? `<img src="/c/${s.guest_token}/thumb?v=${s.thumb_v}" alt="" loading="lazy">` : s.cover ? `<img src="/m/${s.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}${s.pending ? `<span class="chip warn">${s.pending} por revisar</span>` : ''}</div><div class="gmeta"><strong>${esc(s.name)}</strong><span>${s.approved}</span></div></a>
-<div class="cardtools"><button type="button" class="cardbtn" data-sharelink="/e/${s.guest_token}" data-sharename="${esc(s.name)}" title="Compartir enlace" aria-label="Compartir ${esc(s.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button><label class="cardbtn" title="Elegir portada" aria-label="Elegir portada de ${esc(s.name)}">${ICON.up}<input type="file" accept="image/jpeg,image/png,image/webp" hidden data-thumb="${s.id}"></label>${s.thumb_v ? `<button type="button" class="cardbtn" data-thumbdel="${s.id}" title="Quitar portada" aria-label="Quitar portada">${ICON.trash}</button>` : ''}</div></div>`).join('')}</div>` : `<p class="muted small" style="margin:8px 0 0">Una subgalería tiene su propio enlace, moderación y descarga. Úsala, por ejemplo, para cada sede de un torneo.</p>`}</div>`}
+<div class="cardtools"><button type="button" class="cardbtn" data-sharelink="/e/${s.guest_token}" data-sharename="${esc(s.name)}" title="Compartir enlace" aria-label="Compartir ${esc(s.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button><label class="cardbtn wide" title="Elegir la imagen del cuadro" aria-label="Elegir portada de ${esc(s.name)}">${ICON.up}<span>Portada</span><input type="file" accept="image/jpeg,image/png,image/webp" hidden data-thumb="${s.id}"></label>${s.thumb_v ? `<button type="button" class="cardbtn" data-thumbdel="${s.id}" title="Quitar portada" aria-label="Quitar portada">${ICON.trash}</button>` : ''}</div></div>`).join('')}</div>` : `<p class="muted small" style="margin:8px 0 0">Una subgalería tiene su propio enlace, moderación y descarga. Úsala, por ejemplo, para cada sede de un torneo.</p>`}</div>`}
 <div class="gtools"><span class="muted small" id="shown">${photos.length} fotos</span><span class="spacer"></span><button class="btn sm" type="button" id="pickAll">Seleccionar todo</button></div>
 ${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid" style="--tile:170px">${tiles}</div><p class="muted hidden" id="noMatch2">Ninguna foto coincide con el filtro.</p>` : `<div class="glass emptybox">Esta galería todavía no tiene fotos. Comparte el enlace para que tus invitados suban las suyas.</div>`}
 </section></div>
@@ -218,6 +219,8 @@ ${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid" style="--til
 <span class="sepv"></span>
 <span class="menuwrap"><button class="sb ic" type="button" id="flagMenuBtn" title="Bandera" aria-label="Bandera">${ICON.flag}</button><div class="menu glass hidden" id="flagMenu">${flagMenu}</div></span>
 <button class="sb ic" type="button" data-act="fav" title="Favorita" aria-label="Favorita">${ICON.heart}</button>
+${folders.length > 1 ? `<select id="folderTo" aria-label="Mover a carpeta"><option value="">Mover a…</option>${folders.map((f) => `<option value="${f.id}">${f.parent_id ? esc(f.name) : esc(f.name) + ' (principal)'}</option>`).join('')}</select>` : ''}
+${event.parent_id ? `<button class="sb" type="button" id="asCover" title="Usar la foto seleccionada como portada del cuadro de esta subgalería">Usar de portada</button>` : ''}
 ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><option value="">Pasar al álbum de…</option>${opts}</select>` : ''}
 <button class="sb ic" type="button" data-act="download" title="Descargar" aria-label="Descargar">${ICON.down}</button>
 <button class="sb ic danger" type="button" data-act="delete" title="Borrar" aria-label="Borrar">${ICON.trash}</button>
@@ -232,7 +235,7 @@ ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><optio
 <div class="qr" data-qr="${esc(guestUrl)}"></div>
 </div></dialog>
 
-${uploadDialog()}
+${uploadDialog(event.parent_id ? null : event, subs.map((s) => ({ ...s, upload_open: 1 })))}
 
 <dialog id="subDlg" class="glassdlg"><form method="post" action="/galerias/${event.id}/sub" class="dlgbox">
 <header><h2>Crear subgalería</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>

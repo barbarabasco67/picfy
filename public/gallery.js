@@ -129,6 +129,18 @@
     } catch { err(); }
   });
 
+  const fo = $('folderTo');
+  if (fo) fo.addEventListener('change', async () => {
+    const ids = sort.picked(), to = fo.value; if (!ids.length || !to) return;
+    try { await post(api + '/folder', { ids, target: to }); toast(`${ids.length} fotos movidas a «${fo.selectedOptions[0].textContent.replace(/\s*\(principal\)$/, '')}»`); setTimeout(() => location.reload(), 700); }
+    catch { err(); fo.value = ''; }
+  });
+  const cov = $('asCover');
+  if (cov) cov.addEventListener('click', async () => {
+    const ids = sort.picked(); if (ids.length !== 1) { toast('Elige una sola foto'); return; }
+    try { await post(api + '/thumb-from', { id: ids[0] }); toast('Portada del cuadro actualizada'); } catch { err(); }
+  });
+
   const size = $('size');
   const apply = () => grid.style.setProperty('--tile', size.value + 'px');
   size.addEventListener('input', apply); apply();

@@ -69,9 +69,9 @@ export function appRoutes(app) {
     if (!user) return go('/entrar');
     const rows = await c.env.DB.prepare(
       `SELECT e.id, e.name, e.event_date,
-         (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'approved') AS approved,
-         (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'pending') AS pending,
-         (SELECT p.id FROM photos p WHERE p.event_id = e.id AND p.state = 'approved'
+         (SELECT COUNT(*) FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'approved') AS approved,
+         (SELECT COUNT(*) FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'pending') AS pending,
+         (SELECT p.id FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'approved'
             ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover
          , (SELECT COUNT(*) FROM events s WHERE s.parent_id = e.id) AS subs
        FROM events e WHERE e.owner_id = ? AND e.parent_id IS NULL ORDER BY e.created_at DESC`,
@@ -113,8 +113,8 @@ export function appRoutes(app) {
     const db = c.env.DB;
     const [ph, gs] = await Promise.all([
       db.prepare(
-        `SELECT id, guest_id, filename, state, flag, fav, size FROM photos
-         WHERE event_id = ? AND state IN ('approved','pending','rejected')
+        `SELECT id, guest_id, event_id, (SELECT name FROM events x WHERE x.id = photos.event_id) AS ename, filename, state, flag, fav, size FROM photos
+         WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND state IN ('approved','pending','rejected')
          ORDER BY ${orderSql(event.sort_mode)} LIMIT 3000`,
       ).bind(event.id).all(),
       db.prepare(
@@ -133,11 +133,15 @@ export function appRoutes(app) {
     const parent = event.parent_id
       ? await db.prepare('SELECT id, name FROM events WHERE id = ? AND owner_id = ?').bind(event.parent_id, user.id).first()
       : null;
+    const rootId = parent ? parent.id : event.id;
+    const folders = (await db.prepare(
+      'SELECT id, name, parent_id FROM events WHERE (id = ?1 OR parent_id = ?1) AND owner_id = ?2 ORDER BY (parent_id IS NOT NULL), created_at ASC',
+    ).bind(rootId, user.id).all()).results;
     const approved = photos.filter((p) => p.state === 'approved');
     const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
     const zipParts = splitParts(approved, partSize).map((p) => ({ count: p.length }));
     return html(galleryPage({
-      user, event, photos, subs, parent, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
+      user, event, photos, subs, parent, folders, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
       counts: { approved: approved.length, pending: photos.filter((p) => p.state === 'pending').length },
       note: c.req.query('ok') || '',
     }));

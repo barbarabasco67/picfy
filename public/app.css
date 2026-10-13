@@ -362,3 +362,6 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 34px); r
 .selecting .gitem.picked .pick::after { content: ''; position: absolute; left: 7px; top: 3px; width: 6px; height: 11px; border: solid var(--accent-ink, #fff); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
 .selecting .gitem.picked .tile { outline: 3px solid var(--accent); outline-offset: -3px; }
 .selecting .gitem { cursor: pointer; }
+
+.sedechip { position: absolute; left: 8px; bottom: 8px; z-index: 2; max-width: calc(100% - 16px); padding: 3px 9px; border-radius: 999px; font-size: .72rem; font-weight: 600; background: rgba(255,255,255,.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
+.cardbtn.wide { width: auto; padding: 0 10px; gap: 6px; font-size: .82rem; font-weight: 600; grid-auto-flow: column; }
