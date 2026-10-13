@@ -1,7 +1,7 @@
 // Gestión de una galería por su dueño: moderar, ordenar, marcar, mover, ajustes y descargas.
 
-import { isHex, json, html } from './util.js';
-import { currentUser } from './auth.js';
+import { isHex, json, html, randomHex } from './util.js';
+import { currentUser, hashPassword } from './auth.js';
 import { applyOrder, deletePhotos, orderSql, setSortMode, SORTS } from './photos.js';
 import { buildZip, splitParts } from './zip.js';
 import { notFoundPage } from './views.js';
@@ -174,10 +174,21 @@ export function galleryRoutes(app) {
     }
     try {
       const dl = f.get('allow_download') ? 1 : 0;
-      // en una galería principal el permiso se aplica también a todas sus subgalerías
-      await c.env.DB.prepare('UPDATE events SET allow_download = ? WHERE id = ? OR parent_id = ?').bind(dl, event.id, event.id).run();
+      // en una galería principal, si el permiso cambia, se aplica también a sus subgalerías
+      if (!event.parent_id && Boolean(event.allow_download) !== Boolean(dl)) await c.env.DB.prepare('UPDATE events SET allow_download = ? WHERE id = ? OR parent_id = ?').bind(dl, event.id, event.id).run();
+      else await c.env.DB.prepare('UPDATE events SET allow_download = ? WHERE id = ?').bind(dl, event.id).run();
     } catch { /* falta la migración 0008 */ }
-    return c.redirect(`/galerias/${event.id}?ok=${encodeURIComponent('Ajustes guardados.')}`, 303);
+    let msg = 'Ajustes guardados.';
+    if (event.parent_id) {
+      try {
+        await c.env.DB.prepare('UPDATE events SET is_private = ? WHERE id = ?').bind(f.get('is_private') ? 1 : 0, event.id).run();
+        const pw = String(f.get('access_password') || '').trim().slice(0, 60);
+        if (f.get('access_clear')) await c.env.DB.prepare('UPDATE events SET access_hash = NULL WHERE id = ?').bind(event.id).run();
+        else if (pw && pw.length < 4) msg = 'Ajustes guardados, pero la contraseña debe tener al menos 4 caracteres.';
+        else if (pw) { const salt = randomHex(16); await c.env.DB.prepare('UPDATE events SET access_hash = ? WHERE id = ?').bind(`${salt}:${await hashPassword(pw, salt)}`, event.id).run(); }
+      } catch { msg = 'Ajustes guardados, pero falta la actualización de la base de datos (migración 0009) para la privacidad.'; }
+    }
+    return c.redirect(`/galerias/${event.id}?ok=${encodeURIComponent(msg)}`, 303);
   });
 
   app.post('/galerias/:id/mostrar-subs', async (c) => {

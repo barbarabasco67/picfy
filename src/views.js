@@ -88,6 +88,18 @@ export function notFoundPage(msg = 'No hemos encontrado esta página.') {
   });
 }
 
+export function accessPage(event, error = '') {
+  return layout({
+    title: `${event.name} · Picfy`,
+    body: `<main class="wrap narrow" style="padding:90px 16px;text-align:center"><div class="glass emptybox" style="padding:36px 24px;max-width:420px;margin:0 auto">
+<h1 style="margin-top:0">${esc(event.name)}</h1><p class="muted">Esta galería es privada. Escribe la contraseña que te han dado.</p>
+${error ? `<div class="notice err">${esc(error)}</div>` : ''}
+<form method="post" action="/e/${event.guest_token}/acceso" style="display:grid;gap:12px;margin-top:14px">
+<input type="password" name="password" required autocomplete="current-password" placeholder="Contraseña" style="font:inherit;padding:.8em 1em;border-radius:12px;border:1px solid var(--line);text-align:center">
+<button class="btn primary" type="submit">Entrar</button></form></div></main>`,
+  });
+}
+
 /* ---------------- Administración ---------------- */
 
 export function adminLoginPage(error = '') {

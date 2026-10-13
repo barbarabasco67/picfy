@@ -25,12 +25,24 @@ export async function getEventById(db, id) {
 }
 
 // Fotos visibles para todos, con paginación.
+// ¿Está aplicada la migración de privacidad? (se recuerda un rato para no consultarlo en cada visita)
+let privState = { v: null, t: 0 };
+export async function privacyReady(db) {
+  if (privState.v === true || (privState.v === false && Date.now() - privState.t < 30000)) return privState.v;
+  try { await db.prepare('SELECT is_private FROM events LIMIT 1').first(); privState = { v: true, t: Date.now() }; }
+  catch { privState = { v: false, t: Date.now() }; }
+  return privState.v;
+}
+// Familia visible para los invitados: la galería y sus subgalerías NO privadas.
+export const famPublic = (col, p, ready) => `${col} IN (SELECT id FROM events WHERE id = ${p} OR (parent_id = ${p}${ready ? ' AND is_private = 0' : ''}))`;
+
 export async function listApproved(db, event, limit, offset) {
+  const ready = await privacyReady(db);
   const rows = await db
     .prepare(
       `SELECT p.id, p.w, p.h, p.taken_at, p.uploaded_at, g.name AS gname FROM photos p
        JOIN guests g ON g.id = p.guest_id
-       WHERE p.event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND p.state = 'approved'
+       WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'
        ORDER BY ${orderSql(event.sort_mode, 'p')} LIMIT ?2 OFFSET ?3`,
     )
     .bind(event.id, limit, offset)
@@ -39,7 +51,8 @@ export async function listApproved(db, event, limit, offset) {
 }
 
 export async function countApproved(db, eventId) {
-  const r = await db.prepare(`SELECT COUNT(*) AS n FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND state = 'approved'`).bind(eventId).first();
+  const ready = await privacyReady(db);
+  const r = await db.prepare(`SELECT COUNT(*) AS n FROM photos p WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'`).bind(eventId).first();
   return r ? r.n : 0;
 }
 

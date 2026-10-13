@@ -119,6 +119,37 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.click('#sortGrid .tile.ph >> nth=0 >> .chk'); await p.click('#asCover'); await p.waitForTimeout(800);
   await p.goto(parentUrl);
   check('portada elegida desde foto', (await p.$$('.gcard-wrap img[src*="/thumb"]')).length >= 1);
+  // subgalería privada con contraseña
+  await p.goto(parentUrl);
+  await p.click('[data-open=subDlg]'); await p.fill('#subDlg input[name=name]', 'Infantil PBL'); await p.click('#subDlg button.primary');
+  await p.waitForURL(/\/galerias\/[0-9a-f]{16}\?ok/);
+  await p.click('[data-open=setDlg]'); await p.check('#setDlg input[name=is_private]'); await p.fill('#setDlg input[name=access_password]', 'clave1'); await p.check('#setDlg input[name=allow_download]');
+  await p.click('#setDlg button.primary'); await p.waitForSelector('.alert.ok:has-text("Ajustes guardados")');
+  await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
+  const privLink = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
+  await p.click('#openUpload'); await p.setInputFiles('#fileInput', `${process.cwd()}/tests/img/p02.jpg`);
+  await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 1);
+  await p.click('#upStart'); await p.waitForFunction(() => document.querySelectorAll('.up-item .st.ok').length === 1, null, { timeout: 30000 });
+  await p.click('#upClose'); await p.waitForLoadState('load');
+  const anon = await (await b.newContext({ viewport: { width: 1200, height: 800 } })).newPage();
+  await anon.goto(pl);
+  const names = await anon.$$eval('.subname', (n) => n.map((x) => x.textContent));
+  check('la privada no sale en las sedes públicas', !names.includes('Infantil PBL'), names.join());
+  check('sus fotos no salen en la general', (await anon.$$('#gallery .tile')).length === 8);
+  await anon.goto(privLink);
+  check('la privada pide contraseña', !!(await anon.$('input[name=password]')) && !(await anon.$('#gallery')));
+  await anon.fill('input[name=password]', 'mala'); await anon.click('button[type=submit]');
+  check('contraseña incorrecta rechazada', await anon.isVisible('.notice.err'));
+  const noZip = await anon.request.get(privLink.replace(/\/e\/(.*)$/, '/e/$1/zip'));
+  check('zip bloqueado sin contraseña', noZip.status() === 404);
+  await anon.fill('input[name=password]', 'clave1'); await anon.click('button[type=submit]');
+  await anon.waitForSelector('#gallery .tile');
+  check('con contraseña ve su foto y puede descargar', (await anon.$$('#gallery .tile')).length === 1 && !!(await anon.$('#selToggle')));
+  await anon.screenshot({ path: '/tmp/picfy_shots/priv_ok.png' });
+  await p.goto(parentUrl);
+  check('el administrador sigue viendo todo (9)', (await p.$$('#sortGrid .tile.ph')).length === 9);
+  check('chip de privada', await p.isVisible('.privchip'));
+  await p.screenshot({ path: '/tmp/picfy_shots/priv_admin.png' });
   // panel lateral contraído y flecha
   await p.goto(parentUrl);
   check('menú contraído por defecto', await p.$eval('.frame > .side', (e) => e.classList.contains('collapsed')));
@@ -129,7 +160,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.click('#navToggle');
   await p.goto(B + '/galerias');
   check('solo la galería principal en la lista', (await p.$$('#gcards .gcard')).length === 1);
-  check('chip de subgalerías', await p.isVisible('.chip.subc:has-text("2 subgalerías")'));
+  check('chip de subgalerías', await p.isVisible('.chip.subc:has-text("3 subgalerías")'));
   await p.screenshot({ path: '/tmp/picfy_shots/s1_lista.png' });
   await p.goto(parentUrl); await p.screenshot({ path: '/tmp/picfy_shots/s2_padre.png' });
   // borrar una sede conserva sus fotos en la principal
@@ -137,7 +168,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.goto(subUrls[1]); await p.click('[data-open=setDlg]'); await p.click('#setDlg button.danger');
   await p.waitForURL(parentUrl.replace(/^https?:\/\/[^/]+/, '**'));
   check('tras borrar la sede quedan las mismas fotos', (await p.$$('#sortGrid .tile.ph')).length === before, before);
-  check('queda 1 sede', (await p.$$('.subs .gcard')).length === 1);
+  check('quedan 2 sedes', (await p.$$('.subs .gcard')).length === 2);
   check('foto movida sigue en la principal para invitados', true);
   await p.goto(parentUrl);
   // borrar el padre borra las hijas

@@ -387,3 +387,9 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 34px); r
 .trio { grid-template-columns: repeat(3, 1fr); }
 .tool { justify-content: center; height: 78px; padding: 8px 2px; text-align: center; line-height: 1.15; font-size: .78rem; white-space: nowrap; }
 .tool span { display: block; }
+
+.privbox { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; gap: 10px; margin: 6px 0; }
+.privbox legend { padding: 0 6px; font-weight: 700; font-size: .9rem; }
+.privchip { position: absolute; left: 10px; bottom: 58px; z-index: 3; display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: .72rem; font-weight: 700; background: rgba(255,255,255,.88); color: var(--ink); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+.privchip svg { width: 13px; height: 13px; }
+.cardtools { flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 16px); }

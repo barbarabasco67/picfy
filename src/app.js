@@ -4,7 +4,7 @@ import { randomHex, sha256Hex, html, json } from './util.js';
 import { hashPassword, checkPassword, validEmail, startSession, endSession, currentUser } from './auth.js';
 import { authPage, galleriesPage, galleryPage } from './appviews.js';
 import { notFoundPage } from './views.js';
-import { orderSql } from './photos.js';
+import { orderSql, privacyReady } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
 import { splitParts } from './zip.js';
 
@@ -123,8 +123,9 @@ export function appRoutes(app) {
       ).bind(event.id).all(),
     ]);
     const photos = ph.results;
+    const priv = await privacyReady(db);
     const subs = (await db.prepare(
-      `SELECT e.id, e.name, e.guest_token, e.thumb_v,
+      `SELECT e.id, e.name, e.guest_token, e.thumb_v, ${priv ? 'e.is_private, (e.access_hash IS NOT NULL) AS has_pw,' : '0 AS is_private, 0 AS has_pw,'}
          (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'approved') AS approved,
          (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'pending') AS pending,
          (SELECT p.id FROM photos p WHERE p.event_id = e.id AND p.state = 'approved' ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover

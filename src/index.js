@@ -4,16 +4,16 @@ import {
   makeSession, checkSession, getCookie,
 } from './util.js';
 import {
-  getEventByGuestToken, getEventById, listApproved, countApproved,
+  getEventByGuestToken, getEventById, listApproved, countApproved, privacyReady, famPublic,
   applyOrder, nextSortOrder, deletePhotos, orderSql,
 } from './photos.js';
 import {
   PER_PAGE, landingPage, notFoundPage, adminLoginPage, adminDashboard, adminCreated,
-  guestPage,
+  guestPage, accessPage,
 } from './views.js';
 import { manageRoutes } from './manage.js';
 import { appRoutes } from './app.js';
-import { currentUser } from './auth.js';
+import { currentUser, hashPassword } from './auth.js';
 import { buildZip, splitParts } from './zip.js';
 
 const app = new Hono();
@@ -47,6 +47,7 @@ app.get('/health', async (c) => {
     mostrar_subgalerias: await has('SELECT show_subs FROM events LIMIT 1'),
     portada_sedes: await has('SELECT thumb_v FROM events LIMIT 1'),
     descargas: await has('SELECT allow_download FROM events LIMIT 1'),
+    privadas: await has('SELECT is_private, access_hash FROM events LIMIT 1'),
   };
   return json(out);
 });
@@ -80,8 +81,8 @@ app.get('/m/:id/:size', async (c) => {
 app.get('/e/:token/dl/:id', async (c) => {
   const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
   const id = c.req.param('id');
-  if (!event || !event.allow_download || !event.gallery_open || !isHex(id, 32)) return c.notFound();
-  const row = await c.env.DB.prepare("SELECT filename FROM photos WHERE id = ?1 AND event_id IN (SELECT id FROM events WHERE id = ?2 OR parent_id = ?2) AND state = 'approved'").bind(id, event.id).first();
+  if (!event || !event.allow_download || !event.gallery_open || !isHex(id, 32) || !(await accessOk(c, event))) return c.notFound();
+  const row = await c.env.DB.prepare(`SELECT filename FROM photos WHERE id = ?1 AND ${famPublic('event_id', '?2', await privacyReady(c.env.DB))} AND state = 'approved'`).bind(id, event.id).first();
   if (!row) return c.notFound();
   const obj = await c.env.PHOTOS.get(`p/${id}/o`);
   if (!obj) return c.notFound();
@@ -94,13 +95,14 @@ app.get('/e/:token/dl/:id', async (c) => {
 
 app.get('/e/:token/zip', async (c) => {
   const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
-  if (!event || !event.allow_download || !event.gallery_open) return html(notFoundPage('Las descargas no están disponibles.'), 404);
+  if (!event || !event.allow_download || !event.gallery_open || !(await accessOk(c, event))) return html(notFoundPage('Las descargas no están disponibles.'), 404);
+  const ready = await privacyReady(c.env.DB);
   const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
   const part = Math.max(1, parseInt(c.req.query('part') || '1', 10) || 1);
   const pick = [...new Set(String(c.req.query('ids') || '').split(',').filter((x) => isHex(x, 32)))].slice(0, partSize);
   const rows = (await c.env.DB.prepare(
     `SELECT p.id, p.filename, p.size, p.crc32, p.taken_at, p.uploaded_at FROM photos p
-     WHERE p.event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND p.state = 'approved' ${pick.length ? `AND p.id IN (${pick.map((x) => `'${x}'`).join(',')})` : ''}
+     WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved' ${pick.length ? `AND p.id IN (${pick.map((x) => `'${x}'`).join(',')})` : ''}
      ORDER BY ${orderSql(event.sort_mode, 'p')}`,
   ).bind(event.id).all()).results;
   const parts = pick.length ? [rows] : splitParts(rows, partSize);
@@ -121,11 +123,36 @@ app.get('/e/:token/zip', async (c) => {
   return new Response(stream, { headers: { 'content-type': 'application/zip', 'content-length': String(length), 'content-disposition': `attachment; filename="${fname}"`, 'cache-control': 'no-store' } });
 });
 
+/* ---------- Acceso con contraseña (subgalerías privadas) ---------- */
+
+const accessCookie = (event) => `picfy_a_${event.guest_token.slice(0, 12)}`;
+async function accessOk(c, event) {
+  if (!event.access_hash) return true;
+  const me = await currentUser(c);
+  if (me && event.owner_id && me.id === event.owner_id) return true;
+  const want = await sha256Hex(event.access_hash + event.guest_token);
+  return timingSafeEqual(getCookie(c.req.raw, accessCookie(event)), want);
+}
+
+app.post('/e/:token/acceso', async (c) => {
+  const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
+  if (!event) return html(notFoundPage('Este enlace no existe o ya no está activo.'), 404);
+  const f = await c.req.formData();
+  const [salt, hash] = String(event.access_hash || ':').split(':');
+  const given = salt ? await hashPassword(String(f.get('password') || ''), salt) : '';
+  if (!event.access_hash || (hash && timingSafeEqual(given, hash))) {
+    const val = await sha256Hex((event.access_hash || '') + event.guest_token);
+    return new Response(null, { status: 303, headers: { location: `/e/${event.guest_token}`, 'set-cookie': `${accessCookie(event)}=${val}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${30 * 86400}` } });
+  }
+  return html(accessPage(event, 'Contraseña incorrecta. Inténtalo de nuevo.'), 401);
+});
+
 /* ---------- Invitados ---------- */
 
 app.get('/e/:token', async (c) => {
   const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
   if (!event) return html(notFoundPage('Este enlace no existe o ya no está activo.'), 404);
+  if (!(await accessOk(c, event))) return html(accessPage(event), 401);
   const total = await countApproved(c.env.DB, event.id);
   const pages = Math.max(1, Math.ceil(total / PER_PAGE));
   const page = Math.min(pages, Math.max(1, parseInt(c.req.query('page') || '1', 10) || 1));
@@ -136,7 +163,7 @@ app.get('/e/:token', async (c) => {
       `SELECT s.name, s.guest_token, s.thumb_v, s.event_date, s.upload_open,
               (SELECT p.id FROM photos p WHERE p.event_id = s.id AND p.state = 'approved' ORDER BY p.sort_order LIMIT 1) AS first_id,
               (SELECT COUNT(*) FROM photos p WHERE p.event_id = s.id AND p.state = 'approved') AS n
-       FROM events s WHERE s.parent_id = ? AND s.gallery_open = 1 ORDER BY s.name COLLATE NOCASE`,
+       FROM events s WHERE s.parent_id = ? AND s.gallery_open = 1 ${(await privacyReady(c.env.DB)) ? 'AND s.is_private = 0' : ''} ORDER BY s.name COLLATE NOCASE`,
     ).bind(event.id).all()).results;
   }
   let parent = null;
@@ -155,6 +182,7 @@ async function guestFor(db, event, key) {
 app.post('/api/e/:token/upload/init', async (c) => {
   const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
   if (!event) return json({ error: 'event' }, 404);
+  if (!(await accessOk(c, event))) return json({ error: 'access' }, 403);
   if (!event.upload_open) {
     const who = await currentUser(c);
     if (!(who && event.owner_id && who.id === event.owner_id)) return json({ error: 'closed' }, 403);
