@@ -83,7 +83,7 @@ export function galleriesPage({ user, events, origin }) {
     .map(
       (e) => `<a class="gcard glass" href="/galerias/${e.id}" data-name="${esc(e.name.toLowerCase())}">
 <div class="cover">${e.cover ? `<img src="/m/${e.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}
-${e.pending ? `<span class="chip warn">${e.pending} por revisar</span>` : ''}</div>
+${e.pending ? `<span class="chip warn">${e.pending} por revisar</span>` : ''}${e.subs ? `<span class="chip subc">${e.subs} subgalería${e.subs === 1 ? '' : 's'}</span>` : ''}</div>
 <div class="gmeta"><strong>${esc(e.name)}</strong><span>${e.approved}</span></div>
 ${e.event_date ? `<div class="gdate">${esc(fmtDate(e.event_date))}</div>` : ''}
 </a>`,
@@ -120,7 +120,7 @@ ${events.length ? `<div class="gcards" id="gcards">${cards}</div><p class="muted
 const FLAG_NAMES = { red: 'Roja', orange: 'Naranja', green: 'Verde', black: 'Negra' };
 const flagDot = (f) => `<span class="fdot ${f}"></span>`;
 
-export function galleryPage({ user, event, photos, guests, counts, origin, partSize, zipParts, note = '' }) {
+export function galleryPage({ user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, note = '' }) {
   const guestUrl = `${origin}/e/${event.guest_token}`;
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
@@ -146,7 +146,7 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
     scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/reorder.js', '/app.js', '/gallery.js'],
     body: shell({
       user,
-      crumbs: `<a href="/galerias">Galerías</a><span>/</span><b>${esc(event.name)}</b>`,
+      crumbs: `<a href="/galerias">Galerías</a><span>/</span>${parent ? `<a href="/galerias/${parent.id}">${esc(parent.name)}</a><span>/</span>` : ''}<b>${esc(event.name)}</b>`,
       main: `${note ? `<div class="alert ok">${esc(note)}</div>` : ''}
 <div class="gwrap">
 <aside class="gside glass">
@@ -172,6 +172,8 @@ ${counts.pending ? `<button class="btn" type="button" id="approveAll">Aprobar la
 <p class="muted small" style="margin:0">Arrastra las fotos para ordenarlas a mano. Estira un rectángulo para seleccionar varias.</p>
 </aside>
 <section class="gmain">
+${event.parent_id ? '' : `<div class="subs"><div class="bar"><h2 class="sec" style="margin:0">Subgalerías</h2><span class="spacer"></span><button class="btn sm" type="button" data-open="subDlg">${ICON.plus} Crear subgalería</button></div>
+${subs.length ? `<div class="gcards small">${subs.map((s) => `<a class="gcard glass" href="/galerias/${s.id}"><div class="cover">${s.cover ? `<img src="/m/${s.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}${s.pending ? `<span class="chip warn">${s.pending} por revisar</span>` : ''}</div><div class="gmeta"><strong>${esc(s.name)}</strong><span>${s.approved}</span></div></a>`).join('')}</div>` : `<p class="muted small" style="margin:8px 0 0">Una subgalería tiene su propio enlace, moderación y descarga. Úsala, por ejemplo, para cada sede de un torneo.</p>`}</div>`}
 <div class="gtools"><span class="muted small" id="shown">${photos.length} fotos</span><span class="spacer"></span><button class="btn sm" type="button" id="pickAll">Seleccionar todo</button></div>
 ${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid" style="--tile:170px">${tiles}</div><p class="muted hidden" id="noMatch2">Ninguna foto coincide con el filtro.</p>` : `<div class="glass emptybox">Esta galería todavía no tiene fotos. Comparte el enlace para que tus invitados suban las suyas.</div>`}
 </section></div>
@@ -197,6 +199,12 @@ ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><optio
 <div class="sharerow"><button class="btn primary" type="button" id="copyLink">Copiar enlace</button></div>
 <div class="qr" data-qr="${esc(guestUrl)}"></div>
 </div></dialog>
+
+<dialog id="subDlg" class="glassdlg"><form method="post" action="/galerias/${event.id}/sub" class="dlgbox">
+<header><h2>Crear subgalería</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<label class="field"><span>Nombre (por ejemplo, la sede)</span><input type="text" name="name" maxlength="120" required placeholder="Sede Norte"></label>
+<footer><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Crear y abrir</button></footer>
+</form></dialog>
 
 <dialog id="zipDlg" class="glassdlg"><div class="dlgbox">
 <header><h2>Descargar</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>

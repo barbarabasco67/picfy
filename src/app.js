@@ -73,7 +73,8 @@ export function appRoutes(app) {
          (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'pending') AS pending,
          (SELECT p.id FROM photos p WHERE p.event_id = e.id AND p.state = 'approved'
             ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover
-       FROM events e WHERE e.owner_id = ? ORDER BY e.created_at DESC`,
+         , (SELECT COUNT(*) FROM events s WHERE s.parent_id = e.id) AS subs
+       FROM events e WHERE e.owner_id = ? AND e.parent_id IS NULL ORDER BY e.created_at DESC`,
     ).bind(user.id).all();
     return html(galleriesPage({ user, events: rows.results, origin: new URL(c.req.url).origin }));
   });
@@ -121,14 +122,40 @@ export function appRoutes(app) {
       ).bind(event.id).all(),
     ]);
     const photos = ph.results;
+    const subs = (await db.prepare(
+      `SELECT e.id, e.name,
+         (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'approved') AS approved,
+         (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'pending') AS pending,
+         (SELECT p.id FROM photos p WHERE p.event_id = e.id AND p.state = 'approved' ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover
+       FROM events e WHERE e.parent_id = ? ORDER BY e.created_at ASC`,
+    ).bind(event.id).all()).results;
+    const parent = event.parent_id
+      ? await db.prepare('SELECT id, name FROM events WHERE id = ? AND owner_id = ?').bind(event.parent_id, user.id).first()
+      : null;
     const approved = photos.filter((p) => p.state === 'approved');
     const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
     const zipParts = splitParts(approved, partSize).map((p) => ({ count: p.length }));
     return html(galleryPage({
-      user, event, photos, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
+      user, event, photos, subs, parent, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
       counts: { approved: approved.length, pending: photos.filter((p) => p.state === 'pending').length },
       note: c.req.query('ok') || '',
     }));
+  });
+
+  app.post('/galerias/:id/sub', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    const parent = await ownEvent(c, user);
+    if (!parent) return go('/galerias');
+    if (parent.parent_id) return go(`/galerias/${parent.id}`); // solo un nivel
+    const name = String((await c.req.formData()).get('name') || '').trim().slice(0, 120);
+    if (!name) return go(`/galerias/${parent.id}`);
+    const id = randomHex(8);
+    await c.env.DB.prepare(
+      `INSERT INTO events (id, name, lead, event_date, guest_token, manage_hash, auto_approve, photo_limit, created_at, owner_id, parent_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(id, name, parent.lead, parent.event_date, randomHex(16), await sha256Hex(randomHex(32)), parent.auto_approve, parent.photo_limit, Date.now(), user.id, parent.id).run();
+    return go(`/galerias/${id}?ok=${encodeURIComponent('Subgalería creada. Comparte su enlace con la gente de esta sede.')}`);
   });
 
   app.post('/galerias/:id/borrar', async (c) => {
@@ -136,14 +163,17 @@ export function appRoutes(app) {
     if (!user) return go('/entrar');
     const event = await ownEvent(c, user);
     if (!event) return go('/galerias');
-    const rows = await c.env.DB.prepare('SELECT id FROM photos WHERE event_id = ?').bind(event.id).all();
-    const keys = rows.results.flatMap((r) => ['o', 'm', 'l'].map((s) => `p/${r.id}/${s}`));
-    for (let i = 0; i < keys.length; i += 500) await c.env.PHOTOS.delete(keys.slice(i, i + 500));
-    await c.env.DB.batch([
-      c.env.DB.prepare('DELETE FROM photos WHERE event_id = ?').bind(event.id),
-      c.env.DB.prepare('DELETE FROM guests WHERE event_id = ?').bind(event.id),
-      c.env.DB.prepare('DELETE FROM events WHERE id = ?').bind(event.id),
-    ]);
-    return go('/galerias');
+    const kids = (await c.env.DB.prepare('SELECT id FROM events WHERE parent_id = ? AND owner_id = ?').bind(event.id, user.id).all()).results.map((r) => r.id);
+    for (const eid of [...kids, event.id]) {
+      const rows = await c.env.DB.prepare('SELECT id FROM photos WHERE event_id = ?').bind(eid).all();
+      const keys = rows.results.flatMap((r) => ['o', 'm', 'l'].map((s) => `p/${r.id}/${s}`));
+      for (let k = 0; k < keys.length; k += 500) await c.env.PHOTOS.delete(keys.slice(k, k + 500));
+      await c.env.DB.batch([
+        c.env.DB.prepare('DELETE FROM photos WHERE event_id = ?').bind(eid),
+        c.env.DB.prepare('DELETE FROM guests WHERE event_id = ?').bind(eid),
+        c.env.DB.prepare('DELETE FROM events WHERE id = ?').bind(eid),
+      ]);
+    }
+    return go(event.parent_id ? `/galerias/${event.parent_id}` : '/galerias');
   });
 }

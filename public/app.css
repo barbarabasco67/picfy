@@ -204,3 +204,9 @@ body.app .toast { background: var(--ink); color: #fff; }
 body.app .up-item .bar { background: var(--accent); }
 body.app table { background: transparent; }
 body.app .wrap > .bar h1 { letter-spacing: -.02em; }
+
+/* Subgalerías */
+.subs { margin: 0 0 22px; }
+.gcards.small { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-top: 12px; }
+.gcards.small .gmeta { padding-bottom: 12px; }
+.chip.subc { top: auto; bottom: 10px; background: rgba(35, 29, 20, .78); color: #fff; }
