@@ -255,6 +255,7 @@ ${uploadDialog()}
 <label class="check"><input type="checkbox" name="auto_approve" value="1" ${event.auto_approve ? 'checked' : ''}> Publicar las fotos al subirlas</label>
 <label class="check"><input type="checkbox" name="upload_open" value="1" ${event.upload_open ? 'checked' : ''}> Subida de fotos abierta</label>
 <label class="check"><input type="checkbox" name="gallery_open" value="1" ${event.gallery_open ? 'checked' : ''}> Galería visible para los invitados</label>
+${!event.parent_id ? `<label class="check"><input type="checkbox" name="show_subs" value="1" ${event.show_subs ? 'checked' : ''}> Mostrar las subgalerías en la página de invitados${subs.length ? '' : ' (aún no hay ninguna)'}</label>` : ''}
 ${brandFields(event)}
 <div class="notice err hidden" data-brand-msg></div>
 <footer>

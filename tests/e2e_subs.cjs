@@ -36,6 +36,20 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.goto(parentUrl);
   check('2 subgalerías listadas', (await p.$$('.subs .gcard')).length === 2);
   check('contadores 3 y 4', (await p.$$eval('.subs .gmeta span', (n) => n.map((x) => x.textContent))).join() === '3,4');
+  // mostrar subgalerías a los invitados
+  await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
+  const pl = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
+  const gp = await (await b.newContext({ viewport: { width: 1360, height: 900 } })).newPage();
+  await gp.goto(pl);
+  check('sin opción: no se ven sedes', (await gp.$$('.subcard')).length === 0);
+  await p.click('[data-open=setDlg]'); await p.check('#setDlg input[name=show_subs]'); await p.click('#setDlg button.primary');
+  await p.waitForSelector('.alert.ok:has-text("Ajustes guardados")');
+  await gp.goto(pl);
+  check('con opción: 2 sedes', (await gp.$$('.subcard')).length === 2);
+  await gp.screenshot({ path: '/tmp/picfy_shots/subs_guest.png' });
+  await gp.click('.subcard >> nth=0');
+  await gp.waitForSelector('h1:has-text("Sede")');
+  check('la tarjeta lleva a la sede', /\/e\//.test(gp.url()) && gp.url() !== pl);
   await p.goto(B + '/galerias');
   check('solo la galería principal en la lista', (await p.$$('#gcards .gcard')).length === 1);
   check('chip de subgalerías', await p.isVisible('.chip.subc:has-text("2 subgalerías")'));

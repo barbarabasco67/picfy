@@ -43,6 +43,7 @@ app.get('/health', async (c) => {
     banderas: await has('SELECT flag, fav FROM photos LIMIT 1'),
     subgalerias: await has('SELECT parent_id FROM events LIMIT 1'),
     personalizacion: await has('SELECT accent, cover_v, avatar_v FROM events LIMIT 1'),
+    mostrar_subgalerias: await has('SELECT show_subs FROM events LIMIT 1'),
   };
   return json(out);
 });
@@ -80,7 +81,16 @@ app.get('/e/:token', async (c) => {
   const pages = Math.max(1, Math.ceil(total / PER_PAGE));
   const page = Math.min(pages, Math.max(1, parseInt(c.req.query('page') || '1', 10) || 1));
   const photos = event.gallery_open ? await listApproved(c.env.DB, event, PER_PAGE, (page - 1) * PER_PAGE) : [];
-  return html(guestPage({ event, photos, total, page, pages }));
+  let subs = [];
+  if (event.show_subs && !event.parent_id) {
+    subs = (await c.env.DB.prepare(
+      `SELECT s.name, s.guest_token, s.cover_v, s.event_date,
+              (SELECT p.id FROM photos p WHERE p.event_id = s.id AND p.state = 'approved' ORDER BY p.sort_order LIMIT 1) AS first_id,
+              (SELECT COUNT(*) FROM photos p WHERE p.event_id = s.id AND p.state = 'approved') AS n
+       FROM events s WHERE s.parent_id = ? AND s.gallery_open = 1 ORDER BY s.name COLLATE NOCASE`,
+    ).bind(event.id).all()).results;
+  }
+  return html(guestPage({ event, photos, total, page, pages, subs }));
 });
 
 async function guestFor(db, event, key) {

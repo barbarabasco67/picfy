@@ -278,3 +278,13 @@ body.app .hero { margin-bottom: 48px; } body.app .hero.has-cover { margin-bottom
 body.app .grid.gguest.list { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; gap: 30px; }
 body.app .gguest.list .tile { aspect-ratio: auto; }
 body.app .gguest.list .tile img { height: auto; object-fit: contain; }
+
+/* subgalerías en la página de invitados */
+.subs-g { margin: 0 0 44px; }
+.subs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (min-width: 760px) { .subs-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+.subcard { display: flex; flex-direction: column; text-decoration: none; color: inherit; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,.7); border: 1px solid rgba(0,0,0,.07); box-shadow: 0 6px 20px rgba(0,0,0,.06); transition: transform .15s; }
+.subcard:hover { transform: translateY(-2px); }
+.subimg { aspect-ratio: 16/10; background: rgba(var(--accent-rgb), .25) center/cover no-repeat; display: block; }
+.subname { padding: 12px 14px 0; font-weight: 700; }
+.subn { padding: 2px 14px 14px; font-size: .85rem; color: var(--muted); }

@@ -171,10 +171,17 @@ export function uploadDialog() {
 </footer></div></dialog>`;
 }
 
-export function guestPage({ event, photos, total, page, pages }) {
+function subCards(subs) {
+  if (!subs || !subs.length) return '';
+  return `<section class="subs-g"><div class="subs-grid">${subs.map((s) => `<a class="subcard" href="/e/${s.guest_token}">
+<span class="subimg"${s.cover_v ? ` style="background-image:url('/c/${s.guest_token}/cover?v=${s.cover_v}')"` : s.first_id ? ` style="background-image:url('/m/${s.first_id}/m')"` : ''}></span>
+<span class="subname">${esc(s.name)}</span><span class="subn">${s.n} ${s.n === 1 ? 'foto' : 'fotos'}</span></a>`).join('')}</div></section>`;
+}
+
+export function guestPage({ event, photos, total, page, pages, subs = [] }) {
   const grid = photos.length
     ? `<div class="gbar"><span class="gsub">${total} ${total === 1 ? 'foto' : 'fotos'}</span><div class="vtog" role="group" aria-label="Vista"><button type="button" class="on" data-view="grid" aria-label="Cuadrícula"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></button><button type="button" data-view="list" aria-label="Lineal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="7" rx="1"/><rect x="4" y="13" width="16" height="7" rx="1"/></svg></button></div></div><div class="grid gguest" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
-    : `<div class="empty">Aún no hay fotos. ¡Sé el primero en subir una!</div>`;
+    : (subs && subs.length ? '' : `<div class="empty">Aún no hay fotos. ¡Sé el primero en subir una!</div>`);
   const base = `/e/${event.guest_token}`;
   return layout({
     title: `${event.name} · Picfy`,
@@ -189,7 +196,7 @@ ${event.event_date ? `<p class="when">${esc(fmtDate(event.event_date))}</p>` : '
 ${event.lead ? `<p class="lead">${esc(event.lead)}</p>` : ''}
 ${event.upload_open ? `<button class="btn primary" id="openUpload" type="button">Subir fotos</button>` : '<p class="muted">La subida de fotos está cerrada.</p>'}
 </div></header>
-<main class="wrap">${event.gallery_open ? grid + pagination(base, page, pages) : '<div class="empty">La galería no está disponible por ahora.</div>'}</main>
+<main class="wrap">${subCards(subs)}${event.gallery_open ? grid + pagination(base, page, pages) : '<div class="empty">La galería no está disponible por ahora.</div>'}</main>
 <p class="brand">Picfy</p>
 ${lightbox()}
 ${uploadDialog()}`,

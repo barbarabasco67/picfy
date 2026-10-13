@@ -136,10 +136,14 @@ export function galleryRoutes(app) {
     const name = String(f.get('name') || '').trim().slice(0, 120) || event.name;
     const date = /^\d{4}-\d{2}-\d{2}$/.test(String(f.get('event_date') || '')) ? String(f.get('event_date')) : null;
     const limit = Math.max(0, Math.min(2000, parseInt(String(f.get('photo_limit') || '0'), 10) || 0));
-    await c.env.DB.prepare(
-      `UPDATE events SET name = ?, event_date = ?, photo_limit = ?, lead = ?, auto_approve = ?, upload_open = ?, gallery_open = ?, accent = ? WHERE id = ?`,
-    ).bind(name, date, limit, String(f.get('lead') || '').trim().slice(0, 400),
-      f.get('auto_approve') ? 1 : 0, f.get('upload_open') ? 1 : 0, f.get('gallery_open') ? 1 : 0, validAccent(f.get('accent')), event.id).run();
+    const vals = [name, date, limit, String(f.get('lead') || '').trim().slice(0, 400),
+      f.get('auto_approve') ? 1 : 0, f.get('upload_open') ? 1 : 0, f.get('gallery_open') ? 1 : 0, validAccent(f.get('accent'))];
+    const base = 'UPDATE events SET name = ?, event_date = ?, photo_limit = ?, lead = ?, auto_approve = ?, upload_open = ?, gallery_open = ?, accent = ?';
+    if (event.parent_id) await c.env.DB.prepare(base + ' WHERE id = ?').bind(...vals, event.id).run();
+    else {
+      try { await c.env.DB.prepare(base + ', show_subs = ? WHERE id = ?').bind(...vals, f.get('show_subs') ? 1 : 0, event.id).run(); }
+      catch { await c.env.DB.prepare(base + ' WHERE id = ?').bind(...vals, event.id).run(); } // falta la migración 0006
+    }
     return c.redirect(`/galerias/${event.id}?ok=${encodeURIComponent('Ajustes guardados.')}`, 303);
   });
 
