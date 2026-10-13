@@ -124,7 +124,7 @@ export function appRoutes(app) {
     ]);
     const photos = ph.results;
     const subs = (await db.prepare(
-      `SELECT e.id, e.name,
+      `SELECT e.id, e.name, e.guest_token, e.thumb_v,
          (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'approved') AS approved,
          (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'pending') AS pending,
          (SELECT p.id FROM photos p WHERE p.event_id = e.id AND p.state = 'approved' ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover

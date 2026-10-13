@@ -174,13 +174,13 @@ export function uploadDialog() {
 function subCards(subs) {
   if (!subs || !subs.length) return '';
   return `<section class="subs-g"><div class="subs-grid">${subs.map((s) => `<a class="subcard" href="/e/${s.guest_token}">
-<span class="subimg"${s.cover_v ? ` style="background-image:url('/c/${s.guest_token}/cover?v=${s.cover_v}')"` : s.first_id ? ` style="background-image:url('/m/${s.first_id}/m')"` : ''}></span>
+<span class="subimg"${s.thumb_v ? ` style="background-image:url('/c/${s.guest_token}/thumb?v=${s.thumb_v}')"` : s.first_id ? ` style="background-image:url('/m/${s.first_id}/m')"` : ''}></span>
 <span class="subname">${esc(s.name)}</span><span class="subn">${s.n} ${s.n === 1 ? 'foto' : 'fotos'}</span></a>`).join('')}</div></section>`;
 }
 
 export function guestPage({ event, photos, total, page, pages, subs = [] }) {
   const grid = photos.length
-    ? `<div class="gbar"><span class="gsub">${total} ${total === 1 ? 'foto' : 'fotos'}</span><div class="vtog" role="group" aria-label="Vista"><button type="button" class="on" data-view="grid" aria-label="Cuadrícula"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></button><button type="button" data-view="list" aria-label="Lineal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="7" rx="1"/><rect x="4" y="13" width="16" height="7" rx="1"/></svg></button></div></div><div class="grid gguest" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
+    ? `<div class="gbar"><span class="gsub">${total} ${total === 1 ? 'foto' : 'fotos'}</span><label class="sizer" title="Tamaño de las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/></svg><input type="range" id="gsize" min="0" max="100" value="50" aria-label="Tamaño de las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></label><div class="vtog" role="group" aria-label="Vista"><button type="button" class="on" data-view="grid" aria-label="Cuadrícula"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></button><button type="button" data-view="list" aria-label="Lineal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="7" rx="1"/><rect x="4" y="13" width="16" height="7" rx="1"/></svg></button></div></div><div class="grid gguest" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
     : (subs && subs.length ? '' : `<div class="empty">Aún no hay fotos. ¡Sé el primero en subir una!</div>`);
   const base = `/e/${event.guest_token}`;
   return layout({

@@ -20,7 +20,7 @@ async function ownerEvent(c) {
 }
 
 const BRAND_MAX = 3 * 1024 * 1024;
-const BRAND_KINDS = { cover: 'cover_v', avatar: 'avatar_v' };
+const BRAND_KINDS = { cover: 'cover_v', avatar: 'avatar_v', thumb: 'thumb_v' };
 export const validAccent = (v) => (/^#[0-9a-fA-F]{6}$/.test(String(v || '')) ? String(v).toLowerCase() : null);
 
 export function galleryRoutes(app) {

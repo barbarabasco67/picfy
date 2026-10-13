@@ -133,3 +133,31 @@
   const apply = () => grid.style.setProperty('--tile', size.value + 'px');
   size.addEventListener('input', apply); apply();
 })();
+
+// Sedes: copiar enlace y elegir portada del cuadro
+(() => {
+  const toast = (t) => { const m = document.createElement('div'); m.className = 'toast'; m.textContent = t; document.body.appendChild(m); setTimeout(() => m.remove(), 2200); };
+  document.querySelectorAll('[data-sharelink]').forEach((b) => b.addEventListener('click', async (e) => {
+    e.preventDefault(); const url = location.origin + b.dataset.sharelink;
+    if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) { try { await navigator.share({ url }); return; } catch (x) { /* cancelado */ } }
+    try { await navigator.clipboard.writeText(url); } catch (x) { const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+    toast('Enlace copiado');
+  }));
+  async function resize(file) {
+    const bmp = await createImageBitmap(file); const w = Math.min(900, bmp.width), h = Math.round(bmp.height * w / bmp.width);
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h; cv.getContext('2d').drawImage(bmp, 0, 0, w, h);
+    return new Promise((r, j) => cv.toBlob((b) => (b ? r(b) : j(new Error('enc'))), 'image/jpeg', 0.85));
+  }
+  document.querySelectorAll('[data-thumb]').forEach((inp) => inp.addEventListener('change', async () => {
+    const f = inp.files[0]; if (!f) return;
+    try {
+      const blob = await resize(f);
+      const r = await fetch(`/api/g/${inp.dataset.thumb}/brand/thumb`, { method: 'PUT', headers: { 'content-type': 'image/jpeg' }, body: blob });
+      if (!r.ok) throw new Error(r.status);
+      location.reload();
+    } catch (x) { toast('No se pudo guardar la portada (¿falta la migración 0007?)'); }
+  }));
+  document.querySelectorAll('[data-thumbdel]').forEach((b) => b.addEventListener('click', async () => {
+    await fetch(`/api/g/${b.dataset.thumbdel}/brand/thumb`, { method: 'DELETE' }); location.reload();
+  }));
+})();

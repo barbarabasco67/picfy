@@ -269,15 +269,36 @@
 (() => {
   const grid = document.getElementById('gallery');
   const btns = document.querySelectorAll('.vtog button');
+  const slider = document.getElementById('gsize');
   if (!grid || !btns.length) return;
-  const key = 'picfy_view';
-  function set(v) {
-    grid.classList.toggle('list', v === 'list');
-    btns.forEach((b) => b.classList.toggle('on', b.dataset.view === v));
-    if (v === 'list') grid.querySelectorAll('.tile img').forEach((i) => { const f = i.closest('.tile').dataset.full; if (f && i.getAttribute('src') !== f) i.src = f; });
-    try { localStorage.setItem(key, v); } catch (e) {}
+  const ls = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+  let view = ls.get('picfy_view') === 'list' ? 'list' : 'grid';
+  let touched = ls.get('picfy_size') !== null;
+  const dflt = () => (view === 'list' ? 22 : 40);
+  let size = touched ? Number(ls.get('picfy_size')) : dflt();
+  const ratio = (img) => { const w = img.getAttribute('width') || img.naturalWidth, h = img.getAttribute('height') || img.naturalHeight; return w && h ? w / h : 1.5; };
+  function ratios() {
+    grid.querySelectorAll('.gitem').forEach((it) => {
+      const img = it.querySelector('img');
+      const set = () => it.style.setProperty('--ar', ratio(img).toFixed(4));
+      set(); if (!img.complete) img.addEventListener('load', set, { once: true });
+    });
   }
-  btns.forEach((b) => b.addEventListener('click', () => set(b.dataset.view)));
-  let saved = null; try { saved = localStorage.getItem(key); } catch (e) {}
-  if (saved === 'list') set('list');
+  function apply() {
+    grid.classList.toggle('list', view === 'list');
+    btns.forEach((b) => b.classList.toggle('on', b.dataset.view === view));
+    if (view === 'list') {
+      ratios();
+      grid.querySelectorAll('.tile img').forEach((i) => { const f = i.closest('.tile').dataset.full; if (f && i.getAttribute('src') !== f && size > 55) i.src = f; });
+      grid.style.setProperty('--rh', Math.round(90 + size * 2.6) + 'px');
+      grid.style.removeProperty('--cw');
+    } else {
+      grid.style.removeProperty('--rh');
+      if (touched) grid.style.setProperty('--cw', Math.round(110 + size * 4.5) + 'px'); else grid.style.removeProperty('--cw');
+    }
+    if (slider) slider.value = size;
+  }
+  btns.forEach((b) => b.addEventListener('click', () => { view = b.dataset.view; ls.set('picfy_view', view); if (!touched) size = dflt(); apply(); }));
+  if (slider) slider.addEventListener('input', () => { size = Number(slider.value); touched = true; ls.set('picfy_size', size); apply(); });
+  apply();
 })();

@@ -47,6 +47,14 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await gp.goto(pl);
   check('con opción: 2 sedes', (await gp.$$('.subcard')).length === 2);
   await gp.screenshot({ path: '/tmp/picfy_shots/subs_guest.png' });
+  // subir portada de una sede desde el panel y copiar enlace
+  await p.goto(parentUrl);
+  check('botones de sede', (await p.$$('.cardtools [data-sharelink]')).length === 2);
+  await p.setInputFiles('[data-thumb] >> nth=0', `${process.cwd()}/tests/img/p05.jpg`);
+  await p.waitForSelector('.gcard-wrap [data-thumbdel]');
+  check('portada de sede guardada', true);
+  await gp.goto(pl);
+  check('tarjeta usa portada elegida', (await gp.$$eval('.subimg', (n) => n.map((x) => x.getAttribute('style') || ''))).some((s) => s.includes('/thumb')));
   await gp.click('.subcard >> nth=0');
   await gp.waitForSelector('h1:has-text("Sede")');
   check('la tarjeta lleva a la sede', /\/e\//.test(gp.url()) && gp.url() !== pl);
