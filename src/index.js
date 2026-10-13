@@ -36,6 +36,14 @@ app.get('/health', async (c) => {
   const out = { admin_password_set: Boolean(c.env.ADMIN_PASSWORD), database: false, photos_bucket: false };
   try { await c.env.DB.prepare('SELECT 1').first(); out.database = true; } catch { /* sin base de datos */ }
   try { await c.env.PHOTOS.head('p/health-check'); out.photos_bucket = true; } catch { /* sin bucket */ }
+  // Qué actualizaciones de la base de datos están aplicadas (true = hecha)
+  const has = async (sql) => { try { await c.env.DB.prepare(sql).first(); return true; } catch { return false; } };
+  out.schema = {
+    cuentas: await has('SELECT id FROM users LIMIT 1'),
+    banderas: await has('SELECT flag, fav FROM photos LIMIT 1'),
+    subgalerias: await has('SELECT parent_id FROM events LIMIT 1'),
+    personalizacion: await has('SELECT accent, cover_v, avatar_v FROM events LIMIT 1'),
+  };
   return json(out);
 });
 app.get('/robots.txt', (c) => new Response('User-agent: *\nDisallow: /\n', { headers: { 'content-type': 'text/plain' } }));

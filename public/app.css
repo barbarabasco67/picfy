@@ -239,3 +239,14 @@ body.app .hero.has-cover { padding: 0; overflow: hidden; }
 body.app[data-owner] #goMine, body.app[data-owner] .namefield { display: none; }
 body.app { --accent-rgb: 237, 178, 101; }
 fieldset.brand, fieldset.brand .field > span { text-align: left; } .brand .swrow { justify-content: flex-start; }
+
+/* ---- Fotos de la página de invitados: rejilla cuadrada con pie, como en el plugin ---- */
+body.app main.wrap { max-width: 1240px; padding: 0 20px; }
+body.app .hero { margin-bottom: 44px; }
+.gsec { text-align: center; font-size: clamp(1.3rem, 3vw, 1.7rem); letter-spacing: -.01em; margin: 0 0 4px; }
+.gsub { text-align: center; color: var(--muted); margin: 0 0 30px; }
+body.app .grid.gguest { grid-template-columns: repeat(2, 1fr); gap: 26px 14px; padding: 0 0 36px; }
+@media (min-width: 760px) { body.app .grid.gguest { grid-template-columns: repeat(3, 1fr); gap: 34px 18px; } }
+.gitem { margin: 0; }
+body.app .gguest .tile { aspect-ratio: 1; border-radius: 6px; box-shadow: none; background: #f3ece0; }
+.gitem figcaption { padding-top: 8px; font-size: .86rem; color: var(--muted); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

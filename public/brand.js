@@ -49,10 +49,10 @@
     async function sendImages(api) {
       for (const kind of ['avatar', 'cover']) {
         const rm = box.querySelector(`[data-brand-remove=${kind}]`);
-        if (rm && rm.checked) { const r = await fetch(`${api}/brand/${kind}`, { method: 'DELETE' }); if (!r.ok) throw new Error('brand'); }
+        if (rm && rm.checked) { const r = await fetch(`${api}/brand/${kind}`, { method: 'DELETE' }); if (!r.ok) throw new Error('brand:' + kind + ':' + r.status); }
         if (blobs[kind]) {
           const r = await fetch(`${api}/brand/${kind}`, { method: 'PUT', headers: { 'content-type': 'image/jpeg' }, body: blobs[kind] });
-          if (!r.ok) throw new Error('brand');
+          if (!r.ok) throw new Error('brand:' + kind + ':' + r.status);
         }
       }
     }
@@ -74,7 +74,11 @@
           await sendImages(form.dataset.gapi);
           form.submit();
         }
-      } catch { msg('No se pudo guardar. Inténtalo de nuevo.'); if (btn) btn.disabled = false; }
+      } catch (err) {
+        const m = /^brand:(\w+):(\d+)/.exec(err.message || '');
+        msg(m ? `No se pudo guardar la foto de ${m[1] === 'cover' ? 'cabecera' : 'perfil'} (error ${m[2]}). ${m[2] === '500' ? 'Falta actualizar la base de datos.' : m[2] === '413' ? 'La imagen es demasiado grande.' : 'Inténtalo de nuevo.'}` : 'No se pudo guardar. Inténtalo de nuevo.');
+        if (btn) btn.disabled = false;
+      }
     });
   });
 })();

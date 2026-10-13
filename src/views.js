@@ -53,8 +53,9 @@ export function pagination(base, page, pages) {
 }
 
 export function tile(p, extra = '') {
-  return `<a class="tile" href="/m/${p.id}/l" data-id="${p.id}" data-full="/m/${p.id}/l">
-  <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="" ${p.w && p.h ? `width="${p.w}" height="${p.h}"` : ''}>${extra}</a>`;
+  const by = p.gname ? `<figcaption>Compartida por ${esc(p.gname)}</figcaption>` : '';
+  return `<figure class="gitem"><a class="tile" href="/m/${p.id}/l" data-id="${p.id}" data-full="/m/${p.id}/l">
+  <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="" ${p.w && p.h ? `width="${p.w}" height="${p.h}"` : ''}>${extra}</a>${by}</figure>`;
 }
 
 export function lightbox() {
@@ -154,7 +155,7 @@ export function uploadDialog() {
   return `<dialog id="upDlg"><div class="dlg">
 <header><h2>Subir fotos</h2><button class="btn sm" id="upClose" type="button">Cerrar</button></header>
 <div class="body">
-<label class="field namefield"><span>Tu nombre (opcional, lo ve el organizador)</span><input type="text" id="guestName" maxlength="60" autocomplete="name"></label>
+<label class="field namefield"><span>Tu nombre (opcional, aparece bajo tus fotos)</span><input type="text" id="guestName" maxlength="60" autocomplete="name"></label>
 <div class="drop" id="drop">Toca para elegir fotos<br><span class="small">o arrástralas aquí</span></div>
 <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
 <div class="up-tools hidden" id="upTools">
@@ -173,7 +174,7 @@ export function uploadDialog() {
 
 export function guestPage({ event, photos, total, page, pages }) {
   const grid = photos.length
-    ? `<div class="grid" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
+    ? `<h2 class="gsec">Las fotos de todos</h2><p class="gsub">${total} ${total === 1 ? 'foto compartida' : 'fotos compartidas'} por los invitados.</p><div class="grid gguest" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
     : `<div class="empty">Aún no hay fotos. ¡Sé el primero en subir una!</div>`;
   const base = `/e/${event.guest_token}`;
   return layout({

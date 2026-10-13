@@ -28,9 +28,10 @@ export async function getEventById(db, id) {
 export async function listApproved(db, event, limit, offset) {
   const rows = await db
     .prepare(
-      `SELECT id, w, h, taken_at, uploaded_at FROM photos
-       WHERE event_id = ?1 AND state = 'approved'
-       ORDER BY ${orderSql(event.sort_mode)} LIMIT ?2 OFFSET ?3`,
+      `SELECT p.id, p.w, p.h, p.taken_at, p.uploaded_at, g.name AS gname FROM photos p
+       JOIN guests g ON g.id = p.guest_id
+       WHERE p.event_id = ?1 AND p.state = 'approved'
+       ORDER BY ${orderSql(event.sort_mode, 'p')} LIMIT ?2 OFFSET ?3`,
     )
     .bind(event.id, limit, offset)
     .all();
