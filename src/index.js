@@ -14,6 +14,7 @@ import {
 import { manageRoutes } from './manage.js';
 import { appRoutes } from './app.js';
 import { currentUser } from './auth.js';
+import { buildZip, splitParts } from './zip.js';
 
 const app = new Hono();
 
@@ -45,6 +46,7 @@ app.get('/health', async (c) => {
     personalizacion: await has('SELECT accent, cover_v, avatar_v FROM events LIMIT 1'),
     mostrar_subgalerias: await has('SELECT show_subs FROM events LIMIT 1'),
     portada_sedes: await has('SELECT thumb_v FROM events LIMIT 1'),
+    descargas: await has('SELECT allow_download FROM events LIMIT 1'),
   };
   return json(out);
 });
@@ -73,6 +75,52 @@ app.get('/m/:id/:size', async (c) => {
   return new Response(obj.body, { headers });
 });
 
+/* ---------- Descargas de invitados (solo si el organizador las permite) ---------- */
+
+app.get('/e/:token/dl/:id', async (c) => {
+  const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
+  const id = c.req.param('id');
+  if (!event || !event.allow_download || !event.gallery_open || !isHex(id, 32)) return c.notFound();
+  const row = await c.env.DB.prepare("SELECT filename FROM photos WHERE id = ? AND event_id = ? AND state = 'approved'").bind(id, event.id).first();
+  if (!row) return c.notFound();
+  const obj = await c.env.PHOTOS.get(`p/${id}/o`);
+  if (!obj) return c.notFound();
+  const name = (row.filename || `${id}.jpg`).replace(/[^\w.\- ]+/g, '_');
+  return new Response(obj.body, { headers: {
+    'content-type': obj.httpMetadata?.contentType || 'image/jpeg', 'content-length': String(obj.size),
+    'content-disposition': `attachment; filename="${name}"`, 'cache-control': 'private, max-age=3600',
+  } });
+});
+
+app.get('/e/:token/zip', async (c) => {
+  const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
+  if (!event || !event.allow_download || !event.gallery_open) return html(notFoundPage('Las descargas no están disponibles.'), 404);
+  const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
+  const part = Math.max(1, parseInt(c.req.query('part') || '1', 10) || 1);
+  const pick = [...new Set(String(c.req.query('ids') || '').split(',').filter((x) => isHex(x, 32)))].slice(0, partSize);
+  const rows = (await c.env.DB.prepare(
+    `SELECT p.id, p.filename, p.size, p.crc32, p.taken_at, p.uploaded_at FROM photos p
+     WHERE p.event_id = ? AND p.state = 'approved' ${pick.length ? `AND p.id IN (${pick.map((x) => `'${x}'`).join(',')})` : ''}
+     ORDER BY ${orderSql(event.sort_mode, 'p')}`,
+  ).bind(event.id).all()).results;
+  const parts = pick.length ? [rows] : splitParts(rows, partSize);
+  const list = parts[part - 1];
+  if (!list || !list.length) return html(notFoundPage('No hay fotos para descargar.'), 404);
+  const offset = pick.length ? 0 : parts.slice(0, part - 1).reduce((n, p) => n + p.length, 0);
+  const used = new Set();
+  const safe = (s) => String(s || '').replace(/[\\/:*?"<>|\x00-\x1f]+/g, '_').trim().slice(0, 80);
+  const entries = list.map((r, k) => {
+    let name = `${String(offset + k + 1).padStart(4, '0')}_${safe(r.filename) || r.id + '.jpg'}`;
+    while (used.has(name)) name = name.replace(/(\.[^.]*)?$/, `_${r.id.slice(0, 4)}$1`);
+    used.add(name);
+    return { key: `p/${r.id}/o`, name, size: r.size, crc: r.crc32, ms: r.taken_at ?? r.uploaded_at };
+  });
+  const { stream, length } = buildZip(c.env.PHOTOS, entries);
+  const label = safe(event.name).replace(/\s+/g, '-') || 'galeria';
+  const fname = pick.length ? `${label}-seleccion.zip` : parts.length > 1 ? `${label}-parte${part}.zip` : `${label}.zip`;
+  return new Response(stream, { headers: { 'content-type': 'application/zip', 'content-length': String(length), 'content-disposition': `attachment; filename="${fname}"`, 'cache-control': 'no-store' } });
+});
+
 /* ---------- Invitados ---------- */
 
 app.get('/e/:token', async (c) => {
@@ -85,7 +133,7 @@ app.get('/e/:token', async (c) => {
   let subs = [];
   if (event.show_subs && !event.parent_id) {
     subs = (await c.env.DB.prepare(
-      `SELECT s.name, s.guest_token, s.thumb_v, s.event_date,
+      `SELECT s.name, s.guest_token, s.thumb_v, s.event_date, s.upload_open,
               (SELECT p.id FROM photos p WHERE p.event_id = s.id AND p.state = 'approved' ORDER BY p.sort_order LIMIT 1) AS first_id,
               (SELECT COUNT(*) FROM photos p WHERE p.event_id = s.id AND p.state = 'approved') AS n
        FROM events s WHERE s.parent_id = ? AND s.gallery_open = 1 ORDER BY s.name COLLATE NOCASE`,
@@ -93,7 +141,8 @@ app.get('/e/:token', async (c) => {
   }
   let parent = null;
   if (event.parent_id) parent = await c.env.DB.prepare('SELECT name, guest_token FROM events WHERE id = ?').bind(event.parent_id).first();
-  return html(guestPage({ event, photos, total, page, pages, subs, parent }));
+  const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
+  return html(guestPage({ event, photos, total, page, pages, subs, parent, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(total / partSize)), partSize, total } : null }));
 });
 
 async function guestFor(db, event, key) {

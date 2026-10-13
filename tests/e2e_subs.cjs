@@ -55,6 +55,40 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   check('portada de sede guardada', true);
   await gp.goto(pl);
   check('tarjeta usa portada elegida', (await gp.$$eval('.subimg', (n) => n.map((x) => x.getAttribute('style') || ''))).some((s) => s.includes('/thumb')));
+  // subir a una sede desde la página principal
+  await gp.click('#openUpload');
+  check('selector de destino de subida', (await gp.$$eval('#upTarget option', (o) => o.length)) === 3);
+  await gp.selectOption('#upTarget', { index: 1 });
+  await gp.setInputFiles('#fileInput', `${process.cwd()}/tests/img/p01.jpg`);
+  await gp.waitForFunction(() => document.querySelectorAll('.up-item').length === 1);
+  await gp.click('#upStart'); await gp.waitForFunction(() => document.querySelectorAll('.up-item .st.ok').length === 1, null, { timeout: 30000 });
+  await gp.click('#upClose'); await gp.waitForLoadState('load');
+  await gp.goto(pl);
+  check('la foto fue a la sede elegida', (await gp.$$eval('.subn', (n) => n.map((x) => x.textContent.trim()))).join() === '4 fotos,4 fotos');
+  // descargas: desactivadas por defecto
+  check('sin descargas por defecto', !(await gp.$('#selToggle')));
+  const nodl = await gp.request.get(pl.replace(/\/e\/.*/, '') + '/e/' + pl.split('/e/')[1] + '/zip');
+  check('zip bloqueado sin permiso', nodl.status() === 404);
+  await p.goto(parentUrl); await p.click('[data-open=setDlg]'); await p.check('#setDlg input[name=allow_download]'); await p.click('#setDlg button.primary');
+  await p.waitForSelector('.alert.ok:has-text("Ajustes guardados")');
+  // en la sede: activar y probar selección, descarga individual y ZIP
+  await p.goto(subUrls[0]); await p.click('[data-open=setDlg]'); await p.check('#setDlg input[name=allow_download]'); await p.click('#setDlg button.primary');
+  await p.waitForSelector('.alert.ok:has-text("Ajustes guardados")');
+  await gp.goto(pl); await gp.click('.subcard >> nth=0'); await gp.waitForSelector('#gallery .tile');
+  check('descargas activadas en la sede', !!(await gp.$('#selToggle')));
+  check('botón descargar por foto', (await gp.$$('.dlbtn')).length === 4);
+  const one = await gp.request.get(gp.url().split('?')[0] + '/dl/' + (await gp.getAttribute('.tile >> nth=0', 'data-id')));
+  check('descarga individual', one.status() === 200 && /attachment/.test(one.headers()['content-disposition'] || ''));
+  await gp.click('#selToggle'); await gp.click('#gSelAll');
+  check('4 seleccionadas', (await gp.$$('.gitem.picked')).length === 4 && (await gp.textContent('#gSelN')).startsWith('4'));
+  const ids = await gp.$$eval('.tile', (n) => n.map((x) => x.dataset.id).join(','));
+  const z = await gp.request.get(gp.url().split('?')[0] + '/zip?ids=' + ids);
+  const zb = await z.body();
+  check('ZIP de selección', z.status() === 200 && zb[0] === 0x50 && zb[1] === 0x4b, zb.length);
+  const za = await gp.request.get(gp.url().split('?')[0] + '/zip');
+  check('ZIP de todas', za.status() === 200 && (await za.body()).length > 1000);
+  await gp.screenshot({ path: '/tmp/picfy_shots/dl_sel.png' });
+  await gp.goto(pl);
   await gp.click('.subshare >> nth=0');
   await gp.waitForSelector('#subShare[open] svg');
   check('ventana compartir con QR y enlace', /\/e\//.test(await gp.textContent('#subShareUrl')));

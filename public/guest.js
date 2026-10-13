@@ -1,6 +1,7 @@
 // Página de invitados: subida de fotos (miniaturas, hora de captura, reintentos) y acceso a "Mi álbum".
 (function () {
   const TOKEN = document.body.dataset.token;
+  let UP = TOKEN; // galería de destino de la subida
   const AUTO = document.body.dataset.auto === '1';
   const $ = (id) => document.getElementById(id);
   const ls = {
@@ -10,14 +11,16 @@
 
   // Clave personal de este dispositivo para este evento (solo se guarda su hash en el servidor).
   function myKey() {
-    let k = ls.get('picfy_key_' + TOKEN);
+    let k = ls.get('picfy_key_' + UP);
     if (!/^[0-9a-f]{32}$/.test(k || '')) {
       const a = new Uint8Array(16); crypto.getRandomValues(a);
       k = [...a].map((b) => b.toString(16).padStart(2, '0')).join('');
-      ls.set('picfy_key_' + TOKEN, k);
+      ls.set('picfy_key_' + UP, k);
     }
     return k;
   }
+  const target = $('upTarget');
+  if (target) target.addEventListener('change', () => { UP = target.value; });
   const dlg = $('upDlg');
   if (!dlg) return;
   const fileInput = $('fileInput'), drop = $('drop'), list = $('upList'), tools = $('upTools');
@@ -221,7 +224,7 @@
     const [m, l] = [await thumb(bmp, 480, 0.8), await thumb(bmp, 1600, 0.85)];
     if (bmp.close) bmp.close();
     const crc = crc32(buf);
-    const base = `/api/e/${TOKEN}`;
+    const base = `/api/e/${UP}`;
     setStatus(it, 'Subiendo…');
     const init = await retry(() => api(`${base}/upload/init`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -331,4 +334,43 @@
   prev.addEventListener('click', () => go(-1)); next.addEventListener('click', () => go(1));
   track.addEventListener('scroll', upd, { passive: true }); addEventListener('resize', upd); upd();
   setTimeout(upd, 400);
+})();
+
+// Descargas (solo si el organizador las permite)
+(() => {
+  const toggle = document.getElementById('selToggle'); if (!toggle) return;
+  const grid = document.getElementById('gallery'), bar = document.getElementById('gSelBar'), n = document.getElementById('gSelN');
+  const btnAll = document.getElementById('gSelAll'), btnDl = document.getElementById('gSelDl'), btnX = document.getElementById('gSelCancel');
+  const dlg = document.getElementById('dlDlg'), token = document.body.dataset.token, MAX = 40;
+  document.getElementById('dlOpen').addEventListener('click', () => dlg.showModal());
+  dlg.addEventListener('click', (e) => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); });
+  let on = false;
+  const items = () => [...grid.querySelectorAll('.gitem')];
+  const picked = () => items().filter((i) => i.classList.contains('picked'));
+  function refresh() {
+    const k = picked().length; n.textContent = k + (k === 1 ? ' seleccionada' : ' seleccionadas'); btnDl.disabled = !k;
+  }
+  function mode(v) {
+    on = v; grid.classList.toggle('selecting', on); bar.classList.toggle('hidden', !on);
+    toggle.classList.toggle('on', on); toggle.textContent = on ? 'Cancelar' : 'Seleccionar';
+    if (!on) items().forEach((i) => i.classList.remove('picked'));
+    refresh();
+  }
+  toggle.addEventListener('click', () => mode(!on)); btnX.addEventListener('click', () => mode(false));
+  grid.addEventListener('click', (e) => {
+    if (!on) return;
+    const fig = e.target.closest('.gitem'); if (!fig || e.target.closest('.dlbtn')) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (!fig.classList.contains('picked') && picked().length >= MAX) { alert('Puedes elegir hasta ' + MAX + ' fotos cada vez. Para más, usa «Descargar» y baja el ZIP completo.'); return; }
+    fig.classList.toggle('picked'); refresh();
+  }, true);
+  btnAll.addEventListener('click', () => {
+    const all = items(); const some = picked().length === Math.min(all.length, MAX);
+    all.forEach((i, k) => i.classList.toggle('picked', !some && k < MAX)); refresh();
+  });
+  btnDl.addEventListener('click', () => {
+    const ids = picked().map((i) => i.querySelector('.tile').dataset.id);
+    if (ids.length === 1) { location.href = `/e/${token}/dl/${ids[0]}`; return; }
+    if (ids.length) location.href = `/e/${token}/zip?ids=${ids.join(',')}`;
+  });
 })();

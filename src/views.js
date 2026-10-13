@@ -34,6 +34,8 @@ export function fmtDate(d) {
 }
 
 // 1 2 3 … 8 9, con flechas
+const DLSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>';
+
 export function pagination(base, page, pages) {
   if (pages <= 1) return '';
   const url = (p) => (p === 1 ? base : `${base}${base.includes('?') ? '&' : '?'}page=${p}`);
@@ -52,14 +54,15 @@ export function pagination(base, page, pages) {
   return out + '</nav>';
 }
 
-export function tile(p, extra = '') {
+export function tile(p, extra = '', dlToken = '') {
   const by = p.gname ? `Compartida por ${esc(p.gname)}` : '';
   const ts = p.taken_at || p.uploaded_at;
   const when = ts ? new Date(Number(ts)).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
   const ar = p.w && p.h ? ` style="--ar:${(p.w / p.h).toFixed(4)}"` : '';
   const det = `<div class="det">${by ? `<strong>${by}</strong>` : ''}${when ? `<span>${esc(when)}</span>` : ''}${p.w && p.h ? `<span>${p.w} × ${p.h} px</span>` : ''}</div>`;
+  const dlb = dlToken ? `<a class="dlbtn" href="/e/${dlToken}/dl/${p.id}" download aria-label="Descargar foto" title="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg></a><span class="pick" aria-hidden="true"></span>` : '';
   return `<figure class="gitem"${ar}><a class="tile" href="/m/${p.id}/l" data-id="${p.id}" data-full="/m/${p.id}/l">
-  <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="" ${p.w && p.h ? `width="${p.w}" height="${p.h}"` : ''}>${extra}</a>${by ? `<figcaption>${by}</figcaption>` : ''}${det}</figure>`;
+  <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="" ${p.w && p.h ? `width="${p.w}" height="${p.h}"` : ''}>${extra}</a>${dlb}${by ? `<figcaption>${by}</figcaption>` : ''}${det}</figure>`;
 }
 
 export function lightbox() {
@@ -155,10 +158,12 @@ export function adminCreated(event, guestUrl, manageUrl) {
 
 /* ---------------- Invitados ---------------- */
 
-export function uploadDialog() {
+export function uploadDialog(event = null, subs = []) {
+  const targets = event && subs.some((s) => s.upload_open) ? `<label class="field"><span>Subir a</span><select id="upTarget"><option value="${event.guest_token}" data-name="${esc(event.name)}">${esc(event.name)} (galería principal)</option>${subs.filter((s) => s.upload_open).map((s) => `<option value="${s.guest_token}" data-name="${esc(s.name)}">${esc(s.name)}</option>`).join('')}</select></label>` : '';
   return `<dialog id="upDlg"><div class="dlg">
 <header><h2>Subir fotos</h2><button class="btn sm" id="upClose" type="button">Cerrar</button></header>
 <div class="body">
+${targets}
 <label class="field namefield"><span>Tu nombre (opcional, aparece bajo tus fotos)</span><input type="text" id="guestName" maxlength="60" autocomplete="name"></label>
 <div class="drop" id="drop">Toca para elegir fotos<br><span class="small">o arrástralas aquí</span></div>
 <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
@@ -182,9 +187,9 @@ function subCards(subs) {
 <span class="subname">${esc(s.name)}</span><span class="subn">${s.n} ${s.n === 1 ? 'foto' : 'fotos'}</span></a><button type="button" class="cardbtn subshare" data-sharelink="/e/${s.guest_token}" aria-label="Compartir ${esc(s.name)}" title="Compartir enlace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button></div>`).join('')}</div></section>`;
 }
 
-export function guestPage({ event, photos, total, page, pages, subs = [], parent = null }) {
+export function guestPage({ event, photos, total, page, pages, subs = [], parent = null, dl = null }) {
   const grid = photos.length
-    ? `<div class="gbar"><span class="gsub">${total} ${total === 1 ? 'foto' : 'fotos'}</span><label class="sizer" title="Tamaño de las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/></svg><input type="range" id="gsize" min="0" max="100" value="50" aria-label="Tamaño de las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></label><div class="vtog" role="group" aria-label="Vista"><button type="button" class="on" data-view="grid" aria-label="Cuadrícula"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></button><button type="button" data-view="list" aria-label="Lineal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="7" rx="1"/><rect x="4" y="13" width="16" height="7" rx="1"/></svg></button></div></div><div class="grid gguest" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
+    ? `<div class="gbar"><span class="gsub">${total} ${total === 1 ? 'foto' : 'fotos'}</span>${dl ? `<button type="button" class="gbtn" id="selToggle">Seleccionar</button><button type="button" class="gbtn" id="dlOpen">${DLSVG} Descargar</button>` : ''}<label class="sizer" title="Tamaño de las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/></svg><input type="range" id="gsize" min="0" max="100" value="50" aria-label="Tamaño de las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></label><div class="vtog" role="group" aria-label="Vista"><button type="button" class="on" data-view="grid" aria-label="Cuadrícula"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></button><button type="button" data-view="list" aria-label="Lineal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="7" rx="1"/><rect x="4" y="13" width="16" height="7" rx="1"/></svg></button></div></div><div class="grid gguest" id="gallery">${photos.map((p) => tile(p, '', dl ? event.guest_token : '')).join('')}</div>`
     : (subs && subs.length ? '' : `<div class="empty">Aún no hay fotos. ¡Sé el primero en subir una!</div>`);
   const base = `/e/${event.guest_token}`;
   return layout({
@@ -204,7 +209,8 @@ ${event.upload_open ? `<button class="btn primary" id="openUpload" type="button"
 <main class="wrap">${subCards(subs)}${event.gallery_open ? grid + pagination(base, page, pages) : '<div class="empty">La galería no está disponible por ahora.</div>'}</main>
 <p class="brand">Picfy</p>
 ${lightbox()}
-${uploadDialog()}
+${uploadDialog(event, subs)}
+${dl ? `<div class="glass selbar hidden" id="gSelBar"><span id="gSelN">0 seleccionadas</span><button type="button" class="btn sm" id="gSelAll">Todas</button><button type="button" class="btn sm primary" id="gSelDl" disabled>Descargar</button><button type="button" class="btn sm" id="gSelCancel">Cancelar</button></div><dialog id="dlDlg"><div class="dlg"><header><h2>Descargar fotos</h2><button class="btn sm" type="button" data-close>Cerrar</button></header><div class="body"><p class="muted small">${dl.total} fotos en ${dl.parts} ${dl.parts === 1 ? 'archivo ZIP' : 'archivos ZIP'}. También puedes pulsar «Seleccionar» para elegir unas cuantas.</p>${Array.from({ length: dl.parts }, (_, k) => `<a class="btn ${k === 0 ? 'primary' : ''}" style="display:block;margin:8px 0;text-align:center" href="/e/${event.guest_token}/zip?part=${k + 1}">${dl.parts === 1 ? 'Descargar todas (ZIP)' : `Parte ${k + 1}: fotos ${k * dl.partSize + 1}–${Math.min(dl.total, (k + 1) * dl.partSize)}`}</a>`).join('')}</div></div></dialog>` : ''}
 ${subs.length ? `<dialog id="subShare"><div class="dlg"><header class="dlg-h"><h2 id="subShareName">Compartir</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header><div class="qrbox"><div class="qr" id="subQr"></div></div><div class="linkrow"><code id="subShareUrl"></code></div><footer class="sharefoot"><button class="btn primary" id="subCopy" type="button">Copiar enlace</button><button class="btn" id="subNative" type="button" hidden>Compartir…</button></footer></div></dialog>` : ''}`,
   });
 }

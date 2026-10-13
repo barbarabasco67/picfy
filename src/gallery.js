@@ -144,6 +144,7 @@ export function galleryRoutes(app) {
       try { await c.env.DB.prepare(base + ', show_subs = ? WHERE id = ?').bind(...vals, f.get('show_subs') ? 1 : 0, event.id).run(); }
       catch { await c.env.DB.prepare(base + ' WHERE id = ?').bind(...vals, event.id).run(); } // falta la migración 0006
     }
+    try { await c.env.DB.prepare('UPDATE events SET allow_download = ? WHERE id = ?').bind(f.get('allow_download') ? 1 : 0, event.id).run(); } catch { /* falta la migración 0008 */ }
     return c.redirect(`/galerias/${event.id}?ok=${encodeURIComponent('Ajustes guardados.')}`, 303);
   });
 
