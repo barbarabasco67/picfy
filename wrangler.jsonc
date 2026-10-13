@@ -4,7 +4,7 @@
   "compatibility_date": "2025-10-01",
   "assets": { "directory": "./public" },
   "d1_databases": [
-    { "binding": "DB", "database_name": "picfy", "migrations_dir": "migrations" }
+    { "binding": "DB", "database_name": "picfy", "database_id": "f8fbf9cd-5c2f-471c-8bdb-e5a54dc86c86", "migrations_dir": "migrations" }
   ],
   "r2_buckets": [
     { "binding": "PHOTOS", "bucket_name": "picfy-photos" }
