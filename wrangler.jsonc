@@ -9,5 +9,6 @@
   "r2_buckets": [
     { "binding": "PHOTOS", "bucket_name": "fotos-boda" }
   ],
+  "keep_vars": true,
   "observability": { "enabled": true }
 }
