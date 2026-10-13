@@ -147,6 +147,17 @@ export function galleryRoutes(app) {
     return c.redirect(`/galerias/${event.id}?ok=${encodeURIComponent('Ajustes guardados.')}`, 303);
   });
 
+  app.post('/galerias/:id/mostrar-subs', async (c) => {
+    const { user, event } = await ownerEvent(c);
+    if (!user) return c.redirect('/entrar', 303);
+    if (!event || event.parent_id) return html(notFoundPage('No encontramos esa galería.'), 404);
+    const f = await c.req.formData();
+    let msg = f.get('show_subs') ? 'Las subgalerías se muestran a los invitados.' : 'Las subgalerías ya no se muestran a los invitados.';
+    try { await c.env.DB.prepare('UPDATE events SET show_subs = ? WHERE id = ?').bind(f.get('show_subs') ? 1 : 0, event.id).run(); }
+    catch { msg = 'Falta la actualización de la base de datos (migración 0006).'; }
+    return c.redirect(`/galerias/${event.id}?ok=${encodeURIComponent(msg)}`, 303);
+  });
+
   // ZIP en streaming: todas las publicadas (por partes) o una selección (?ids=a,b,c)
   app.get('/galerias/:id/zip', async (c) => {
     const { user, event } = await ownerEvent(c);

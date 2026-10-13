@@ -288,3 +288,5 @@ body.app .gguest.list .tile img { height: auto; object-fit: contain; }
 .subimg { aspect-ratio: 16/10; background: rgba(var(--accent-rgb), .25) center/cover no-repeat; display: block; }
 .subname { padding: 12px 14px 0; font-weight: 700; }
 .subn { padding: 2px 14px 14px; font-size: .85rem; color: var(--muted); }
+
+.subtog { margin: 10px 0 14px; }
