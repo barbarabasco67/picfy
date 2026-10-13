@@ -75,7 +75,6 @@ const email = `m${Date.now()}@ejemplo.es`;
   check('bandera persiste', (await p.$$('.tile.ph[data-flag=green]')).length === 2 && (await p.$$('.tile.ph[data-flag=red]')).length === 1);
   check('favorita persiste', (await p.$$('.tile.ph[data-fav="1"]')).length === 1);
 
-  await p.click('#sideToggle');
   // Filtros
   await p.click('#fFlags [data-f=green]');
   check('filtro bandera verde', (await p.$$('.tile.ph:not(.hidden)')).length === 2);

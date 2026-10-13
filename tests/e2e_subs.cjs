@@ -121,11 +121,12 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   check('portada elegida desde foto', (await p.$$('.gcard-wrap img[src*="/thumb"]')).length >= 1);
   // panel lateral contraído y flecha
   await p.goto(parentUrl);
-  check('panel contraído por defecto', await p.$eval('#gside', (e) => e.classList.contains('collapsed')));
+  check('menú contraído por defecto', await p.$eval('.frame > .side', (e) => e.classList.contains('collapsed')));
+  check('panel de la galería visible', await p.isVisible('#gside .stats'));
   await p.screenshot({ path: '/tmp/picfy_shots/side_closed.png' });
-  await p.click('#sideToggle');
-  check('la flecha abre el panel', await p.isVisible('#gside .stats'));
-  await p.click('#sideToggle');
+  await p.click('#navToggle');
+  check('la flecha abre el menú', await p.isVisible('.frame > .side .nav span'));
+  await p.click('#navToggle');
   await p.goto(B + '/galerias');
   check('solo la galería principal en la lista', (await p.$$('#gcards .gcard')).length === 1);
   check('chip de subgalerías', await p.isVisible('.chip.subc:has-text("2 subgalerías")'));

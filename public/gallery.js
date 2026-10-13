@@ -174,13 +174,12 @@
   }));
 })();
 
-// Panel lateral: contraído (solo iconos) por defecto; la flecha lo abre o cierra
+// Menú "Gestiona tus fotos": contraído (solo iconos) por defecto en la galería; la flecha lo abre o cierra
 (() => {
-  const side = document.getElementById('gside'), btn = document.getElementById('sideToggle'); if (!side || !btn) return;
-  const key = 'picfy_side';
+  const side = document.querySelector('.frame > .side'), btn = document.getElementById('navToggle'); if (!side || !btn) return;
+  const frame = side.parentElement, key = 'picfy_nav';
   const set = (open) => {
-    side.classList.toggle('collapsed', !open); btn.setAttribute('aria-expanded', String(open));
-    const w = side.closest('.gwrap'); if (w) w.classList.toggle('side-open', open);
+    side.classList.toggle('collapsed', !open); frame.classList.toggle('nav-collapsed', !open); btn.setAttribute('aria-expanded', String(open));
     try { localStorage.setItem(key, open ? 'open' : 'closed'); } catch (e) {}
   };
   let saved = null; try { saved = localStorage.getItem(key); } catch (e) {}

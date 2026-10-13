@@ -31,7 +31,7 @@ function appPage({ title, body, scripts = [], bodyAttrs = '' }) {
 const logo = `<a class="logo" href="/galerias"><span class="logo-dot"></span>Picfy</a>`;
 
 // Marco con barra superior y lateral de cristal
-function shell({ user, active = 'galerias', crumbs = '', main }) {
+function shell({ user, active = 'galerias', crumbs = '', main, collapsible = false }) {
   const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
   return `<header class="top glass">
 ${logo}
@@ -40,8 +40,9 @@ ${logo}
 <div class="who"><span class="avatar" title="${esc(user.email)}">${esc(initials)}</span>
 <form method="post" action="/salir"><button class="iconbtn" type="submit" title="Salir" aria-label="Salir">${ICON.out}</button></form></div>
 </header>
-<div class="frame">
-<aside class="side glass">
+<div class="frame${collapsible ? ' nav-collapsed' : ''}">
+<aside class="side glass${collapsible ? ' collapsed' : ''}">
+${collapsible ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}
 <p class="side-h">Gestiona tus fotos</p>
 <a class="nav ${active === 'galerias' ? 'on' : ''}" href="/galerias">${ICON.gal}<span>Galerías</span></a>
 <p class="side-h">Próximamente</p>
@@ -177,14 +178,15 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
     scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/reorder.js', '/app.js', '/guest.js', '/brand.js', '/gallery.js'],
     body: shell({
       user,
+      collapsible: true,
       crumbs: `<a href="/galerias">Galerías</a><span>/</span>${parent ? `<a href="/galerias/${parent.id}">${esc(parent.name)}</a><span>/</span>` : ''}<b>${esc(event.name)}</b>`,
       main: `${note ? `<div class="alert ok">${esc(note)}</div>` : ''}
 <div class="gwrap">
-<aside class="gside glass collapsed" id="gside">
-<div class="sidehead"><h2>${esc(event.name)}</h2><button class="iconbtn" type="button" id="sideToggle" aria-label="Mostrar u ocultar el panel" aria-expanded="false" title="Mostrar u ocultar el panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div>
+<aside class="gside glass" id="gside">
+<h2>${esc(event.name)}</h2>
 ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(event.event_date))}</p>` : ''}
 <div class="trio">
-<button class="tool" type="button" data-open="setDlg">${ICON.cog}<span>Configuración</span></button>
+<button class="tool" type="button" data-open="setDlg">${ICON.cog}<span>Ajustes</span></button>
 <a class="tool" href="/e/${event.guest_token}" target="_blank" rel="noopener">${ICON.eye}<span>Vista previa</span></a>
 <button class="tool" type="button" id="openShare">${ICON.share}<span>Compartir</span></button>
 </div>
