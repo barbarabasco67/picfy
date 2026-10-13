@@ -4,6 +4,9 @@ import { randomHex, sha256Hex, html, json } from './util.js';
 import { hashPassword, checkPassword, validEmail, startSession, endSession, currentUser } from './auth.js';
 import { authPage, galleriesPage, galleryPage } from './appviews.js';
 import { notFoundPage } from './views.js';
+import { orderSql } from './photos.js';
+import { galleryRoutes } from './gallery.js';
+import { splitParts } from './zip.js';
 
 const go = (to, headers = {}) => new Response(null, { status: 303, headers: { location: to, ...headers } });
 
@@ -13,6 +16,8 @@ async function userCount(db) {
 }
 
 export function appRoutes(app) {
+  galleryRoutes(app);
+
   /* ----- Entrar ----- */
   app.get('/entrar', async (c) => (await currentUser(c)) ? go('/galerias') : html(authPage({ mode: 'login' })));
 
@@ -103,17 +108,25 @@ export function appRoutes(app) {
     if (!user) return go('/entrar');
     const event = await ownEvent(c, user);
     if (!event) return html(notFoundPage('No encontramos esa galería.'), 404);
-    const photos = (await c.env.DB.prepare(
-      `SELECT id, state FROM photos WHERE event_id = ? AND state IN ('approved','pending')
-       ORDER BY ${event.sort_mode === 'manual' ? 'sort_order ASC, id ASC' : event.sort_mode === 'time_desc' ? 'COALESCE(taken_at, uploaded_at) DESC, id DESC' : 'COALESCE(taken_at, uploaded_at) ASC, id ASC'}
-       LIMIT 300`,
-    ).bind(event.id).all()).results;
-    const counts = await c.env.DB.prepare(
-      `SELECT SUM(state = 'approved') AS approved, SUM(state = 'pending') AS pending FROM photos WHERE event_id = ?`,
-    ).bind(event.id).first();
+    const db = c.env.DB;
+    const [ph, gs] = await Promise.all([
+      db.prepare(
+        `SELECT id, guest_id, filename, state, flag, fav, size FROM photos
+         WHERE event_id = ? AND state IN ('approved','pending','rejected')
+         ORDER BY ${orderSql(event.sort_mode)} LIMIT 3000`,
+      ).bind(event.id).all(),
+      db.prepare(
+        `SELECT g.id, g.name, (SELECT COUNT(*) FROM photos p WHERE p.guest_id = g.id AND p.state IN ('approved','pending','rejected')) AS n
+         FROM guests g WHERE g.event_id = ? ORDER BY g.created_at ASC`,
+      ).bind(event.id).all(),
+    ]);
+    const photos = ph.results;
+    const approved = photos.filter((p) => p.state === 'approved');
+    const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
+    const zipParts = splitParts(approved, partSize).map((p) => ({ count: p.length }));
     return html(galleryPage({
-      user, event, photos, origin: new URL(c.req.url).origin,
-      counts: { approved: counts?.approved || 0, pending: counts?.pending || 0 },
+      user, event, photos, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
+      counts: { approved: approved.length, pending: photos.filter((p) => p.state === 'pending').length },
       note: c.req.query('ok') || '',
     }));
   });

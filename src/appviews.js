@@ -11,6 +11,10 @@ const ICON = {
   up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>',
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>',
   out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>',
+  flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.7-8 11-8 11z"/></svg>',
+  down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>',
+  cog: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>',
   lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>',
 };
 export { ICON };
@@ -116,17 +120,33 @@ ${events.length ? `<div class="gcards" id="gcards">${cards}</div><p class="muted
 
 /* ---------- Una galería ---------- */
 
-export function galleryPage({ user, event, photos, counts, origin, note = '' }) {
+const FLAG_NAMES = { red: 'Roja', orange: 'Naranja', green: 'Verde', black: 'Negra' };
+const flagDot = (f) => `<span class="fdot ${f}"></span>`;
+
+export function galleryPage({ user, event, photos, guests, counts, origin, partSize, zipParts, note = '' }) {
   const guestUrl = `${origin}/e/${event.guest_token}`;
+  const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
-    .map(
-      (p) => `<a class="ptile" href="/m/${p.id}/l" data-full="/m/${p.id}/l">
-<img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="">${p.state === 'pending' ? '<span class="chip warn">En revisión</span>' : ''}</a>`,
-    )
+    .map((p) => `<div class="tile ph" data-id="${p.id}" data-full="/m/${p.id}/l" data-state="${p.state}" data-flag="${p.flag || ''}" data-fav="${p.fav ? 1 : 0}" data-name="${esc((p.filename || '').toLowerCase())}" title="${esc(gname.get(p.guest_id) || '')}">
+<input class="chk" type="checkbox" aria-label="Seleccionar foto">
+<img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="">
+<button class="mk flagb" type="button" data-mk="flag" aria-label="Bandera">${ICON.flag}</button>
+<button class="mk favb ${p.fav ? 'on' : ''}" type="button" data-mk="fav" aria-label="Favorita">${ICON.heart}</button>
+${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' ? 'En revisión' : 'No publicada'}</span>` : ''}
+<span class="cap">${esc(p.filename || '')}</span></div>`)
     .join('');
+  const flagBtns = ['red', 'orange', 'green', 'black'].map((f) => `<button type="button" class="ftoggle" data-f="${f}" title="${FLAG_NAMES[f]}" aria-label="Bandera ${FLAG_NAMES[f].toLowerCase()}">${ICON.flag.replace('<svg', `<svg class="fl ${f}"`)}</button>`).join('');
+  const flagMenu = ['red', 'orange', 'green', 'black'].map((f) => `<button type="button" data-setflag="${f}">${flagDot(f)} ${FLAG_NAMES[f]}</button>`).join('') + `<button type="button" data-setflag="">Quitar bandera</button>`;
+  const opts = guests.map((g) => `<option value="${g.id}">${esc(g.name || `Invitado ${g.id.slice(0, 4)}`)} (${g.n})</option>`).join('');
+  const mode = event.sort_mode;
+  const sel = (m, t) => `<option value="${m}" ${mode === m ? 'selected' : ''}>${t}</option>`;
+  const zipList = zipParts.length
+    ? zipParts.map((z, i) => `<a class="btn" href="/galerias/${event.id}/zip?part=${i + 1}">${zipParts.length > 1 ? `Parte ${i + 1} de ${zipParts.length} · ${z.count} fotos` : `Descargar todo · ${z.count} fotos`}</a>`).join('')
+    : '<p class="muted">Todavía no hay fotos publicadas.</p>';
   return appPage({
     title: event.name,
-    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/app.js'],
+    bodyAttrs: `data-gapi="/api/g/${event.id}" data-gid="${event.id}" data-part="${partSize}"`,
+    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/reorder.js', '/app.js', '/gallery.js'],
     body: shell({
       user,
       crumbs: `<a href="/galerias">Galerías</a><span>/</span><b>${esc(event.name)}</b>`,
@@ -134,19 +154,45 @@ export function galleryPage({ user, event, photos, counts, origin, note = '' }) 
 <div class="gwrap">
 <aside class="gside glass">
 <h2>${esc(event.name)}</h2>
-${event.event_date ? `<p class="muted small">${esc(fmtDate(event.event_date))}</p>` : ''}
+${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(event.event_date))}</p>` : ''}
 <div class="trio">
-<button class="tool" type="button" id="openShare">${ICON.share}<span>Compartir</span></button>
+<button class="tool" type="button" data-open="setDlg">${ICON.cog}<span>Configuración</span></button>
 <a class="tool" href="/e/${event.guest_token}" target="_blank" rel="noopener">${ICON.eye}<span>Vista previa</span></a>
-<form method="post" action="/galerias/${event.id}/borrar" onsubmit="return confirm('Se borrará la galería y TODAS sus fotos. No se puede deshacer. ¿Seguir?')"><button class="tool danger" type="submit">${ICON.trash}<span>Borrar</span></button></form>
+<button class="tool" type="button" id="openShare">${ICON.share}<span>Compartir</span></button>
 </div>
-<a class="btn primary block" href="/e/${event.guest_token}" target="_blank" rel="noopener">${ICON.up} Subir fotos</a>
+<a class="btn primary block" href="/e/${event.guest_token}" target="_blank" rel="noopener">${ICON.up} Subir nuevos archivos</a>
+<button class="btn block" type="button" data-open="zipDlg">${ICON.down} Descargar ${counts.approved} archivos</button>
 <dl class="stats"><div><dt>Publicadas</dt><dd>${counts.approved}</dd></div><div><dt>Por revisar</dt><dd>${counts.pending}</dd></div></dl>
-<p class="muted small">Moderar, ordenar y descargar llegan en el siguiente paso.</p>
+${counts.pending ? `<button class="btn" type="button" id="approveAll">Aprobar las ${counts.pending} pendientes</button>` : ''}
+<h3 class="gh">Filtro</h3>
+<input class="search2" type="search" id="fName" placeholder="Nombre del archivo" aria-label="Filtrar por nombre">
+<div class="fbar" id="fFlags">${flagBtns}<button type="button" class="ftoggle" id="fFav" title="Favoritas" aria-label="Solo favoritas">${ICON.heart}</button></div>
+<select id="fState" aria-label="Estado"><option value="">Todas las fotos</option><option value="approved">Publicadas</option><option value="pending">En revisión</option><option value="rejected">No publicadas</option></select>
+<h3 class="gh">Disposición</h3>
+<label class="field"><span>Ordenar por…</span>
+<select id="sortBy">${sel('time', 'Hora de captura')}${sel('time_desc', 'Más recientes primero')}${sel('name', 'Nombre del archivo')}${mode === 'manual' ? sel('manual', 'Orden manual') : ''}</select></label>
+<label class="size-ctl">Tamaño <input type="range" id="size" min="90" max="320" value="170"></label>
+<p class="muted small" style="margin:0">Arrastra las fotos para ordenarlas a mano. Estira un rectángulo para seleccionar varias.</p>
 </aside>
 <section class="gmain">
-${photos.length ? `<div class="pgrid" id="pgrid">${tiles}</div>` : `<div class="glass emptybox">Esta galería todavía no tiene fotos. Comparte el enlace para que tus invitados suban las suyas.</div>`}
+<div class="gtools"><span class="muted small" id="shown">${photos.length} fotos</span><span class="spacer"></span><button class="btn sm" type="button" id="pickAll">Seleccionar todo</button></div>
+${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid" style="--tile:170px">${tiles}</div><p class="muted hidden" id="noMatch2">Ninguna foto coincide con el filtro.</p>` : `<div class="glass emptybox">Esta galería todavía no tiene fotos. Comparte el enlace para que tus invitados suban las suyas.</div>`}
 </section></div>
+
+<div class="selbar glass hidden" id="selbar" role="toolbar" aria-label="Acciones sobre la selección">
+<b id="selN">0</b>
+<span class="sepv"></span>
+<button class="sb" type="button" data-act="approve" title="Aprobar">Aprobar</button>
+<button class="sb" type="button" data-act="reject" title="Quitar de la galería">Rechazar</button>
+<span class="sepv"></span>
+<span class="menuwrap"><button class="sb ic" type="button" id="flagMenuBtn" title="Bandera" aria-label="Bandera">${ICON.flag}</button><div class="menu glass hidden" id="flagMenu">${flagMenu}</div></span>
+<button class="sb ic" type="button" data-act="fav" title="Favorita" aria-label="Favorita">${ICON.heart}</button>
+${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><option value="">Pasar al álbum de…</option>${opts}</select>` : ''}
+<button class="sb ic" type="button" data-act="download" title="Descargar" aria-label="Descargar">${ICON.down}</button>
+<button class="sb ic danger" type="button" data-act="delete" title="Borrar" aria-label="Borrar">${ICON.trash}</button>
+<button class="sb ic" type="button" data-act="clear" title="Quitar selección" aria-label="Quitar selección">×</button>
+</div>
+
 <dialog id="shareDlg" class="glassdlg"><div class="dlgbox">
 <header><h2>Compartir galería</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <p class="muted">Copia el enlace y envíaselo a tus invitados. Cualquiera con el enlace puede subir fotos.</p>
@@ -154,6 +200,29 @@ ${photos.length ? `<div class="pgrid" id="pgrid">${tiles}</div>` : `<div class="
 <div class="sharerow"><button class="btn primary" type="button" id="copyLink">Copiar enlace</button></div>
 <div class="qr" data-qr="${esc(guestUrl)}"></div>
 </div></dialog>
+
+<dialog id="zipDlg" class="glassdlg"><div class="dlgbox">
+<header><h2>Descargar</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<p class="muted">Fotos originales publicadas, en el orden de la galería. En galerías grandes se reparten en varias partes.</p>
+<div class="zips">${zipList}</div>
+</div></dialog>
+
+<dialog id="setDlg" class="glassdlg"><form method="post" action="/galerias/${event.id}/ajustes" class="dlgbox">
+<header><h2>Configuración</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<label class="field"><span>Nombre</span><input type="text" name="name" maxlength="120" value="${esc(event.name)}" required></label>
+<div class="row2">
+<label class="field"><span>Fecha</span><input type="date" name="event_date" value="${esc(event.event_date || '')}"></label>
+<label class="field"><span>Máx. fotos por persona (0 = sin límite)</span><input type="number" name="photo_limit" min="0" max="2000" value="${event.photo_limit}"></label>
+</div>
+<label class="field"><span>Mensaje de bienvenida</span><textarea name="lead" maxlength="400">${esc(event.lead)}</textarea></label>
+<label class="check"><input type="checkbox" name="auto_approve" value="1" ${event.auto_approve ? 'checked' : ''}> Publicar las fotos al subirlas</label>
+<label class="check"><input type="checkbox" name="upload_open" value="1" ${event.upload_open ? 'checked' : ''}> Subida de fotos abierta</label>
+<label class="check"><input type="checkbox" name="gallery_open" value="1" ${event.gallery_open ? 'checked' : ''}> Galería visible para los invitados</label>
+<footer>
+<button class="btn danger" type="submit" formaction="/galerias/${event.id}/borrar" formnovalidate onclick="return confirm('Se borrará la galería y TODAS sus fotos. No se puede deshacer. ¿Seguir?')">${ICON.trash} Borrar galería</button>
+<span class="spacer"></span>
+<button class="btn primary" type="submit">Guardar</button></footer>
+</form></dialog>
 ${lightbox()}`,
     }),
   });

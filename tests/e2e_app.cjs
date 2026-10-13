@@ -61,8 +61,8 @@ const email = `t${Date.now()}@ejemplo.es`;
 
   // El dueño las ve
   await p.goto(galUrl);
-  check('6 fotos en la galería del dueño', (await p.$$('.ptile')).length === 6);
-  await p.click('.ptile');
+  check('6 fotos en la galería del dueño', (await p.$$('.tile.ph')).length === 6);
+  await p.click('.tile.ph >> nth=0', { position: { x: 90, y: 90 } });
   check('visor abre', await p.isVisible('#lb.open'));
   await p.keyboard.press('Escape');
   await p.screenshot({ path: SHOTS + '/5_galeria.png' });

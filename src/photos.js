@@ -2,13 +2,14 @@
 
 import { isHex } from './util.js';
 
-export const SORTS = ['time', 'time_desc', 'manual'];
+export const SORTS = ['time', 'time_desc', 'name', 'manual'];
 
 // Fragmento ORDER BY según el modo del evento.
 export function orderSql(mode, alias = '') {
   const p = alias ? alias + '.' : '';
   const t = `COALESCE(${p}taken_at, ${p}uploaded_at)`;
   if (mode === 'manual') return `${p}sort_order ASC, ${p}id ASC`;
+  if (mode === 'name') return `${p}filename COLLATE NOCASE ASC, ${p}id ASC`;
   if (mode === 'time_desc') return `${t} DESC, ${p}id DESC`;
   return `${t} ASC, ${p}id ASC`;
 }

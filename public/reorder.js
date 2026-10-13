@@ -174,7 +174,7 @@
       if (s.kind === 'marquee') { if (s.box) s.box.remove(); return; }
       if (!s.active) {
         if (!cancel) {
-          const all = tiles();
+          const all = tiles().filter((t) => t.offsetParent !== null);
           if (window.picfyLightbox) window.picfyLightbox.open(all.map((t) => t.dataset.full), all.indexOf(s.tile));
         }
         return;
