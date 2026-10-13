@@ -365,3 +365,34 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 34px); r
 
 .sedechip { position: absolute; left: 8px; bottom: 8px; z-index: 2; max-width: calc(100% - 16px); padding: 3px 9px; border-radius: 999px; font-size: .72rem; font-weight: 600; background: rgba(255,255,255,.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
 .cardbtn.wide { width: auto; padding: 0 10px; gap: 6px; font-size: .82rem; font-weight: 600; grid-auto-flow: column; }
+
+/* panel lateral contraíble */
+.sidehead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sidehead h2 { overflow: hidden; text-overflow: ellipsis; }
+#sideToggle svg { transition: transform .2s; width: 20px; height: 20px; }
+.gside:not(.collapsed) #sideToggle svg { transform: rotate(180deg); }
+.sidebtns { display: flex; flex-direction: column; gap: 10px; }
+.sidebtns .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.sidebtns .btn svg { width: 20px; height: 20px; flex: none; }
+.gwrap:not(.side-open) { grid-template-columns: 76px 1fr; }
+.gside.collapsed { padding: 12px 10px; align-items: center; gap: 12px; overflow: visible; }
+.gside.collapsed > :not(.sidehead):not(.trio):not(.sidebtns) { display: none; }
+.gside.collapsed .sidehead { flex-direction: column; }
+.gside.collapsed .sidehead h2 { display: none; }
+.gside.collapsed .trio { display: flex; flex-direction: column; gap: 10px; }
+.gside.collapsed .tool { width: 48px; height: 48px; padding: 0; justify-content: center; align-items: center; }
+.gside.collapsed .tool span { display: none; }
+.gside.collapsed .sidebtns .btn { width: 48px; height: 48px; padding: 0; }
+.gside.collapsed .sidebtns .lbl { display: none; }
+@media (max-width: 860px) {
+  .gwrap:not(.side-open) { grid-template-columns: 1fr; }
+  .gside.collapsed { flex-direction: row; justify-content: center; flex-wrap: wrap; }
+  .gside.collapsed .sidehead { flex-direction: row; order: 9; }
+  .gside.collapsed .trio { flex-direction: row; }
+  .gside.collapsed .sidebtns { flex-direction: row; }
+}
+
+#approveAll { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+#approveAll svg { width: 20px; height: 20px; flex: none; }
+#approveAll .badge { display: none; position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #d9534f; color: #fff; font-size: .72rem; font-weight: 700; align-items: center; justify-content: center; }
+.gside.collapsed #approveAll { width: 48px; height: 48px; padding: 0; } .gside.collapsed #approveAll .badge { display: inline-flex; }

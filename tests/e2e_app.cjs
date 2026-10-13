@@ -40,7 +40,7 @@ const email = `t${Date.now()}@ejemplo.es`;
   await p.screenshot({ path: SHOTS + '/3_crear.png' });
   await p.click('#newDlg button[type=submit]');
   await p.waitForURL(/\/galerias\/[0-9a-f]{16}/);
-  check('galería creada', await p.isVisible('.gside h2:has-text("Torneo 3x3")'));
+  check('galería creada', !!(await p.$('.gside h2:has-text("Torneo 3x3")')));
   await p.click('#openShare');
   await p.waitForSelector('#shareDlg .qr svg');
   const guestUrl = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B);

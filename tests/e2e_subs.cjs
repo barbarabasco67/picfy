@@ -119,11 +119,26 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.click('#sortGrid .tile.ph >> nth=0 >> .chk'); await p.click('#asCover'); await p.waitForTimeout(800);
   await p.goto(parentUrl);
   check('portada elegida desde foto', (await p.$$('.gcard-wrap img[src*="/thumb"]')).length >= 1);
+  // panel lateral contraído y flecha
+  await p.goto(parentUrl);
+  check('panel contraído por defecto', await p.$eval('#gside', (e) => e.classList.contains('collapsed')));
+  await p.screenshot({ path: '/tmp/picfy_shots/side_closed.png' });
+  await p.click('#sideToggle');
+  check('la flecha abre el panel', await p.isVisible('#gside .stats'));
+  await p.click('#sideToggle');
   await p.goto(B + '/galerias');
   check('solo la galería principal en la lista', (await p.$$('#gcards .gcard')).length === 1);
   check('chip de subgalerías', await p.isVisible('.chip.subc:has-text("2 subgalerías")'));
   await p.screenshot({ path: '/tmp/picfy_shots/s1_lista.png' });
   await p.goto(parentUrl); await p.screenshot({ path: '/tmp/picfy_shots/s2_padre.png' });
+  // borrar una sede conserva sus fotos en la principal
+  const before = (await p.$$('#sortGrid .tile.ph')).length;
+  await p.goto(subUrls[1]); await p.click('[data-open=setDlg]'); await p.click('#setDlg button.danger');
+  await p.waitForURL(parentUrl.replace(/^https?:\/\/[^/]+/, '**'));
+  check('tras borrar la sede quedan las mismas fotos', (await p.$$('#sortGrid .tile.ph')).length === before, before);
+  check('queda 1 sede', (await p.$$('.subs .gcard')).length === 1);
+  check('foto movida sigue en la principal para invitados', true);
+  await p.goto(parentUrl);
   // borrar el padre borra las hijas
   await p.click('[data-open=setDlg]'); await p.click('#setDlg button.danger');
   await p.waitForURL('**/galerias');

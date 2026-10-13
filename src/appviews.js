@@ -180,18 +180,20 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
       crumbs: `<a href="/galerias">Galerías</a><span>/</span>${parent ? `<a href="/galerias/${parent.id}">${esc(parent.name)}</a><span>/</span>` : ''}<b>${esc(event.name)}</b>`,
       main: `${note ? `<div class="alert ok">${esc(note)}</div>` : ''}
 <div class="gwrap">
-<aside class="gside glass">
-<h2>${esc(event.name)}</h2>
+<aside class="gside glass collapsed" id="gside">
+<div class="sidehead"><h2>${esc(event.name)}</h2><button class="iconbtn" type="button" id="sideToggle" aria-label="Mostrar u ocultar el panel" aria-expanded="false" title="Mostrar u ocultar el panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div>
 ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(event.event_date))}</p>` : ''}
 <div class="trio">
 <button class="tool" type="button" data-open="setDlg">${ICON.cog}<span>Configuración</span></button>
 <a class="tool" href="/e/${event.guest_token}" target="_blank" rel="noopener">${ICON.eye}<span>Vista previa</span></a>
 <button class="tool" type="button" id="openShare">${ICON.share}<span>Compartir</span></button>
 </div>
-<button class="btn primary block" type="button" id="openUpload">${ICON.up} Subir nuevos archivos</button>
-<button class="btn block" type="button" data-open="zipDlg">${ICON.down} Descargar ${counts.approved} archivos</button>
+<div class="sidebtns">
+<button class="btn primary block" type="button" id="openUpload" title="Subir nuevos archivos" aria-label="Subir nuevos archivos">${ICON.up}<span class="lbl">Subir nuevos archivos</span></button>
+<button class="btn block" type="button" data-open="zipDlg" title="Descargar ${counts.approved} archivos" aria-label="Descargar ${counts.approved} archivos">${ICON.down}<span class="lbl">Descargar ${counts.approved} archivos</span></button>
+${counts.pending ? `<button class="btn" type="button" id="approveAll" title="Aprobar las ${counts.pending} pendientes" aria-label="Aprobar las ${counts.pending} pendientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg><span class="lbl">Aprobar las ${counts.pending} pendientes</span><span class="badge">${counts.pending}</span></button>` : ''}
+</div>
 <dl class="stats"><div><dt>Publicadas</dt><dd>${counts.approved}</dd></div><div><dt>Por revisar</dt><dd>${counts.pending}</dd></div></dl>
-${counts.pending ? `<button class="btn" type="button" id="approveAll">Aprobar las ${counts.pending} pendientes</button>` : ''}
 <h3 class="gh">Filtro</h3>
 <input class="search2" type="search" id="fName" placeholder="Nombre del archivo" aria-label="Filtrar por nombre">
 <div class="fbar" id="fFlags">${flagBtns}<button type="button" class="ftoggle" id="fFav" title="Favoritas" aria-label="Solo favoritas">${ICON.heart}</button></div>
@@ -265,7 +267,7 @@ ${!event.parent_id ? `<label class="check"><input type="checkbox" name="show_sub
 ${brandFields(event)}
 <div class="notice err hidden" data-brand-msg></div>
 <footer>
-<button class="btn danger" type="submit" formaction="/galerias/${event.id}/borrar" formnovalidate data-nobrand onclick="return confirm('Se borrará la galería y TODAS sus fotos. No se puede deshacer. ¿Seguir?')">${ICON.trash} Borrar galería</button>
+<button class="btn danger" type="submit" formaction="/galerias/${event.id}/borrar" formnovalidate data-nobrand onclick="return confirm('${event.parent_id ? 'Se borrará esta subgalería. Sus fotos NO se borran: pasan a la galería principal. ¿Seguir?' : 'Se borrará la galería, sus subgalerías y TODAS sus fotos. No se puede deshacer. ¿Seguir?'}')">${ICON.trash} ${event.parent_id ? 'Borrar subgalería' : 'Borrar galería'}</button>
 <span class="spacer"></span>
 <button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>

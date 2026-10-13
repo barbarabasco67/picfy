@@ -173,3 +173,17 @@
     await fetch(`/api/g/${b.dataset.thumbdel}/brand/thumb`, { method: 'DELETE' }); location.reload();
   }));
 })();
+
+// Panel lateral: contraído (solo iconos) por defecto; la flecha lo abre o cierra
+(() => {
+  const side = document.getElementById('gside'), btn = document.getElementById('sideToggle'); if (!side || !btn) return;
+  const key = 'picfy_side';
+  const set = (open) => {
+    side.classList.toggle('collapsed', !open); btn.setAttribute('aria-expanded', String(open));
+    const w = side.closest('.gwrap'); if (w) w.classList.toggle('side-open', open);
+    try { localStorage.setItem(key, open ? 'open' : 'closed'); } catch (e) {}
+  };
+  let saved = null; try { saved = localStorage.getItem(key); } catch (e) {}
+  set(saved === 'open');
+  btn.addEventListener('click', () => set(side.classList.contains('collapsed')));
+})();

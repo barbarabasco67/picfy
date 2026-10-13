@@ -174,12 +174,31 @@ export function appRoutes(app) {
     if (!user) return go('/entrar');
     const event = await ownEvent(c, user);
     if (!event) return go('/galerias');
+    const db = c.env.DB;
+    if (event.parent_id) {
+      // una subgalería es solo una carpeta: sus fotos pasan a la galería principal
+      const pid = event.parent_id;
+      const dup = (await db.prepare('SELECT s.id AS sid, p.id AS pid FROM guests s JOIN guests p ON p.event_id = ?1 AND p.key_hash = s.key_hash WHERE s.event_id = ?2').bind(pid, event.id).all()).results;
+      for (const d of dup) {
+        await db.batch([
+          db.prepare('UPDATE photos SET guest_id = ? WHERE guest_id = ?').bind(d.pid, d.sid),
+          db.prepare('DELETE FROM guests WHERE id = ?').bind(d.sid),
+        ]);
+      }
+      await db.batch([
+        db.prepare('UPDATE guests SET event_id = ? WHERE event_id = ?').bind(pid, event.id),
+        db.prepare('UPDATE photos SET event_id = ? WHERE event_id = ?').bind(pid, event.id),
+      ]);
+      await c.env.PHOTOS.delete([`c/${event.id}/cover`, `c/${event.id}/avatar`, `c/${event.id}/thumb`]);
+      await db.prepare('DELETE FROM events WHERE id = ?').bind(event.id).run();
+      return go(`/galerias/${pid}`);
+    }
     const kids = (await c.env.DB.prepare('SELECT id FROM events WHERE parent_id = ? AND owner_id = ?').bind(event.id, user.id).all()).results.map((r) => r.id);
     for (const eid of [...kids, event.id]) {
       const rows = await c.env.DB.prepare('SELECT id FROM photos WHERE event_id = ?').bind(eid).all();
       const keys = rows.results.flatMap((r) => ['o', 'm', 'l'].map((s) => `p/${r.id}/${s}`));
       for (let k = 0; k < keys.length; k += 500) await c.env.PHOTOS.delete(keys.slice(k, k + 500));
-      await c.env.PHOTOS.delete([`c/${eid}/cover`, `c/${eid}/avatar`]);
+      await c.env.PHOTOS.delete([`c/${eid}/cover`, `c/${eid}/avatar`, `c/${eid}/thumb`]);
       await c.env.DB.batch([
         c.env.DB.prepare('DELETE FROM photos WHERE event_id = ?').bind(eid),
         c.env.DB.prepare('DELETE FROM guests WHERE event_id = ?').bind(eid),

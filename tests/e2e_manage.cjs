@@ -75,6 +75,7 @@ const email = `m${Date.now()}@ejemplo.es`;
   check('bandera persiste', (await p.$$('.tile.ph[data-flag=green]')).length === 2 && (await p.$$('.tile.ph[data-flag=red]')).length === 1);
   check('favorita persiste', (await p.$$('.tile.ph[data-fav="1"]')).length === 1);
 
+  await p.click('#sideToggle');
   // Filtros
   await p.click('#fFlags [data-f=green]');
   check('filtro bandera verde', (await p.$$('.tile.ph:not(.hidden)')).length === 2);
@@ -145,7 +146,7 @@ const email = `m${Date.now()}@ejemplo.es`;
   await p.fill('#setDlg input[name=name]', 'Torneo sedes (final)');
   await p.click('#setDlg button.primary');
   await p.waitForSelector('.alert.ok');
-  check('ajustes guardados', await p.isVisible('.gside h2:has-text("final")'));
+  check('ajustes guardados', !!(await p.$('.gside h2:has-text("final")')));
   await p.screenshot({ path: SHOTS + '/m3_galeria.png' });
 
   // Otro usuario no puede tocar la API
