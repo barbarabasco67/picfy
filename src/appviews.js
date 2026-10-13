@@ -22,8 +22,7 @@ export { ICON };
 function appPage({ title, body, scripts = [], bodyAttrs = '' }) {
   return layout({
     title: `${title} · Picfy`,
-    head: '<link rel="stylesheet" href="/app.css">',
-    bodyAttrs: `class="app" ${bodyAttrs}`,
+    bodyAttrs,
     scripts,
     body,
   });
@@ -34,8 +33,7 @@ const logo = `<a class="logo" href="/galerias"><span class="logo-dot"></span>Pic
 // Marco con barra superior y lateral de cristal
 function shell({ user, active = 'galerias', crumbs = '', main }) {
   const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
-  return `<div class="bgfx" aria-hidden="true"></div>
-<header class="top glass">
+  return `<header class="top glass">
 ${logo}
 <nav class="crumbs">${crumbs}</nav>
 <span class="spacer"></span>
@@ -60,8 +58,7 @@ export function authPage({ mode = 'login', error = '', email = '', name = '', ne
   const login = mode === 'login';
   return appPage({
     title: login ? 'Entrar' : 'Crear cuenta',
-    body: `<div class="bgfx" aria-hidden="true"></div>
-<main class="auth">
+    body: `<main class="auth">
 <div class="glass auth-card">
 ${logo}
 <h1>${login ? 'Entra en tu espacio' : 'Crea tu cuenta'}</h1>

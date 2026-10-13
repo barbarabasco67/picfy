@@ -13,9 +13,12 @@ export function layout({ title, body, scripts = [], bodyAttrs = '', head = '' })
 <meta name="robots" content="noindex, nofollow">
 <title>${esc(title)}</title>
 <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/app.css">
+<meta name="theme-color" content="#ffffff">
 ${head}
 </head>
-<body ${bodyAttrs}>
+<body class="app" ${bodyAttrs}>
+<div class="bgfx" aria-hidden="true"></div>
 ${body}
 ${scripts.map((s) => `<script src="${s}" defer></script>`).join('\n')}
 </body>
@@ -61,19 +64,19 @@ export function lightbox() {
 export function landingPage() {
   return layout({
     title: 'Picfy',
-    body: `<main class="wrap narrow" style="padding:80px 16px;text-align:center">
+    body: `<main class="wrap narrow" style="padding:90px 16px;text-align:center"><div class="glass emptybox" style="padding:44px 24px">
 <h1 style="font-size:3rem">Picfy</h1>
 <p class="muted">Las fotos de todos, en un solo sitio.</p>
 <p><a class="btn primary" href="/entrar">Entrar</a></p>
 <p class="small muted">Si tienes un enlace de evento, ábrelo directamente.</p>
-</main>`,
+</div></main>`,
   });
 }
 
 export function notFoundPage(msg = 'No hemos encontrado esta página.') {
   return layout({
     title: 'No encontrado · Picfy',
-    body: `<main class="wrap narrow" style="padding:80px 16px;text-align:center"><h1>Vaya…</h1><p class="muted">${esc(msg)}</p></main>`,
+    body: `<main class="wrap narrow" style="padding:90px 16px;text-align:center"><div class="glass emptybox" style="padding:40px 24px"><h1>Vaya…</h1><p class="muted">${esc(msg)}</p><a class="btn primary" href="/">Ir al inicio</a></div></main>`,
   });
 }
 
