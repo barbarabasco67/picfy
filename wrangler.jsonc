@@ -1,0 +1,13 @@
+{
+  "name": "picfy",
+  "main": "src/index.js",
+  "compatibility_date": "2025-10-01",
+  "assets": { "directory": "./public" },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "picfy", "migrations_dir": "migrations" }
+  ],
+  "r2_buckets": [
+    { "binding": "PHOTOS", "bucket_name": "picfy-photos" }
+  ],
+  "observability": { "enabled": true }
+}
