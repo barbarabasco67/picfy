@@ -295,12 +295,40 @@
   apply();
 })();
 
-// Compartir el enlace de una sede
+// Compartir el enlace de una sede: ventana con enlace y QR
 (() => {
-  document.querySelectorAll('[data-sharelink]').forEach((b) => b.addEventListener('click', async (e) => {
-    e.preventDefault(); const url = location.origin + b.dataset.sharelink;
-    if (navigator.share) { try { await navigator.share({ url }); return; } catch (x) { if (x && x.name === 'AbortError') return; } }
-    try { await navigator.clipboard.writeText(url); } catch (x) { const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
-    const m = document.createElement('div'); m.className = 'toast'; m.textContent = 'Enlace copiado'; document.body.appendChild(m); setTimeout(() => m.remove(), 2200);
+  const dlg = document.getElementById('subShare'); if (!dlg) return;
+  const urlEl = document.getElementById('subShareUrl'), qr = document.getElementById('subQr'), nameEl = document.getElementById('subShareName');
+  const copy = document.getElementById('subCopy'), nat = document.getElementById('subNative');
+  let cur = '';
+  if (navigator.share) nat.hidden = false;
+  document.querySelectorAll('[data-sharelink]').forEach((b) => b.addEventListener('click', (e) => {
+    e.preventDefault();
+    cur = location.origin + b.dataset.sharelink;
+    nameEl.textContent = b.dataset.sharename || 'Compartir'; urlEl.textContent = cur; copy.textContent = 'Copiar enlace';
+    try { const q = qrcode(0, 'M'); q.addData(cur); q.make(); qr.innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); const s = qr.querySelector('svg'); if (s) { s.setAttribute('width', '200'); s.setAttribute('height', '200'); } } catch (x) { qr.textContent = ''; }
+    dlg.showModal();
   }));
+  copy.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(cur); } catch (x) { const r = document.createRange(); r.selectNodeContents(urlEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); }
+    copy.textContent = '¡Copiado!';
+  });
+  nat.addEventListener('click', () => { navigator.share({ url: cur, title: nameEl.textContent }).catch(() => {}); });
+  dlg.querySelector('[data-close]').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+})();
+
+// Sedes en carrusel
+(() => {
+  const sec = document.querySelector('.subs-g'); if (!sec) return;
+  const track = sec.querySelector('.subs-track'), prev = sec.querySelector('.prev'), next = sec.querySelector('.next');
+  const upd = () => {
+    const more = track.scrollWidth > track.clientWidth + 4;
+    prev.hidden = !more || track.scrollLeft < 4;
+    next.hidden = !more || track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+  };
+  const go = (d) => track.scrollBy({ left: d * Math.max(240, track.clientWidth * 0.8), behavior: 'smooth' });
+  prev.addEventListener('click', () => go(-1)); next.addEventListener('click', () => go(1));
+  track.addEventListener('scroll', upd, { passive: true }); addEventListener('resize', upd); upd();
+  setTimeout(upd, 400);
 })();

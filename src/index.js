@@ -91,7 +91,9 @@ app.get('/e/:token', async (c) => {
        FROM events s WHERE s.parent_id = ? AND s.gallery_open = 1 ORDER BY s.name COLLATE NOCASE`,
     ).bind(event.id).all()).results;
   }
-  return html(guestPage({ event, photos, total, page, pages, subs }));
+  let parent = null;
+  if (event.parent_id) parent = await c.env.DB.prepare('SELECT name, guest_token FROM events WHERE id = ?').bind(event.parent_id).first();
+  return html(guestPage({ event, photos, total, page, pages, subs, parent }));
 });
 
 async function guestFor(db, event, key) {

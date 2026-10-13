@@ -177,12 +177,12 @@ export function uploadDialog() {
 
 function subCards(subs) {
   if (!subs || !subs.length) return '';
-  return `<section class="subs-g"><div class="subs-grid">${subs.map((s) => `<div class="subwrap"><a class="subcard" href="/e/${s.guest_token}">
+  return `<section class="subs-g"><button type="button" class="cardbtn car-nav prev" aria-label="Anteriores" hidden>‹</button><button type="button" class="cardbtn car-nav next" aria-label="Siguientes" hidden>›</button><div class="subs-track">${subs.map((s) => `<div class="subwrap"><a class="subcard" href="/e/${s.guest_token}">
 <span class="subimg"${s.thumb_v ? ` style="background-image:url('/c/${s.guest_token}/thumb?v=${s.thumb_v}')"` : s.first_id ? ` style="background-image:url('/m/${s.first_id}/m')"` : ''}></span>
-<span class="subname">${esc(s.name)}</span><span class="subn">${s.n} ${s.n === 1 ? 'foto' : 'fotos'}</span></a><button type="button" class="cardbtn subshare" data-sharelink="/e/${s.guest_token}" aria-label="Compartir ${esc(s.name)}" title="Compartir enlace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg></button></div>`).join('')}</div></section>`;
+<span class="subname">${esc(s.name)}</span><span class="subn">${s.n} ${s.n === 1 ? 'foto' : 'fotos'}</span></a><button type="button" class="cardbtn subshare" data-sharelink="/e/${s.guest_token}" aria-label="Compartir ${esc(s.name)}" title="Compartir enlace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button></div>`).join('')}</div></section>`;
 }
 
-export function guestPage({ event, photos, total, page, pages, subs = [] }) {
+export function guestPage({ event, photos, total, page, pages, subs = [], parent = null }) {
   const grid = photos.length
     ? `<div class="gbar"><span class="gsub">${total} ${total === 1 ? 'foto' : 'fotos'}</span><label class="sizer" title="Tamaño de las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/></svg><input type="range" id="gsize" min="0" max="100" value="50" aria-label="Tamaño de las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></label><div class="vtog" role="group" aria-label="Vista"><button type="button" class="on" data-view="grid" aria-label="Cuadrícula"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></button><button type="button" data-view="list" aria-label="Lineal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="7" rx="1"/><rect x="4" y="13" width="16" height="7" rx="1"/></svg></button></div></div><div class="grid gguest" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
     : (subs && subs.length ? '' : `<div class="empty">Aún no hay fotos. ¡Sé el primero en subir una!</div>`);
@@ -190,8 +190,9 @@ export function guestPage({ event, photos, total, page, pages, subs = [] }) {
   return layout({
     title: `${event.name} · Picfy`,
     bodyAttrs: `data-token="${event.guest_token}" data-limit="${event.photo_limit}" data-auto="${event.auto_approve}" style="${themeStyle(event.accent)}"`,
-    scripts: ['/lightbox.js', '/guest.js'],
-    body: `<header class="hero ${event.cover_v ? 'has-cover' : ''}">
+    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/guest.js'],
+    body: `${parent ? `<a class="backbtn" href="/e/${parent.guest_token}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span>${esc(parent.name)}</span></a>` : ''}
+<header class="hero ${event.cover_v ? 'has-cover' : ''}">
 ${event.cover_v ? `<div class="hero-cover" style="background-image:url('/c/${event.guest_token}/cover?v=${event.cover_v}')"></div>` : ''}
 <div class="hero-body">
 ${event.avatar_v ? `<img class="hero-avatar" src="/c/${event.guest_token}/avatar?v=${event.avatar_v}" alt="">` : ''}
@@ -203,7 +204,8 @@ ${event.upload_open ? `<button class="btn primary" id="openUpload" type="button"
 <main class="wrap">${subCards(subs)}${event.gallery_open ? grid + pagination(base, page, pages) : '<div class="empty">La galería no está disponible por ahora.</div>'}</main>
 <p class="brand">Picfy</p>
 ${lightbox()}
-${uploadDialog()}`,
+${uploadDialog()}
+${subs.length ? `<dialog id="subShare"><div class="dlg"><header class="dlg-h"><h2 id="subShareName">Compartir</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header><div class="qrbox"><div class="qr" id="subQr"></div></div><div class="linkrow"><code id="subShareUrl"></code></div><footer class="sharefoot"><button class="btn primary" id="subCopy" type="button">Copiar enlace</button><button class="btn" id="subNative" type="button" hidden>Compartir…</button></footer></div></dialog>` : ''}`,
   });
 }
 

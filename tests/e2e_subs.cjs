@@ -55,8 +55,14 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   check('portada de sede guardada', true);
   await gp.goto(pl);
   check('tarjeta usa portada elegida', (await gp.$$eval('.subimg', (n) => n.map((x) => x.getAttribute('style') || ''))).some((s) => s.includes('/thumb')));
+  await gp.click('.subshare >> nth=0');
+  await gp.waitForSelector('#subShare[open] svg');
+  check('ventana compartir con QR y enlace', /\/e\//.test(await gp.textContent('#subShareUrl')));
+  await gp.screenshot({ path: '/tmp/picfy_shots/subs_share.png' });
+  await gp.click('#subShare [data-close]');
   await gp.click('.subcard >> nth=0');
   await gp.waitForSelector('h1:has-text("Sede")');
+  check('botón volver a la galería', await gp.isVisible('.backbtn') && (await gp.getAttribute('.backbtn', 'href')) === pl.replace(B, ''));
   check('la tarjeta lleva a la sede', /\/e\//.test(gp.url()) && gp.url() !== pl);
   await p.goto(B + '/galerias');
   check('solo la galería principal en la lista', (await p.$$('#gcards .gcard')).length === 1);

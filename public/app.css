@@ -274,9 +274,7 @@ body.app .hero { margin-bottom: 48px; } body.app .hero.has-cover { margin-bottom
 
 /* subgalerías en la página de invitados */
 .subs-g { margin: 0 0 44px; }
-.subs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 760px; margin: 0 auto; }
-@media (min-width: 760px) { .subs-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; } }
-.subcard { display: flex; flex-direction: column; text-decoration: none; color: inherit; border-radius: 14px; overflow: hidden; background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.9); -webkit-backdrop-filter: blur(18px) saturate(170%); backdrop-filter: blur(18px) saturate(170%); transition: transform .15s; }
+@media (min-width: 760px) { .subcard { display: flex; flex-direction: column; text-decoration: none; color: inherit; border-radius: 14px; overflow: hidden; background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.9); -webkit-backdrop-filter: blur(18px) saturate(170%); backdrop-filter: blur(18px) saturate(170%); transition: transform .15s; }
 .subcard:hover { transform: translateY(-2px); }
 .subimg { aspect-ratio: 16/9; background: rgba(var(--accent-rgb), .25) center/cover no-repeat; display: block; }
 .subname { padding: 9px 12px 0; font-weight: 700; font-size: .92rem; }
@@ -316,11 +314,34 @@ body.app .gguest.list .det { display: flex; flex-direction: column; gap: 4px; mi
 .det strong { font-size: .95rem; overflow: hidden; text-overflow: ellipsis; }
 .det span { font-size: .82rem; color: var(--muted); }
 /* sedes: algo más grandes + botón compartir */
-.subs-grid { max-width: none; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-@media (min-width: 760px) { .subs-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; } }
-.subimg { aspect-ratio: 16/10; }
+@media (min-width: 760px) { .subimg { aspect-ratio: 16/10; }
 .subname { padding: 12px 16px 0; font-size: 1.02rem; }
 .subn { padding: 2px 16px 14px; font-size: .84rem; }
 .subwrap { position: relative; }
 .subwrap .subcard { height: 100%; }
 .subshare { position: absolute; top: 10px; right: 10px; z-index: 3; }
+
+/* carrusel de sedes */
+.subs-g { position: relative; }
+.subs-track { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; padding: 4px 2px 18px; margin: 0 -2px; -webkit-overflow-scrolling: touch; }
+.subs-track::-webkit-scrollbar { display: none; }
+.subs-track .subwrap { flex: 0 0 clamp(190px, 44vw, 250px); scroll-snap-align: start; }
+.car-nav { position: absolute; top: 38%; z-index: 4; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; line-height: 1; }
+.car-nav[hidden] { display: none; }
+.car-nav.prev { left: -14px; } .car-nav.next { right: -14px; }
+@media (max-width: 760px) { .car-nav.prev { left: 2px; } .car-nav.next { right: 2px; } }
+/* volver a la galería */
+.backbtn { position: fixed; top: 14px; left: 14px; z-index: 20; display: inline-flex; align-items: center; gap: 6px; max-width: min(70vw, 320px); padding: 9px 16px 9px 10px; border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.9); -webkit-backdrop-filter: blur(16px) saturate(170%); backdrop-filter: blur(16px) saturate(170%); color: var(--ink); text-decoration: none; font-weight: 600; font-size: .92rem; }
+.backbtn svg { width: 20px; height: 20px; flex: none; } .backbtn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* diálogo de compartir sede */
+#subShare .dlg { padding: 20px; width: min(340px, calc(100vw - 40px)); text-align: center; }
+#subShare .dlg-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; } #subShare h2 { margin: 0; font-size: 1.15rem; }
+#subShare .qrbox { display: grid; place-items: center; padding: 14px; background: #fff; border-radius: 16px; margin-bottom: 12px; }
+#subShare .linkrow code { display: block; font-size: .8rem; word-break: break-all; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,.05); margin-bottom: 14px; }
+#subShare .sharefoot { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+/* paginación (cristal) */
+body.app .pages { gap: 8px; padding: 18px 0 44px; }
+body.app .pages a, body.app .pages span:not(.gap) { background: var(--glass); border: 1px solid var(--glass-line); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: inset 0 1px 0 rgba(255,255,255,.9); }
+body.app .pages .cur { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+dialog#subShare { width: min(360px, calc(100vw - 24px)); padding: 0; }
+#subShare .dlg { width: auto; }
