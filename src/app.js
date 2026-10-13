@@ -5,7 +5,7 @@ import { hashPassword, checkPassword, validEmail, startSession, endSession, curr
 import { authPage, galleriesPage, galleryPage } from './appviews.js';
 import { notFoundPage } from './views.js';
 import { orderSql } from './photos.js';
-import { galleryRoutes } from './gallery.js';
+import { galleryRoutes, validAccent } from './gallery.js';
 import { splitParts } from './zip.js';
 
 const go = (to, headers = {}) => new Response(null, { status: 303, headers: { location: to, ...headers } });
@@ -92,9 +92,10 @@ export function appRoutes(app) {
     const id = randomHex(8);
     // El enlace de organizador por token sigue existiendo (compatibilidad); aquí nadie lo necesita.
     await c.env.DB.prepare(
-      `INSERT INTO events (id, name, lead, event_date, guest_token, manage_hash, auto_approve, photo_limit, created_at, owner_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(id, name, lead, date, randomHex(16), await sha256Hex(randomHex(32)), auto, limit, Date.now(), user.id).run();
+      `INSERT INTO events (id, name, lead, event_date, guest_token, manage_hash, auto_approve, photo_limit, created_at, owner_id, accent)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(id, name, lead, date, randomHex(16), await sha256Hex(randomHex(32)), auto, limit, Date.now(), user.id, validAccent(f.get('accent'))).run();
+    if ((c.req.header('accept') || '').includes('application/json')) return json({ id, url: `/galerias/${id}?ok=${encodeURIComponent('Galería creada. Comparte el enlace con tus invitados.')}` });
     return go(`/galerias/${id}?ok=${encodeURIComponent('Galería creada. Comparte el enlace con tus invitados.')}`);
   });
 
@@ -152,9 +153,14 @@ export function appRoutes(app) {
     if (!name) return go(`/galerias/${parent.id}`);
     const id = randomHex(8);
     await c.env.DB.prepare(
-      `INSERT INTO events (id, name, lead, event_date, guest_token, manage_hash, auto_approve, photo_limit, created_at, owner_id, parent_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(id, name, parent.lead, parent.event_date, randomHex(16), await sha256Hex(randomHex(32)), parent.auto_approve, parent.photo_limit, Date.now(), user.id, parent.id).run();
+      `INSERT INTO events (id, name, lead, event_date, guest_token, manage_hash, auto_approve, photo_limit, created_at, owner_id, parent_id, accent, cover_v, avatar_v)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(id, name, parent.lead, parent.event_date, randomHex(16), await sha256Hex(randomHex(32)), parent.auto_approve, parent.photo_limit, Date.now(), user.id, parent.id, parent.accent, parent.cover_v, parent.avatar_v).run();
+    // la subgalería hereda el aspecto de la principal (copia de las imágenes)
+    for (const kind of ['cover', 'avatar']) {
+      const obj = await c.env.PHOTOS.get(`c/${parent.id}/${kind}`);
+      if (obj) await c.env.PHOTOS.put(`c/${id}/${kind}`, obj.body, { httpMetadata: obj.httpMetadata });
+    }
     return go(`/galerias/${id}?ok=${encodeURIComponent('Subgalería creada. Comparte su enlace con la gente de esta sede.')}`);
   });
 
@@ -168,6 +174,7 @@ export function appRoutes(app) {
       const rows = await c.env.DB.prepare('SELECT id FROM photos WHERE event_id = ?').bind(eid).all();
       const keys = rows.results.flatMap((r) => ['o', 'm', 'l'].map((s) => `p/${r.id}/${s}`));
       for (let k = 0; k < keys.length; k += 500) await c.env.PHOTOS.delete(keys.slice(k, k + 500));
+      await c.env.PHOTOS.delete([`c/${eid}/cover`, `c/${eid}/avatar`]);
       await c.env.DB.batch([
         c.env.DB.prepare('DELETE FROM photos WHERE event_id = ?').bind(eid),
         c.env.DB.prepare('DELETE FROM guests WHERE event_id = ?').bind(eid),

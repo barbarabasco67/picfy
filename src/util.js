@@ -67,3 +67,14 @@ export function html(body, status = 200, headers = {}) {
     headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', ...headers },
   });
 }
+
+// Variables CSS de color para una galería personalizada ("#rrggbb"). Vacío si no hay color válido.
+export function themeStyle(hex) {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex || '')) return '';
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  const ink = lum > 0.62 ? '#2a1d08' : '#ffffff';
+  const d = (v) => Math.round(v * 0.9);
+  return `--accent:${hex};--accent-strong:rgb(${d(r)},${d(g)},${d(b)});--accent-ink:${ink};--accent-rgb:${r},${g},${b};`;
+}

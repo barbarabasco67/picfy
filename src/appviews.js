@@ -1,7 +1,7 @@
 // Pantallas de la plataforma (cuentas y galerías). Estilo: blanco, #edb265 y cristal.
 
 import { esc } from './util.js';
-import { layout, fmtDate, lightbox } from './views.js';
+import { layout, fmtDate, lightbox, uploadDialog } from './views.js';
 
 const ICON = {
   gal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></svg>',
@@ -76,6 +76,34 @@ ${!login && needCode ? `<label class="field"><span>Código de invitación</span>
   });
 }
 
+
+const SWATCHES = ['#edb265', '#e4572e', '#d6402f', '#c9376e', '#7b4ae2', '#2f6fed', '#1ba5b8', '#2f9e5f', '#222222'];
+
+// Campos de personalización (se usan al crear y al editar una galería)
+function brandFields(event = null) {
+  const accent = (event && event.accent) || '#edb265';
+  const cover = event && event.cover_v ? `/c/${event.guest_token}/cover?v=${event.cover_v}` : '';
+  const avatar = event && event.avatar_v ? `/c/${event.guest_token}/avatar?v=${event.avatar_v}` : '';
+  return `<fieldset class="brand" data-brand data-accent-default="#edb265">
+<legend>Personalización de la página de invitados</legend>
+<div class="bprev" aria-hidden="true">
+<div class="bp-cover" ${cover ? `style="background-image:url('${cover}')"` : ''}></div>
+<div class="bp-body"><div class="bp-avatar" ${avatar ? `style="background-image:url('${avatar}')"` : ''}></div><b class="bp-title">Así se verá</b><span class="bp-btn">Subir fotos</span></div>
+</div>
+<div class="brow">
+<label class="field"><span>Color de los botones</span>
+<span class="swrow"><input type="color" name="accent" value="${esc(accent)}" aria-label="Color de los botones">
+${SWATCHES.map((c) => `<button type="button" class="sw" data-c="${c}" style="background:${c}" aria-label="Color ${c}"></button>`).join('')}</span></label>
+</div>
+<div class="brow two">
+<label class="field"><span>Foto de perfil</span><input type="file" accept="image/*" data-brand-file="avatar">
+${avatar ? '<label class="check"><input type="checkbox" data-brand-remove="avatar"> Quitar la foto actual</label>' : ''}</label>
+<label class="field"><span>Foto de cabecera</span><input type="file" accept="image/*" data-brand-file="cover">
+${cover ? '<label class="check"><input type="checkbox" data-brand-remove="cover"> Quitar la foto actual</label>' : ''}</label>
+</div>
+</fieldset>`;
+}
+
 /* ---------- Galerías ---------- */
 
 export function galleriesPage({ user, events, origin }) {
@@ -91,7 +119,7 @@ ${e.event_date ? `<div class="gdate">${esc(fmtDate(e.event_date))}</div>` : ''}
     .join('');
   return appPage({
     title: 'Galerías',
-    scripts: ['/app.js'],
+    scripts: ['/app.js', '/brand.js'],
     body: shell({
       user,
       crumbs: '',
@@ -100,7 +128,7 @@ ${e.event_date ? `<div class="gdate">${esc(fmtDate(e.event_date))}</div>` : ''}
 <button class="btn primary" id="newGal" type="button">${ICON.plus} Crear una nueva galería</button>
 <h2 class="sec">Tus galerías</h2>
 ${events.length ? `<div class="gcards" id="gcards">${cards}</div><p class="muted hidden" id="noMatch">Ninguna galería coincide.</p>` : `<div class="glass emptybox">Todavía no tienes galerías. Crea la primera y comparte el enlace con tus invitados.</div>`}
-<dialog id="newDlg" class="glassdlg"><form method="post" action="/galerias" class="dlgbox">
+<dialog id="newDlg" class="glassdlg wide"><form method="post" action="/galerias" class="dlgbox" data-brand-form="create">
 <header><h2>Crear una nueva galería</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <label class="field"><span>Título de la galería</span><input type="text" name="name" maxlength="120" required placeholder="Boda de Ana y Luis"></label>
 <div class="row2">
@@ -109,6 +137,8 @@ ${events.length ? `<div class="gcards" id="gcards">${cards}</div><p class="muted
 </div>
 <label class="field"><span>Mensaje de bienvenida (opcional)</span><textarea name="lead" maxlength="400" placeholder="Los mejores recuerdos se viven juntos. Sube las fotos que hiciste."></textarea></label>
 <label class="check"><input type="checkbox" name="auto_approve" value="1" checked> Publicar las fotos al subirlas (si no, las revisas tú antes)</label>
+${brandFields()}
+<div class="notice err hidden" data-brand-msg></div>
 <footer><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Crear y abrir</button></footer>
 </form></dialog>`,
     }),
@@ -142,8 +172,8 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
     : '<p class="muted">Todavía no hay fotos publicadas.</p>';
   return appPage({
     title: event.name,
-    bodyAttrs: `data-gapi="/api/g/${event.id}" data-gid="${event.id}" data-part="${partSize}"`,
-    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/reorder.js', '/app.js', '/gallery.js'],
+    bodyAttrs: `data-gapi="/api/g/${event.id}" data-gid="${event.id}" data-part="${partSize}" data-token="${event.guest_token}" data-limit="0" data-auto="1" data-owner="1" data-owner-name="${esc(user.name || 'Organizador')}"`,
+    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/reorder.js', '/app.js', '/guest.js', '/brand.js', '/gallery.js'],
     body: shell({
       user,
       crumbs: `<a href="/galerias">Galerías</a><span>/</span>${parent ? `<a href="/galerias/${parent.id}">${esc(parent.name)}</a><span>/</span>` : ''}<b>${esc(event.name)}</b>`,
@@ -157,7 +187,7 @@ ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(even
 <a class="tool" href="/e/${event.guest_token}" target="_blank" rel="noopener">${ICON.eye}<span>Vista previa</span></a>
 <button class="tool" type="button" id="openShare">${ICON.share}<span>Compartir</span></button>
 </div>
-<a class="btn primary block" href="/e/${event.guest_token}" target="_blank" rel="noopener">${ICON.up} Subir nuevos archivos</a>
+<button class="btn primary block" type="button" id="openUpload">${ICON.up} Subir nuevos archivos</button>
 <button class="btn block" type="button" data-open="zipDlg">${ICON.down} Descargar ${counts.approved} archivos</button>
 <dl class="stats"><div><dt>Publicadas</dt><dd>${counts.approved}</dd></div><div><dt>Por revisar</dt><dd>${counts.pending}</dd></div></dl>
 ${counts.pending ? `<button class="btn" type="button" id="approveAll">Aprobar las ${counts.pending} pendientes</button>` : ''}
@@ -200,6 +230,8 @@ ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><optio
 <div class="qr" data-qr="${esc(guestUrl)}"></div>
 </div></dialog>
 
+${uploadDialog()}
+
 <dialog id="subDlg" class="glassdlg"><form method="post" action="/galerias/${event.id}/sub" class="dlgbox">
 <header><h2>Crear subgalería</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <label class="field"><span>Nombre (por ejemplo, la sede)</span><input type="text" name="name" maxlength="120" required placeholder="Sede Norte"></label>
@@ -212,7 +244,7 @@ ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><optio
 <div class="zips">${zipList}</div>
 </div></dialog>
 
-<dialog id="setDlg" class="glassdlg"><form method="post" action="/galerias/${event.id}/ajustes" class="dlgbox">
+<dialog id="setDlg" class="glassdlg wide"><form method="post" action="/galerias/${event.id}/ajustes" class="dlgbox" data-brand-form="settings" data-gapi="/api/g/${event.id}">
 <header><h2>Configuración</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <label class="field"><span>Nombre</span><input type="text" name="name" maxlength="120" value="${esc(event.name)}" required></label>
 <div class="row2">
@@ -223,8 +255,10 @@ ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><optio
 <label class="check"><input type="checkbox" name="auto_approve" value="1" ${event.auto_approve ? 'checked' : ''}> Publicar las fotos al subirlas</label>
 <label class="check"><input type="checkbox" name="upload_open" value="1" ${event.upload_open ? 'checked' : ''}> Subida de fotos abierta</label>
 <label class="check"><input type="checkbox" name="gallery_open" value="1" ${event.gallery_open ? 'checked' : ''}> Galería visible para los invitados</label>
+${brandFields(event)}
+<div class="notice err hidden" data-brand-msg></div>
 <footer>
-<button class="btn danger" type="submit" formaction="/galerias/${event.id}/borrar" formnovalidate onclick="return confirm('Se borrará la galería y TODAS sus fotos. No se puede deshacer. ¿Seguir?')">${ICON.trash} Borrar galería</button>
+<button class="btn danger" type="submit" formaction="/galerias/${event.id}/borrar" formnovalidate data-nobrand onclick="return confirm('Se borrará la galería y TODAS sus fotos. No se puede deshacer. ¿Seguir?')">${ICON.trash} Borrar galería</button>
 <span class="spacer"></span>
 <button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>

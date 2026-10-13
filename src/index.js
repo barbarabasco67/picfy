@@ -117,7 +117,9 @@ app.post('/api/e/:token/upload/init', async (c) => {
   const cnt = await c.env.DB.prepare(
     `SELECT COUNT(*) AS n FROM photos WHERE guest_id = ? AND (state IN ('approved','pending') OR (state = 'uploading' AND uploaded_at > ?))`,
   ).bind(guest.id, Date.now() - 3600 * 1000).first();
-  const limit = event.photo_limit > 0 ? event.photo_limit : HARD_GUEST_CAP;
+  const me = await currentUser(c);
+  const isOwner = Boolean(me && event.owner_id && me.id === event.owner_id);
+  const limit = isOwner ? 100000 : event.photo_limit > 0 ? event.photo_limit : HARD_GUEST_CAP;
   if (cnt.n >= limit) return json({ error: 'limit', limit }, 403);
 
   const id = randomHex(16);
@@ -166,7 +168,9 @@ app.post('/api/e/:token/upload/:id/commit', async (c) => {
   const [o, m, l] = await Promise.all(['o', 'm', 'l'].map((s) => c.env.PHOTOS.head(`p/${id}/${s}`)));
   if (!o || !m || !l) return json({ error: 'incomplete', missing: [!o && 'o', !m && 'm', !l && 'l'].filter(Boolean) }, 409);
   if (o.size !== photo.size) return json({ error: 'size_mismatch' }, 409);
-  const state = event.auto_approve ? 'approved' : 'pending';
+  const me = await currentUser(c);
+  const isOwner = Boolean(me && event.owner_id && me.id === event.owner_id);
+  const state = event.auto_approve || isOwner ? 'approved' : 'pending';
   const order = await nextSortOrder(c.env.DB, event.id);
   await c.env.DB.prepare(`UPDATE photos SET state = ?, sort_order = ? WHERE id = ? AND state = 'uploading'`).bind(state, order, id).run();
   return json({ ok: true, state });

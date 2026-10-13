@@ -31,7 +31,8 @@
   if (!dlg) return;
   const fileInput = $('fileInput'), drop = $('drop'), list = $('upList'), tools = $('upTools');
   const startBtn = $('upStart'), msg = $('upMsg'), goMine = $('goMine'), nameInput = $('guestName');
-  nameInput.value = ls.get('picfy_name') || '';
+  const OWNER = document.body.dataset.owner === '1';
+  nameInput.value = OWNER ? (document.body.dataset.ownerName || 'Organizador') : (ls.get('picfy_name') || '');
 
   const items = [];
   let uploading = false;
@@ -248,7 +249,7 @@
   }
 
   startBtn.addEventListener('click', async () => {
-    ls.set('picfy_name', nameInput.value.trim());
+    if (!OWNER) ls.set('picfy_name', nameInput.value.trim());
     uploading = true; startBtn.disabled = true; msg.classList.add('hidden');
     const queue = items.filter((i) => i.state === 'wait' || i.state === 'err');
     let fatal = null;

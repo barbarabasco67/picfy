@@ -1,6 +1,6 @@
 // Páginas HTML (renderizadas en el servidor).
 
-import { esc } from './util.js';
+import { esc, themeStyle } from './util.js';
 
 export const PER_PAGE = 60;
 
@@ -150,29 +150,11 @@ export function adminCreated(event, guestUrl, manageUrl) {
 
 /* ---------------- Invitados ---------------- */
 
-export function guestPage({ event, photos, total, page, pages }) {
-  const grid = photos.length
-    ? `<div class="grid" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
-    : `<div class="empty">Aún no hay fotos. ¡Sé el primero en subir una!</div>`;
-  const base = `/e/${event.guest_token}`;
-  return layout({
-    title: `${event.name} · Picfy`,
-    bodyAttrs: `data-token="${event.guest_token}" data-limit="${event.photo_limit}" data-auto="${event.auto_approve}"`,
-    scripts: ['/lightbox.js', '/guest.js'],
-    body: `<header class="hero">
-<a class="btn sm mine-pill hidden" id="minePill" href="#">Mi álbum</a>
-<h1>${esc(event.name)}</h1>
-${event.event_date ? `<p class="when">${esc(fmtDate(event.event_date))}</p>` : ''}
-${event.lead ? `<p class="lead">${esc(event.lead)}</p>` : ''}
-${event.upload_open ? `<button class="btn primary" id="openUpload" type="button">Subir fotos</button>` : '<p class="muted">La subida de fotos está cerrada.</p>'}
-</header>
-<main class="wrap">${event.gallery_open ? grid + pagination(base, page, pages) : '<div class="empty">La galería no está disponible por ahora.</div>'}</main>
-<p class="brand">Picfy</p>
-${lightbox()}
-<dialog id="upDlg"><div class="dlg">
+export function uploadDialog() {
+  return `<dialog id="upDlg"><div class="dlg">
 <header><h2>Subir fotos</h2><button class="btn sm" id="upClose" type="button">Cerrar</button></header>
 <div class="body">
-<label class="field"><span>Tu nombre (opcional, lo ve el organizador)</span><input type="text" id="guestName" maxlength="60" autocomplete="name"></label>
+<label class="field namefield"><span>Tu nombre (opcional, lo ve el organizador)</span><input type="text" id="guestName" maxlength="60" autocomplete="name"></label>
 <div class="drop" id="drop">Toca para elegir fotos<br><span class="small">o arrástralas aquí</span></div>
 <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
 <div class="up-tools hidden" id="upTools">
@@ -186,7 +168,32 @@ ${lightbox()}
 <footer>
 <a class="btn hidden" id="goMine" href="#">Ver mi álbum</a>
 <button class="btn primary" id="upStart" type="button" disabled>Subir</button>
-</footer></div></dialog>`,
+</footer></div></dialog>`;
+}
+
+export function guestPage({ event, photos, total, page, pages }) {
+  const grid = photos.length
+    ? `<div class="grid" id="gallery">${photos.map((p) => tile(p)).join('')}</div>`
+    : `<div class="empty">Aún no hay fotos. ¡Sé el primero en subir una!</div>`;
+  const base = `/e/${event.guest_token}`;
+  return layout({
+    title: `${event.name} · Picfy`,
+    bodyAttrs: `data-token="${event.guest_token}" data-limit="${event.photo_limit}" data-auto="${event.auto_approve}" style="${themeStyle(event.accent)}"`,
+    scripts: ['/lightbox.js', '/guest.js'],
+    body: `<header class="hero ${event.cover_v ? 'has-cover' : ''}">
+${event.cover_v ? `<div class="hero-cover" style="background-image:url('/c/${event.guest_token}/cover?v=${event.cover_v}')"></div>` : ''}
+<a class="btn sm mine-pill hidden" id="minePill" href="#">Mi álbum</a>
+<div class="hero-body">
+${event.avatar_v ? `<img class="hero-avatar" src="/c/${event.guest_token}/avatar?v=${event.avatar_v}" alt="">` : ''}
+<h1>${esc(event.name)}</h1>
+${event.event_date ? `<p class="when">${esc(fmtDate(event.event_date))}</p>` : ''}
+${event.lead ? `<p class="lead">${esc(event.lead)}</p>` : ''}
+${event.upload_open ? `<button class="btn primary" id="openUpload" type="button">Subir fotos</button>` : '<p class="muted">La subida de fotos está cerrada.</p>'}
+</div></header>
+<main class="wrap">${event.gallery_open ? grid + pagination(base, page, pages) : '<div class="empty">La galería no está disponible por ahora.</div>'}</main>
+<p class="brand">Picfy</p>
+${lightbox()}
+${uploadDialog()}`,
   });
 }
 
@@ -207,7 +214,7 @@ export function minePage({ event, photos, guest, mineKey }) {
     .join('');
   return layout({
     title: `Mi álbum · ${event.name}`,
-    bodyAttrs: `data-api="/api/e/${event.guest_token}/mine/${mineKey}" data-back="${base}"`,
+    bodyAttrs: `data-api="/api/e/${event.guest_token}/mine/${mineKey}" data-back="${base}" style="${themeStyle(event.accent)}"`,
     scripts: ['/lightbox.js', '/reorder.js'],
     body: `<main class="wrap" style="padding-top:18px">
 <div class="bar"><a class="btn sm" href="${base}">← ${esc(event.name)}</a><span class="spacer"></span>

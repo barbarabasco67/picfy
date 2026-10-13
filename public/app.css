@@ -10,9 +10,9 @@ body.app {
 /* Manchas de color suaves detrás: sin ellas el cristal no se nota sobre blanco */
 .bgfx { position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background:
-    radial-gradient(520px 420px at 8% 4%, rgba(237, 178, 101, .38), transparent 70%),
-    radial-gradient(620px 460px at 96% 14%, rgba(255, 214, 160, .42), transparent 70%),
-    radial-gradient(560px 520px at 60% 108%, rgba(237, 178, 101, .26), transparent 70%),
+    radial-gradient(520px 420px at 8% 4%, rgba(var(--accent-rgb), .38), transparent 70%),
+    radial-gradient(620px 460px at 96% 14%, rgba(var(--accent-rgb), .26), transparent 70%),
+    radial-gradient(560px 520px at 60% 108%, rgba(var(--accent-rgb), .26), transparent 70%),
     #fff; }
 
 .glass { background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .9);
@@ -28,7 +28,7 @@ body.app .sec { font-size: 1.5rem; margin: 34px 0 14px; letter-spacing: -.01em; 
 body.app .btn { border: 1px solid var(--line); background: rgba(255, 255, 255, .7); color: var(--ink); transition: background .15s, border-color .15s, transform .05s; }
 body.app .btn:hover { border-color: rgba(35, 29, 20, .3); }
 body.app .btn:active { transform: translateY(1px); }
-body.app .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: 0 6px 18px rgba(237, 178, 101, .45); }
+body.app .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: 0 6px 18px rgba(var(--accent-rgb), .45); }
 body.app .btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
 .btn.block { display: flex; width: 100%; }
 body.app .btn svg { width: 1.1em; height: 1.1em; }
@@ -196,7 +196,7 @@ body.app .mine-pill { top: 16px; right: 16px; }
 body.app .brand { color: var(--muted); }
 body.app dialog:not(.glassdlg) { background: rgba(255, 255, 255, .86); -webkit-backdrop-filter: blur(24px) saturate(170%); backdrop-filter: blur(24px) saturate(170%); border: 1px solid rgba(255, 255, 255, .85); border-radius: 22px; }
 body.app dialog:not(.glassdlg)::backdrop { background: rgba(60, 40, 10, .32); }
-body.app .drop { background: rgba(255, 255, 255, .6); border-color: rgba(237, 178, 101, .7); }
+body.app .drop { background: rgba(255, 255, 255, .6); border-color: rgba(var(--accent-rgb), .7); }
 body.app .drop.over { background: rgba(237, 178, 101, .2); color: var(--ink); }
 body.app .pages .cur { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 body.app .pages a, body.app .pages span { background: rgba(255, 255, 255, .7); }
@@ -210,3 +210,32 @@ body.app .wrap > .bar h1 { letter-spacing: -.02em; }
 .gcards.small { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-top: 12px; }
 .gcards.small .gmeta { padding-bottom: 12px; }
 .chip.subc { top: auto; bottom: 10px; background: rgba(35, 29, 20, .78); color: #fff; }
+
+/* ---- Personalización de la página de invitados ---- */
+dialog.glassdlg.wide { width: min(640px, calc(100vw - 24px)); }
+.dlgbox { max-height: calc(100vh - 40px); overflow-y: auto; }
+fieldset.brand { border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px 6px; margin: 4px 0 14px; background: rgba(255, 255, 255, .45); }
+fieldset.brand legend { font-weight: 700; font-size: .92rem; padding: 0 6px; }
+.bprev { --accent: #edb265; --ink: #2a1d08; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: rgba(255, 255, 255, .8); margin-bottom: 12px; }
+.bp-cover { height: 84px; background: linear-gradient(135deg, rgba(237, 178, 101, .35), rgba(255, 255, 255, .6)) center / cover no-repeat; }
+.bp-body { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 12px 14px; margin-top: -30px; }
+.bp-avatar { width: 60px; height: 60px; border-radius: 50%; border: 3px solid #fff; background: #f1e4cf center / cover no-repeat; box-shadow: 0 4px 12px rgba(0, 0, 0, .15); }
+.bp-title { font-size: 1rem; }
+.bp-btn { background: var(--accent); color: var(--ink); font-weight: 700; font-size: .8rem; padding: .35em 1em; border-radius: 999px; }
+.swrow { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.swrow input[type=color] { width: 44px; height: 38px; padding: 2px; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; }
+.sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .18); cursor: pointer; padding: 0; }
+.brow.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .brow.two { grid-template-columns: 1fr; } }
+.brow input[type=file] { width: 100%; font-size: .85rem; }
+
+/* Página de invitados: cabecera con foto y perfil */
+body.app .hero.has-cover { padding: 0; overflow: hidden; }
+.hero-cover { height: clamp(130px, 28vw, 230px); background: #f1e4cf center / cover no-repeat; }
+.hero-body { padding: 36px 24px 30px; }
+.has-cover .hero-body { padding-top: 0; }
+.hero-avatar { width: 104px; height: 104px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 8px 22px rgba(0, 0, 0, .18); display: block; margin: 0 auto 10px; background: #fff; }
+.has-cover .hero-avatar { margin-top: -52px; position: relative; }
+body.app[data-owner] #goMine, body.app[data-owner] .namefield { display: none; }
+body.app { --accent-rgb: 237, 178, 101; }
+fieldset.brand, fieldset.brand .field > span { text-align: left; } .brand .swrow { justify-content: flex-start; }
