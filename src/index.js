@@ -9,7 +9,7 @@ import {
 } from './photos.js';
 import {
   PER_PAGE, landingPage, notFoundPage, adminLoginPage, adminDashboard, adminCreated,
-  guestPage, minePage,
+  guestPage,
 } from './views.js';
 import { manageRoutes } from './manage.js';
 import { appRoutes } from './app.js';
@@ -87,19 +87,6 @@ async function guestFor(db, event, key) {
   if (!isHex(key, 32)) return null;
   return db.prepare('SELECT * FROM guests WHERE event_id = ? AND key_hash = ?').bind(event.id, await sha256Hex(key)).first();
 }
-
-app.get('/e/:token/mine/:key', async (c) => {
-  const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
-  if (!event) return html(notFoundPage('Este enlace no existe o ya no está activo.'), 404);
-  const key = c.req.param('key');
-  const guest = await guestFor(c.env.DB, event, key);
-  if (!guest) return html(notFoundPage('No encontramos fotos tuyas con este enlace. Si las subiste desde otro dispositivo, usa el enlace de «Mi álbum» de ese dispositivo.'), 404);
-  const rows = await c.env.DB.prepare(
-    `SELECT id, state FROM photos WHERE event_id = ?1 AND guest_id = ?2 AND state IN ('approved','pending','rejected')
-     ORDER BY ${orderSql(event.sort_mode)}`,
-  ).bind(event.id, guest.id).all();
-  return html(minePage({ event, photos: rows.results, guest, mineKey: key }));
-});
 
 /* ---------- Subida ---------- */
 
@@ -193,32 +180,6 @@ async function ownIds(db, event, guest, ids) {
   const rows = await db.prepare(`SELECT id FROM photos WHERE event_id = ? AND guest_id = ? AND id IN (${list})`).bind(event.id, guest.id).all();
   return rows.results.map((r) => r.id);
 }
-
-async function mineContext(c) {
-  const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
-  if (!event) return {};
-  const guest = await guestFor(c.env.DB, event, c.req.param('key'));
-  return { event, guest };
-}
-
-app.post('/api/e/:token/mine/:key/delete', async (c) => {
-  const { event, guest } = await mineContext(c);
-  if (!guest) return json({ error: 'key' }, 403);
-  const b = await c.req.json().catch(() => ({}));
-  const n = await deletePhotos(c.env, event.id, Array.isArray(b.ids) ? b.ids : [], guest.id);
-  return json({ ok: true, deleted: n });
-});
-
-app.post('/api/e/:token/mine/:key/reorder', async (c) => {
-  const { event, guest } = await mineContext(c);
-  if (!guest) return json({ error: 'key' }, 403);
-  const b = await c.req.json().catch(() => ({}));
-  const ids = await ownIds(c.env.DB, event, guest, b.ids);
-  // conservar el orden enviado por el invitado
-  const wanted = (b.ids || []).filter((i) => ids.includes(i));
-  const n = await applyOrder(c.env.DB, event, wanted);
-  return json({ ok: true, moved: n });
-});
 
 /* ---------- Administración ---------- */
 

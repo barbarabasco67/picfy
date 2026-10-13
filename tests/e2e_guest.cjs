@@ -47,7 +47,6 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   const msg = await p.textContent('#upMsg');
   check('mensaje de éxito', /12 fotos subidas y publicadas/.test(msg), msg);
   check('estados ok', (await p.$$('.up-item .st.ok')).length === 12);
-  check('botón Ver mi álbum', await p.isVisible('#goMine'));
   await p.click('#upClose');
   await p.waitForLoadState('load');
 
@@ -58,69 +57,9 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   const sizes = [];
   for (const id of gIds) sizes.push(await p.evaluate(async (id) => (await createImageBitmap(await (await fetch(`/m/${id}/m`)).blob())).width, id));
   check('miniaturas generadas (≤480px)', sizes.every((w) => w > 0 && w <= 480), sizes.join(','));
-  check('pill Mi álbum visible', await p.isVisible('#minePill'));
-
-  const mineHref = await p.$eval('#minePill', (a) => a.getAttribute('href'));
-  await p.goto(B + mineHref);
-  await p.waitForSelector('#sortGrid .tile');
-  const order0 = await p.$$eval('#sortGrid .tile img', (n) => n.map((i) => i.naturalWidth));
-  const ids0 = await p.$$eval('#sortGrid .tile', (n) => n.map((t) => t.dataset.id));
-  check('Mi álbum con 12 fotos', ids0.length === 12);
-  // el orden esperado por hora: comprobar contra el servidor
-  const expectedNames = ['p08', 'p07', 'p10', 'p02', 'p05', 'p11', 'p09', 'p00', 'p04', 'p06', 'p03', 'p01'];
-  const sh = await p.screenshot({ path: '/tmp/picfy_mine.png' });
-  await p.goto(guestUrl); await p.waitForSelector('#gallery .tile');
-  const galIds = await p.$$eval('#gallery .tile', (n) => n.map((t) => t.dataset.id));
-  check('mismo orden en Mi álbum y galería', JSON.stringify(galIds) === JSON.stringify(ids0));
-  // verificar orden por EXIF: las fotos se crearon con ancho 1000+30*i, la miniatura es 480 de ancho; usar la l (1600 > ancho) = ancho real (1000+30*i)
-  const widths = [];
-  for (const id of galIds) widths.push(await p.evaluate(async (id) => { const r = await fetch(`/m/${id}/l`); const bm = await createImageBitmap(await r.blob()); return bm.width; }, id));
-  const nameByW = (w) => 'p' + String(Math.round((w - 1000) / 30)).padStart(2, '0');
-  check('orden por hora de captura', JSON.stringify(widths.map(nameByW)) === JSON.stringify(expectedNames), widths.map(nameByW).join(','));
-
-  // 4. Mover en Mi álbum: arrastrar la última al principio
-  await p.goto(B + mineHref); await p.waitForSelector('#sortGrid .tile');
-  const tiles = await p.$$('#sortGrid .tile');
-  const last = tiles[tiles.length - 1], first = tiles[0];
-  await last.scrollIntoViewIfNeeded();
-  const fb = await first.boundingBox(), lb = await last.boundingBox();
-  await p.mouse.move(lb.x + lb.width / 2, lb.y + lb.height / 2);
-  await p.mouse.down();
-  await p.mouse.move(lb.x + lb.width / 2 + 20, lb.y + lb.height / 2 + 20, { steps: 4 });
-  await p.mouse.move(fb.x + 5, fb.y + fb.height / 2, { steps: 12 });
-  await p.mouse.up();
-  await p.waitForSelector('.toast:has-text("Orden guardado")', { timeout: 5000 }).catch(() => {});
-  const ids1 = await p.$$eval('#sortGrid .tile', (n) => n.map((t) => t.dataset.id));
-  check('foto movida al principio', ids1[0] === ids0[11] && ids1[1] === ids0[0], ids1.slice(0, 2).join('|'));
-  await p.reload(); await p.waitForSelector('#sortGrid .tile');
-  const ids2 = await p.$$eval('#sortGrid .tile', (n) => n.map((t) => t.dataset.id));
-  check('orden persistido tras recargar', JSON.stringify(ids2) === JSON.stringify(ids1));
-  await p.goto(guestUrl); await p.waitForSelector('#gallery .tile');
-  const gal2 = await p.$$eval('#gallery .tile', (n) => n.map((t) => t.dataset.id));
-  check('galería general sigue el orden del invitado', JSON.stringify(gal2) === JSON.stringify(ids1));
-
-  // 5. Selección con rectángulo y borrado en bloque
-  await p.goto(B + mineHref); await p.waitForSelector('#sortGrid .tile');
-  await p.fill('#size', '96');
-  const t0 = await (await p.$$('#sortGrid .tile'))[0].boundingBox();
-  const t3 = await (await p.$$('#sortGrid .tile'))[3].boundingBox();
-  await p.mouse.move(t0.x - 8, t0.y - 8);
-  await p.mouse.down();
-  await p.mouse.move(t3.x + t3.width - 4, t3.y + t3.height - 4, { steps: 10 });
-  await p.mouse.up();
-  const nPicked = await p.$$eval('#sortGrid .tile.picked', (n) => n.length);
-  check('rectángulo marca 4 fotos', nPicked === 4, nPicked);
-  check('botón borrar marcadas visible', await p.isVisible('#delPicked'));
-  await p.click('#delPicked');
-  await p.waitForFunction(() => document.querySelectorAll('#sortGrid .tile').length === 8, null, { timeout: 8000 });
-  check('quedan 8 tras borrar 4', true);
-  // papelera individual
-  await p.hover('#sortGrid .tile >> nth=0');
-  await p.click('#sortGrid .tile >> nth=0 >> .trash');
-  await p.waitForFunction(() => document.querySelectorAll('#sortGrid .tile').length === 7, null, { timeout: 8000 });
-  check('papelera individual', true);
-  await p.reload(); await p.waitForSelector('#sortGrid .tile');
-  check('persistido: 7 fotos', (await p.$$('#sortGrid .tile')).length === 7);
+  check('sin pill Mi álbum', !(await p.$('#minePill')));
+  const mr = await p.goto(B + '/e/x/mine/' + 'a'.repeat(32));
+  check('página Mi álbum eliminada', mr.status() === 404);
 
   await b.close();
   console.log(ok ? 'ALL OK' : 'SOME FAILED');

@@ -167,7 +167,6 @@ export function uploadDialog() {
 <div class="notice hidden" id="upMsg"></div>
 </div>
 <footer>
-<a class="btn hidden" id="goMine" href="#">Ver mi álbum</a>
 <button class="btn primary" id="upStart" type="button" disabled>Subir</button>
 </footer></div></dialog>`;
 }
@@ -183,7 +182,6 @@ export function guestPage({ event, photos, total, page, pages }) {
     scripts: ['/lightbox.js', '/guest.js'],
     body: `<header class="hero ${event.cover_v ? 'has-cover' : ''}">
 ${event.cover_v ? `<div class="hero-cover" style="background-image:url('/c/${event.guest_token}/cover?v=${event.cover_v}')"></div>` : ''}
-<a class="btn sm mine-pill hidden" id="minePill" href="#">Mi álbum</a>
 <div class="hero-body">
 ${event.avatar_v ? `<img class="hero-avatar" src="/c/${event.guest_token}/avatar?v=${event.avatar_v}" alt="">` : ''}
 <h1>${esc(event.name)}</h1>
@@ -202,34 +200,3 @@ const TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 
 const BADGES = { pending: ['En revisión', 'warn'], rejected: ['No publicada', 'bad'] };
 
-export function minePage({ event, photos, guest, mineKey }) {
-  const base = `/e/${event.guest_token}`;
-  const tiles = photos
-    .map((p) => {
-      const b = BADGES[p.state];
-      return `<div class="tile" data-id="${p.id}" data-full="/m/${p.id}/l">
-<input class="chk" type="checkbox" aria-label="Marcar foto">
-<button class="trash" type="button" aria-label="Borrar foto" title="Borrar">${TRASH}</button>
-<img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="">${b ? `<span class="badge ${b[1]}">${b[0]}</span>` : ''}</div>`;
-    })
-    .join('');
-  return layout({
-    title: `Mi álbum · ${event.name}`,
-    bodyAttrs: `data-api="/api/e/${event.guest_token}/mine/${mineKey}" data-back="${base}" style="${themeStyle(event.accent)}"`,
-    scripts: ['/lightbox.js', '/reorder.js'],
-    body: `<main class="wrap" style="padding-top:18px">
-<div class="bar"><a class="btn sm" href="${base}">← ${esc(event.name)}</a><span class="spacer"></span>
-<label class="size-ctl">Tamaño <input type="range" id="size" min="64" max="220" value="96"></label></div>
-<h1 style="font-size:1.5rem">Mi álbum</h1>
-<p class="muted small">Arrastra las fotos para colocarlas como quieras. Marca varias (o estira el ratón sobre ellas) para moverlas o borrarlas juntas.</p>
-<div class="bar">
-<button class="btn sm" id="pickAll" type="button">Marcar todas</button>
-<button class="btn sm danger hidden" id="delPicked" type="button">${TRASH.replace('<svg', '<svg width="14" height="14"')} Borrar marcadas <span id="pickedN"></span></button>
-<span class="muted small" id="mineCount">${photos.length} fotos</span>
-</div>
-<div id="toastHost"></div>
-${photos.length ? `<div class="grid sort-grid compact" id="sortGrid" style="--tile:96px">${tiles}</div>` : '<div class="empty">Todavía no has subido fotos desde este dispositivo.</div>'}
-</main>
-${lightbox()}`,
-  });
-}

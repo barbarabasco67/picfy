@@ -18,19 +18,10 @@
     }
     return k;
   }
-  const mineUrl = () => `/e/${TOKEN}/mine/${myKey()}`;
-
-  function refreshPill() {
-    const pill = $('minePill');
-    if (!pill) return;
-    if (ls.get('picfy_has_' + TOKEN) === '1') { pill.href = mineUrl(); pill.classList.remove('hidden'); }
-  }
-  refreshPill();
-
   const dlg = $('upDlg');
   if (!dlg) return;
   const fileInput = $('fileInput'), drop = $('drop'), list = $('upList'), tools = $('upTools');
-  const startBtn = $('upStart'), msg = $('upMsg'), goMine = $('goMine'), nameInput = $('guestName');
+  const startBtn = $('upStart'), msg = $('upMsg'), nameInput = $('guestName');
   const OWNER = document.body.dataset.owner === '1';
   nameInput.value = OWNER ? (document.body.dataset.ownerName || 'Organizador') : (ls.get('picfy_name') || '');
 
@@ -267,7 +258,7 @@
     uploading = false;
     const ok = items.filter((i) => i.state === 'ok').length;
     const bad = items.filter((i) => i.state === 'err').length;
-    if (ok) { ls.set('picfy_has_' + TOKEN, '1'); refreshPill(); goMine.href = mineUrl(); goMine.classList.remove('hidden'); }
+    if (ok) { }
     if (fatal) showMsg(errText(fatal), 'err');
     else if (bad) showMsg(`${ok} subidas, ${bad} con error. Pulsa «Subir» para reintentar las que fallaron.`, 'err');
     else if (ok) showMsg(AUTO ? `¡Listo! ${ok} fotos subidas y publicadas.` : `¡Listo! ${ok} fotos subidas. Aparecerán en la galería cuando el organizador las apruebe.`, 'ok');
