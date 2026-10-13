@@ -29,6 +29,13 @@ app.use('*', async (c, next) => {
 });
 
 app.get('/', (c) => html(landingPage()));
+// Diagnóstico sin datos sensibles: solo dice si cada pieza está conectada.
+app.get('/health', async (c) => {
+  const out = { admin_password_set: Boolean(c.env.ADMIN_PASSWORD), database: false, photos_bucket: false };
+  try { await c.env.DB.prepare('SELECT 1').first(); out.database = true; } catch { /* sin base de datos */ }
+  try { await c.env.PHOTOS.head('p/health-check'); out.photos_bucket = true; } catch { /* sin bucket */ }
+  return json(out);
+});
 app.get('/robots.txt', (c) => new Response('User-agent: *\nDisallow: /\n', { headers: { 'content-type': 'text/plain' } }));
 
 /* ---------- Fotos (lectura) ---------- */
