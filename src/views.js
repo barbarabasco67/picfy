@@ -64,6 +64,7 @@ export function landingPage() {
     body: `<main class="wrap narrow" style="padding:80px 16px;text-align:center">
 <h1 style="font-size:3rem">Picfy</h1>
 <p class="muted">Las fotos de todos, en un solo sitio.</p>
+<p><a class="btn primary" href="/entrar">Entrar</a></p>
 <p class="small muted">Si tienes un enlace de evento, ábrelo directamente.</p>
 </main>`,
   });

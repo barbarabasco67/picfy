@@ -12,6 +12,8 @@ import {
   guestPage, minePage,
 } from './views.js';
 import { manageRoutes } from './manage.js';
+import { appRoutes } from './app.js';
+import { currentUser } from './auth.js';
 
 const app = new Hono();
 
@@ -28,7 +30,7 @@ app.use('*', async (c, next) => {
   c.res.headers.set('X-Robots-Tag', 'noindex, nofollow');
 });
 
-app.get('/', (c) => html(landingPage()));
+app.get('/', async (c) => (await currentUser(c)) ? c.redirect('/galerias', 303) : html(landingPage()));
 // Diagnóstico sin datos sensibles: solo dice si cada pieza está conectada.
 app.get('/health', async (c) => {
   const out = { admin_password_set: Boolean(c.env.ADMIN_PASSWORD), database: false, photos_bucket: false };
@@ -292,6 +294,9 @@ app.post('/admin/events/:id/delete', async (c) => {
 
 /* ---------- Organizador ---------- */
 manageRoutes(app);
+
+/* ---------- Plataforma: cuentas y galerías ---------- */
+appRoutes(app);
 
 app.notFound((c) => (c.req.header('accept') || '').includes('text/html') ? html(notFoundPage(), 404) : c.text('Not found', 404));
 app.onError((err, c) => {
