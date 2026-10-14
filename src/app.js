@@ -71,8 +71,8 @@ export function appRoutes(app) {
     } catch { return {}; }
   }
   async function fullUser(db, id) {
-    try { return await db.prepare('SELECT id, email, name, surname, avatar_v, created_at, pass_salt, pass_hash FROM users WHERE id = ?').bind(id).first(); }
-    catch { return db.prepare("SELECT id, email, name, '' AS surname, 0 AS avatar_v, created_at, pass_salt, pass_hash FROM users WHERE id = ?").bind(id).first(); }
+    try { return await db.prepare('SELECT id, email, name, surname, username, avatar_v, created_at, pass_salt, pass_hash FROM users WHERE id = ?').bind(id).first(); }
+    catch { return db.prepare("SELECT id, email, name, '' AS surname, '' AS username, 0 AS avatar_v, created_at, pass_salt, pass_hash FROM users WHERE id = ?").bind(id).first(); }
   }
   const SECTIONS = ['datos', 'password', 'galerias'];
   async function accountView(c, user, section, ok = '', error = '') {
@@ -128,8 +128,16 @@ export function appRoutes(app) {
     const name = String(f.get('name') || '').trim().slice(0, 80);
     const surname = String(f.get('surname') || '').trim().slice(0, 120);
     if (!name) return toAcc('datos', 'err', 'Escribe tu nombre.');
-    try { await c.env.DB.prepare('UPDATE users SET name = ?, surname = ? WHERE id = ?').bind(name, surname, user.id).run(); }
-    catch { await c.env.DB.prepare('UPDATE users SET name = ? WHERE id = ?').bind(name, user.id).run(); }
+    const username = String(f.get('username') || '').trim().toLowerCase();
+    if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) return toAcc('datos', 'err', 'El nombre de usuario necesita de 3 a 30 letras, números, punto, guion o guion bajo.');
+    try {
+      if (username && await c.env.DB.prepare('SELECT 1 FROM users WHERE username = ? AND id <> ?').bind(username, user.id).first()) return toAcc('datos', 'err', 'Ese nombre de usuario ya está cogido.');
+      await c.env.DB.prepare('UPDATE users SET name = ?, surname = ?, username = ? WHERE id = ?').bind(name, surname, username, user.id).run();
+    } catch {
+      try { await c.env.DB.prepare('UPDATE users SET name = ?, surname = ? WHERE id = ?').bind(name, surname, user.id).run(); }
+      catch { await c.env.DB.prepare('UPDATE users SET name = ? WHERE id = ?').bind(name, user.id).run(); }
+      if (username) return toAcc('datos', 'err', 'Falta aplicar la migración 0012 para guardar el nombre de usuario.');
+    }
     return toAcc('datos', 'ok', 'Datos guardados.');
   });
 

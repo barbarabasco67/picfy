@@ -300,6 +300,7 @@ export function accountPage({ user, section = 'datos', ok = '', error = '', defa
 <form method="post" action="/cuenta/datos">
 <label class="field"><span>Nombre</span><input type="text" name="name" value="${esc(user.name || '')}" maxlength="80" autocomplete="given-name" required></label>
 <label class="field"><span>Apellidos</span><input type="text" name="surname" value="${esc(user.surname || '')}" maxlength="120" autocomplete="family-name"></label>
+<label class="field"><span>Nombre de usuario</span><input type="text" name="username" value="${esc(user.username || '')}" maxlength="30" pattern="[a-zA-Z0-9._\-]{3,30}" autocomplete="username" placeholder="por ejemplo, barbarab"></label>
 <footer class="rowend"><button class="btn primary" type="submit">Guardar cambios</button></footer></form></section>
 <section class="glass card-s"><h2>Correo electrónico</h2><p class="muted">Es con el que entras. Para cambiarlo confirmamos tu contraseña.</p>
 <form method="post" action="/cuenta/correo">
@@ -339,7 +340,7 @@ export function accountPage({ user, section = 'datos', ok = '', error = '', defa
 <div class="prof-avbox"><span class="prof-av" id="profAv"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</span>
 <label class="avedit" title="Cambiar la foto de perfil" aria-label="Cambiar la foto de perfil">${ICON.up}<input type="file" id="avFile" accept="image/jpeg,image/png,image/webp" hidden></label>
 ${user.avatar_v ? '<button class="avdel" type="button" id="avDel" title="Quitar la foto" aria-label="Quitar la foto">×</button>' : ''}</div>
-<div class="prof-id"><h1>${esc(full)}</h1><p>${esc(user.email)}</p>${since ? `<p class="since">Con Picfy desde ${esc(since)}</p>` : ''}</div>
+<div class="prof-id"><h1>${esc(full)}</h1>${user.username ? `<p class="handle">@${esc(user.username)}</p>` : ''}${since ? `<p class="since">Con Picfy desde ${esc(since)}</p>` : ''}</div>
 <div class="prof-stats"><div><b>${stats.galleries || 0}</b><span>Galerías</span></div><div><b>${stats.photos || 0}</b><span>Fotos</span></div></div>
 <div class="prof-act"><form method="post" action="/salir"><button class="btn" type="submit">${ICON.out} Cerrar sesión</button></form></div>
 </div>
