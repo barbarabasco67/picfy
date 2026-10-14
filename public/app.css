@@ -608,3 +608,5 @@ fieldset.brand .check { margin-top: 4px; }
 .stop img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .stop b { position: absolute; right: 5px; bottom: 5px; font-size: .75rem; color: #fff; background: rgba(20, 20, 24, .65); padding: 2px 8px; border-radius: 99px; }
 @media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+.tile.ph .soc i.eye { display: inline-flex; align-items: center; gap: 4px; }
+.tile.ph .soc i.eye svg { width: 13px; height: 13px; }

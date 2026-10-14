@@ -7,7 +7,7 @@ import { notFoundPage } from './views.js';
 import { orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, cleanup, GALLERY_TRASH_DAYS } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
 import { splitParts } from './zip.js';
-import { socialReady, loadStats } from './social.js';
+import { socialReady, loadStats, viewsReady } from './social.js';
 
 const go = (to, headers = {}) => new Response(null, { status: 303, headers: { location: to, ...headers } });
 
@@ -344,6 +344,14 @@ export function appRoutes(app) {
         const L = new Map(lk.results.map((r) => [r.photo_id, r.n])), C = new Map(cm.results.map((r) => [r.photo_id, r.n]));
         photos.forEach((p) => { p.likes = L.get(p.id) || 0; p.coms = C.get(p.id) || 0; });
       } catch { /* sin datos sociales */ }
+    }
+    if (photos.length && await viewsReady(db)) {
+      try {
+        const inl = photos.map((p) => `'${p.id}'`).join(',');
+        const vw = (await db.prepare(`SELECT photo_id, n FROM photo_views WHERE photo_id IN (${inl})`).all()).results;
+        const V = new Map(vw.map((r) => [r.photo_id, r.n]));
+        photos.forEach((p) => { p.views = V.get(p.id) || 0; });
+      } catch { /* sin datos de visitas */ }
     }
     const priv = await privacyReady(db);
     const subs = (await db.prepare(
