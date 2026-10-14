@@ -66,9 +66,9 @@ export function tile(p, extra = '', dlToken = '') {
   <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="" ${p.w && p.h ? `width="${p.w}" height="${p.h}"` : ''}>${extra}</a>${dlb}${by ? `<figcaption>${by}</figcaption>` : ''}${det}</figure>`;
 }
 
-export function lightbox(social = false) {
+export function lightbox(social = false, mod = false) {
   const soc = social ? `<div class="lbsoc hidden" id="lbSoc"><div class="lbpanel hidden" id="lbPanel"><div class="lblist" id="lbList"></div><form id="lbForm" class="lbform"><input id="lbName" maxlength="40" placeholder="Tu nombre" autocomplete="nickname"><div class="lbrow"><input id="lbText" maxlength="500" placeholder="Escribe un comentario…" autocomplete="off" required><button class="btn sm primary" type="submit">Enviar</button></div></form></div><div class="lbbtns"><button type="button" id="lbLike" aria-label="Me gusta"></button><button type="button" id="lbCom" aria-label="Comentarios"></button></div></div>` : '';
-  return `<div class="lb" id="lb" aria-hidden="true"><button class="x" aria-label="Cerrar">×</button><button class="prev" aria-label="Anterior">‹</button><img alt=""><button class="next" aria-label="Siguiente">›</button>${soc}</div>`;
+  return `<div class="lb" id="lb" aria-hidden="true"><button class="x" aria-label="Cerrar">×</button><button class="prev" aria-label="Anterior">‹</button><img alt=""><button class="next" aria-label="Siguiente">›</button>${soc}${mod ? `<div class="lbmod" id="lbMod"><span class="lbst" id="lbSt"></span><button type="button" data-mod="approve"><u>A</u>probar</button><button type="button" data-mod="reject"><u>R</u>echazar</button><button type="button" data-mod="fav"><u>F</u>avorita</button></div>` : ''}</div>`;
 }
 
 export function landingPage() {

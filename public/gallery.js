@@ -28,14 +28,14 @@
   const bar = $('selbar'), selN = $('selN'), shown = $('shown');
 
   /* ----- filtros ----- */
-  const fName = $('fName'), fState = $('fState'), fFav = $('fFav');
+  const fName = $('fName'), fState = $('fState'), fFav = $('fFav'), fGuest = $('fGuest'), fDay = $('fDay');
   const activeFlags = new Set();
   function applyFilter() {
     const q = fName.value.trim().toLowerCase(), st = fState.value, fav = fFav.classList.contains('on');
     let n = 0;
     grid.querySelectorAll('.tile').forEach((t) => {
       const ok = (!q || t.dataset.name.includes(q)) && (!st || t.dataset.state === st) &&
-        (!fav || t.dataset.fav === '1') && (!activeFlags.size || activeFlags.has(t.dataset.flag));
+        (!fav || t.dataset.fav === '1') && (!fGuest || !fGuest.value || t.dataset.guest === fGuest.value) && (!fDay || !fDay.value || t.dataset.day === fDay.value) && (!activeFlags.size || activeFlags.has(t.dataset.flag));
       t.classList.toggle('hidden', !ok); if (ok) n++;
     });
     shown.textContent = n + (n === 1 ? ' foto' : ' fotos');
@@ -43,6 +43,10 @@
   }
   fName.addEventListener('input', applyFilter);
   fState.addEventListener('change', applyFilter);
+  if (fGuest) fGuest.addEventListener('change', applyFilter);
+  if (fDay) fDay.addEventListener('change', applyFilter);
+  const sp = $('showPending');
+  if (sp) sp.addEventListener('click', () => { fState.value = 'pending'; applyFilter(); grid.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   fFav.addEventListener('click', () => { fFav.classList.toggle('on'); applyFilter(); });
   document.querySelectorAll('#fFlags [data-f]').forEach((b) => b.addEventListener('click', () => {
     b.classList.toggle('on'); b.classList.contains('on') ? activeFlags.add(b.dataset.f) : activeFlags.delete(b.dataset.f); applyFilter();
@@ -185,4 +189,46 @@
   let saved = null; try { saved = localStorage.getItem(key); } catch (e) {}
   set(saved === 'open');
   btn.addEventListener('click', () => set(side.classList.contains('collapsed')));
+})();
+
+// Moderación rápida desde el visor: A aprobar, R rechazar, F favorita (y pasa a la siguiente).
+(() => {
+  const lb = document.getElementById('lb'), mod = document.getElementById('lbMod'), grid = document.getElementById('sortGrid');
+  const api = document.body.dataset.gapi;
+  if (!lb || !mod || !grid || !api) return;
+  const { post, toast } = window.PicfySort;
+  const LABEL = { approved: 'Publicada', pending: 'En revisión', rejected: 'No publicada' };
+  let cur = null;
+  const stEl = document.getElementById('lbSt');
+  const paint = () => {
+    if (!cur) return; stEl.textContent = LABEL[cur.dataset.state] || ''; stEl.dataset.s = cur.dataset.state;
+    mod.querySelector('[data-mod=fav]').classList.toggle('on', cur.dataset.fav === '1');
+  };
+  lb.addEventListener('lbshow', (e) => {
+    const all = [...grid.querySelectorAll('.tile')].filter((t) => t.offsetParent !== null);
+    cur = all[e.detail.i] || null; paint();
+  });
+  lb.addEventListener('lbhide', () => { cur = null; const f = document.getElementById('fState'); if (f) f.dispatchEvent(new Event('change')); });
+  function chip(t) {
+    const old = t.querySelector('.st'); if (old) old.remove();
+    if (t.dataset.state !== 'approved') {
+      const s = document.createElement('span'); s.className = 'st ' + t.dataset.state; s.textContent = t.dataset.state === 'pending' ? 'En revisión' : 'No publicada';
+      t.insertBefore(s, t.querySelector('.cap'));
+    }
+  }
+  async function run(what) {
+    if (!cur) return; const t = cur, id = t.dataset.id;
+    try {
+      if (what === 'fav') { const v = t.dataset.fav === '1' ? 0 : 1; await post(api + '/mark', { ids: [id], fav: v }); t.dataset.fav = String(v); const b = t.querySelector('.favb'); if (b) b.classList.toggle('on', Boolean(v)); paint(); return; }
+      await post(api + '/state', { action: what, ids: [id] });
+      t.dataset.state = what === 'approve' ? 'approved' : 'rejected'; chip(t); paint();
+      lb.querySelector('.next').click(); // siguiente foto
+    } catch { toast('No se pudo completar la acción.'); }
+  }
+  mod.addEventListener('click', (e) => { const b = e.target.closest('[data-mod]'); if (b) run(b.dataset.mod); });
+  document.addEventListener('keydown', (e) => {
+    if (!lb.classList.contains('open') || e.ctrlKey || e.metaKey || e.altKey || (e.target.closest && e.target.closest('input, textarea, select'))) return;
+    const k = e.key.toLowerCase();
+    if (k === 'a') run('approve'); else if (k === 'r') run('reject'); else if (k === 'f') run('fav');
+  });
 })();

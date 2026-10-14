@@ -174,11 +174,14 @@ function expiryBanner(event) {
   return `<div class="alert${days <= 7 ? '' : ' ok'}">Caduca el ${esc(when)} (${days <= 1 ? 'mañana o hoy' : `en ${days} días`}). ${act}.</div>`;
 }
 
+const dayOf = (ms) => (ms ? new Date(Number(ms)).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }) : '');
+const dayLabel = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+
 export function galleryPage({ user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
   const guestUrl = `${origin}/e/${event.guest_token}`;
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
-    .map((p) => `<div class="tile ph" data-id="${p.id}" data-full="/m/${p.id}/l" data-state="${p.state}" data-flag="${p.flag || ''}" data-fav="${p.fav ? 1 : 0}" data-name="${esc((p.filename || '').toLowerCase())}" title="${esc(gname.get(p.guest_id) || '')}${p.event_id !== event.id && p.ename ? ' · ' + esc(p.ename) : ''}">
+    .map((p) => `<div class="tile ph" data-id="${p.id}" data-full="/m/${p.id}/l" data-state="${p.state}" data-flag="${p.flag || ''}" data-fav="${p.fav ? 1 : 0}" data-name="${esc((p.filename || '').toLowerCase())}" data-guest="${p.guest_id}" data-day="${dayOf(p.ts)}" title="${esc(gname.get(p.guest_id) || '')}${p.event_id !== event.id && p.ename ? ' · ' + esc(p.ename) : ''}">
 ${p.event_id !== event.id && p.ename ? `<span class="sedechip">${esc(p.ename)}</span>` : ''}
 <input class="chk" type="checkbox" aria-label="Seleccionar foto">
 <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="">
@@ -187,6 +190,8 @@ ${p.event_id !== event.id && p.ename ? `<span class="sedechip">${esc(p.ename)}</
 ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' ? 'En revisión' : 'No publicada'}</span>` : ''}
 ${p.likes || p.coms ? `<span class="soc">${p.likes ? `<i>♥ ${p.likes}</i>` : ''}${p.coms ? `<i>💬 ${p.coms}</i>` : ''}</span>` : ''}<span class="cap">${esc(p.filename || '')}</span></div>`)
     .join('');
+  const dayCount = new Map(); photos.forEach((p) => { const d = dayOf(p.ts); if (d) dayCount.set(d, (dayCount.get(d) || 0) + 1); });
+  const days = [...dayCount.entries()].sort();
   const flagBtns = ['red', 'orange', 'green', 'black'].map((f) => `<button type="button" class="ftoggle" data-f="${f}" title="${FLAG_NAMES[f]}" aria-label="Bandera ${FLAG_NAMES[f].toLowerCase()}">${ICON.flag.replace('<svg', `<svg class="fl ${f}"`)}</button>`).join('');
   const flagMenu = ['red', 'orange', 'green', 'black'].map((f) => `<button type="button" data-setflag="${f}">${flagDot(f)} ${FLAG_NAMES[f]}</button>`).join('') + `<button type="button" data-setflag="">Quitar bandera</button>`;
   const opts = guests.map((g) => `<option value="${g.id}">${esc(g.name || `Invitado ${g.id.slice(0, 4)}`)} (${g.n})</option>`).join('');
@@ -217,12 +222,15 @@ ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(even
 <div class="sidebtns">
 <button class="btn primary block" type="button" id="openUpload" title="Subir archivos" aria-label="Subir archivos">${ICON.up}<span class="lbl">Subir archivos</span></button>
 <button class="btn block" type="button" data-open="zipDlg" title="Descargar ${counts.approved} archivos" aria-label="Descargar">${ICON.down}<span class="lbl">Descargar</span></button>
+${counts.pending ? `<button class="btn" type="button" id="showPending" title="Ver solo las pendientes">Revisar pendientes</button>` : ''}
 ${counts.pending ? `<button class="btn" type="button" id="approveAll" title="Aprobar las ${counts.pending} pendientes" aria-label="Aprobar las ${counts.pending} pendientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg><span class="lbl">Aprobar las ${counts.pending} pendientes</span><span class="badge">${counts.pending}</span></button>` : ''}
 </div>
 <dl class="stats"><div><dt>Publicadas</dt><dd>${counts.approved}</dd></div><div><dt>Por revisar</dt><dd>${counts.pending}</dd></div></dl>
 <h3 class="gh">Filtro</h3>
 <input class="search2" type="search" id="fName" placeholder="Nombre del archivo" aria-label="Filtrar por nombre">
 <div class="fbar" id="fFlags">${flagBtns}<button type="button" class="ftoggle" id="fFav" title="Favoritas" aria-label="Solo favoritas">${ICON.heart}</button></div>
+${gname.size > 1 ? `<select id="fGuest" aria-label="Autor"><option value="">Todos los autores</option>${guests.map((g) => `<option value="${g.id}">${esc(g.name || `Invitado ${g.id.slice(0, 4)}`)} (${g.n})</option>`).join('')}</select>` : ''}
+${days.length > 1 ? `<select id="fDay" aria-label="Día"><option value="">Todos los días</option>${days.map(([d, n]) => `<option value="${d}">${esc(dayLabel(d))} (${n})</option>`).join('')}</select>` : ''}
 <select id="fState" aria-label="Estado"><option value="">Todas las fotos</option><option value="approved">Publicadas</option><option value="pending">En revisión</option><option value="rejected">No publicadas</option></select>
 <h3 class="gh">Disposición</h3>
 <label class="field"><span>Ordenar por…</span>
@@ -318,7 +326,7 @@ ${brandFields(event)}
 <div class="notice err hidden" data-brand-msg></div>
 <footer><span class="spacer"></span><button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>
-${lightbox()}`,
+${lightbox(false, true)}`,
     }),
   });
 }
