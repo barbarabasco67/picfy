@@ -1,3 +1,4 @@
+import { ASSET_V } from './version.js';
 // Páginas HTML (renderizadas en el servidor).
 
 import { esc, themeStyle } from './util.js';
@@ -12,15 +13,15 @@ export function layout({ title, body, scripts = [], bodyAttrs = '', head = '' })
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>${esc(title)}</title>
-<link rel="stylesheet" href="/style.css">
-<link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/style.css?v=${ASSET_V}">
+<link rel="stylesheet" href="/app.css?v=${ASSET_V}">
 <meta name="theme-color" content="#ffffff">
 ${head}
 </head>
 <body class="app" ${bodyAttrs}>
 <div class="bgfx" aria-hidden="true"></div>
 ${body}
-${scripts.map((s) => `<script src="${s}" defer></script>`).join('\n')}
+${scripts.map((s) => `<script src="${s}?v=${ASSET_V}" defer></script>`).join('\n')}
 </body>
 </html>`;
 }
