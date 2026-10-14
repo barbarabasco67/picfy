@@ -46,6 +46,29 @@ export function selectionRoutes(app, { accessOk }) {
     return json({ on: !had, n: n.n });
   });
 
+  app.post('/api/e/:token/sel/clear', async (c) => {
+    const x = await ctx(c); if (x.err) return x.err;
+    await c.env.DB.prepare('DELETE FROM selections WHERE event_id = ? AND voter = ?').bind(x.event.id, x.voter).run();
+    return json({ ok: true, n: 0 });
+  });
+
+  // Elegir o quitar varias a la vez (la página actual).
+  app.post('/api/e/:token/sel/bulk', async (c) => {
+    const x = await ctx(c); if (x.err) return x.err;
+    const db = c.env.DB;
+    const ids = [...new Set((Array.isArray(x.b.photos) ? x.b.photos : []).filter((i) => isHex(i, 32)))].slice(0, 200);
+    if (!ids.length) return json({ ok: true });
+    const inl = ids.map((i) => `'${i}'`).join(',');
+    if (x.b.on) {
+      const ok = (await db.prepare(`SELECT id FROM photos WHERE state = 'approved' AND event_id IN ${FAM} AND id IN (${inl})`).bind(x.event.id).all()).results;
+      const now = Date.now();
+      await db.batch(ok.map((r) => db.prepare('INSERT OR IGNORE INTO selections (event_id, voter, photo_id, created_at) VALUES (?, ?, ?, ?)').bind(x.event.id, x.voter, r.id, now)));
+    } else {
+      await db.prepare(`DELETE FROM selections WHERE event_id = ? AND voter = ? AND photo_id IN (${inl})`).bind(x.event.id, x.voter).run();
+    }
+    return json({ ok: true });
+  });
+
   app.post('/api/e/:token/sel/send', async (c) => {
     const x = await ctx(c); if (x.err) return x.err;
     const db = c.env.DB;

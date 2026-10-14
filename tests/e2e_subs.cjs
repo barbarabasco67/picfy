@@ -80,8 +80,8 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   check('botón descargar por foto', (await gp.$$('.dlbtn')).length === 4);
   const one = await gp.request.get(gp.url().split('?')[0] + '/dl/' + (await gp.getAttribute('.tile >> nth=0', 'data-id')));
   check('descarga individual', one.status() === 200 && /attachment/.test(one.headers()['content-disposition'] || ''));
-  await gp.click('#selToggle'); await gp.click('#gSelAll');
-  check('4 seleccionadas', (await gp.$$('.gitem.picked')).length === 4 && (await gp.textContent('#gSelN')).startsWith('4'));
+  await gp.click('#selToggle'); await gp.waitForSelector('#selMine:not(.hidden)');
+  check('4 elegidas', (await gp.$$('.selpick.on')).length === 4 && (await gp.textContent('#selMineN')).startsWith('4'));
   const ids = await gp.$$eval('.tile', (n) => n.map((x) => x.dataset.id).join(','));
   const z = await gp.request.get(gp.url().split('?')[0] + '/zip?ids=' + ids);
   const zb = await z.body();

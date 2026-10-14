@@ -19,7 +19,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await (await p.$('input[type=file]')).setInputFiles(['tests/img/p00.jpg', 'tests/img/p01.jpg', 'tests/img/p02.jpg']);
   const c = await p.$('#upConsent'); if (c) await c.evaluate((e) => e.click());
   await p.click('#upStart'); await p.waitForTimeout(4500);
-  await p.goto(adminUrl); await p.click('[data-open=setDlg]'); await p.check('[name=selection]');
+  await p.goto(adminUrl); await p.click('[data-open=setDlg]'); await p.check('[name=selection]'); await p.check('[name=allow_download]');
   await Promise.all([p.waitForNavigation(), p.click('#setDlg button.primary')]);
   // cliente
   const g = await (await b.newContext({ viewport: { width: 1300, height: 900 } })).newPage();
@@ -28,6 +28,10 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await g.waitForSelector('#selMine:not(.hidden)');
   ok((await g.textContent('#selMineN')).startsWith('2'), 'barra con 2: ' + (await g.textContent('#selMineN')));
   await g.reload(); await g.waitForSelector('#selMine:not(.hidden)'); // persiste
+  ok(await g.$('#selDl'), 'botón descargar en la barra');
+  await g.click('#selClear'); await g.waitForTimeout(400); ok((await g.$$('.selpick.on')).length === 0, 'quitar selección');
+  await g.click('#selToggle'); await g.waitForSelector('#selMine:not(.hidden)'); ok((await g.textContent('#selMineN')).startsWith('3'), 'elegir todas');
+  await g.locator('.selpick').nth(2).click(); await g.waitForTimeout(300);
   await g.click('a.tile'); await g.waitForSelector('#lbSel:not(.hidden)'); await g.screenshot({ path: '/tmp/picfy_shots/sel_lb.png' });
   await g.keyboard.press('Escape'); await g.waitForTimeout(200);
   await g.screenshot({ path: '/tmp/picfy_shots/sel_grid.png' });

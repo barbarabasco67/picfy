@@ -157,7 +157,7 @@ th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line
 
 /* ---- Selección de favoritas del cliente ---- */
 .gitem { position: relative; }
-.selpick { position: absolute; top: 7px; right: 7px; z-index: 4; width: 22px; height: 22px; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .85); background: rgba(20, 20, 24, .28); color: transparent; cursor: pointer; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: background .12s, transform .12s; }
+.selpick { position: absolute; top: 7px; left: 7px; z-index: 4; width: 22px; height: 22px; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .85); background: rgba(20, 20, 24, .28); color: transparent; cursor: pointer; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: background .12s, transform .12s; }
 .selpick svg { width: 13px; height: 13px; }
 .selpick:hover { background: rgba(20, 20, 24, .55); transform: scale(1.06); }
 .selpick.on { background: var(--accent, #edb265); border-color: #fff; color: #2a1d08; }
@@ -183,3 +183,7 @@ th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line
 #selSendDlg .txt::placeholder { color: #a99d8a; }
 #selSendDlg textarea.txt { min-height: 96px; }
 #selSendDlg .btn.primary { padding: .7em 1.4em; }
+
+.selmine .selx { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, .08); font-size: 18px; line-height: 1; cursor: pointer; color: inherit; }
+.selmine .selx:hover { background: rgba(0, 0, 0, .16); }
+.selmine { padding-left: 10px; }

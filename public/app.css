@@ -627,3 +627,8 @@ fieldset.brand .check { margin-top: 4px; }
 .selacts { display: flex; gap: 8px; flex-wrap: wrap; }
 .stop .more { display: grid; place-items: center; background: rgba(0, 0, 0, .08); }
 .stop .more b { position: static; background: none; color: var(--ink, #1f1a12); font-size: 1rem; }
+
+/* botón de descarga por foto: más pequeño y a la derecha (la selección va a la izquierda) */
+.dlbtn { width: 24px; height: 24px; top: 7px; right: 7px; border-radius: 8px; }
+.dlbtn svg { width: 13px; height: 13px; }
+body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 24px); right: auto; }

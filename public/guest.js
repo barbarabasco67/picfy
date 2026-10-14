@@ -340,43 +340,12 @@
   setTimeout(upd, 400);
 })();
 
-// Descargas (solo si el organizador las permite)
+// Descargas (solo si el organizador las permite): el botón «Descargar» abre el ZIP; la selección va en selection.js
 (() => {
-  const toggle = document.getElementById('selToggle'); if (!toggle) return;
-  const grid = document.getElementById('gallery'), bar = document.getElementById('gSelBar'), n = document.getElementById('gSelN');
-  const btnAll = document.getElementById('gSelAll'), btnDl = document.getElementById('gSelDl'), btnX = document.getElementById('gSelCancel');
-  const dlg = document.getElementById('dlDlg'), token = document.body.dataset.token, MAX = 40;
-  document.getElementById('dlOpen').addEventListener('click', () => dlg.showModal());
+  const open = document.getElementById('dlOpen'); if (!open) return;
+  const dlg = document.getElementById('dlDlg');
+  open.addEventListener('click', () => dlg.showModal());
   dlg.addEventListener('click', (e) => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); });
-  let on = false;
-  const items = () => [...grid.querySelectorAll('.gitem')];
-  const picked = () => items().filter((i) => i.classList.contains('picked'));
-  function refresh() {
-    const k = picked().length; n.textContent = k + (k === 1 ? ' seleccionada' : ' seleccionadas'); btnDl.disabled = !k;
-  }
-  function mode(v) {
-    on = v; grid.classList.toggle('selecting', on); bar.classList.toggle('hidden', !on);
-    toggle.classList.toggle('on', on); toggle.textContent = on ? 'Cancelar' : 'Seleccionar';
-    if (!on) items().forEach((i) => i.classList.remove('picked'));
-    refresh();
-  }
-  toggle.addEventListener('click', () => mode(!on)); btnX.addEventListener('click', () => mode(false));
-  grid.addEventListener('click', (e) => {
-    if (!on) return;
-    const fig = e.target.closest('.gitem'); if (!fig || e.target.closest('.dlbtn')) return;
-    e.preventDefault(); e.stopImmediatePropagation();
-    if (!fig.classList.contains('picked') && picked().length >= MAX) { alert('Puedes elegir hasta ' + MAX + ' fotos cada vez. Para más, usa «Descargar» y baja el ZIP completo.'); return; }
-    fig.classList.toggle('picked'); refresh();
-  }, true);
-  btnAll.addEventListener('click', () => {
-    const all = items(); const some = picked().length === Math.min(all.length, MAX);
-    all.forEach((i, k) => i.classList.toggle('picked', !some && k < MAX)); refresh();
-  });
-  btnDl.addEventListener('click', () => {
-    const ids = picked().map((i) => i.querySelector('.tile').dataset.id);
-    if (ids.length === 1) { location.href = `/e/${token}/dl/${ids[0]}`; return; }
-    if (ids.length) location.href = `/e/${token}/zip?ids=${ids.join(',')}`;
-  });
 })();
 
 // Orden de las fotos (lo resuelve el servidor para que también valga entre páginas)
