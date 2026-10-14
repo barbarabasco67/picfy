@@ -19,7 +19,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   const subUrls = [];
   for (const n of ['Sede Norte', 'Sede Sur']) {
     await p.goto(parentUrl);
-    await p.click('[data-open=subDlg]'); await p.fill('#subDlg input[name=name]', n); await p.click('#subDlg button.primary');
+    await p.click('[data-open=subDlg]'); await p.fill('#subDlg input[name=name]', n); await p.fill('#subDlg textarea[name=lead]', 'Descripción de ' + n); await p.click('#subDlg button.primary');
     await p.waitForURL(/\/galerias\/[0-9a-f]{16}\?ok/);
     subUrls.push(p.url().split('?')[0]);
     check('migas con padre', await p.isVisible(`.crumbs a:has-text("Torneo grande")`));
@@ -45,6 +45,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.click('[data-open=setDlg]'); await p.check('#setDlg input[name=show_subs]'); await p.click('#setDlg button.primary');
   await p.waitForSelector('.alert.ok:has-text("Ajustes guardados")');
   await gp.goto(pl);
+  check('la tarjeta muestra la descripción', (await gp.$$eval('.subdesc', (n) => n.map((x) => x.textContent))).includes('Descripción de Sede Norte'));
   check('con opción: 2 sedes', (await gp.$$('.subcard')).length === 2);
   await gp.screenshot({ path: '/tmp/picfy_shots/subs_guest.png' });
   // subir portada de una sede desde el panel y copiar enlace

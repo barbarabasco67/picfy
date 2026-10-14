@@ -196,7 +196,7 @@ function subCards(subs) {
   if (!subs || !subs.length) return '';
   return `<section class="subs-g"><button type="button" class="cardbtn car-nav prev" aria-label="Anteriores" hidden>‹</button><button type="button" class="cardbtn car-nav next" aria-label="Siguientes" hidden>›</button><div class="subs-track">${subs.map((s) => `<div class="subwrap"><a class="subcard" href="/e/${s.guest_token}">
 <span class="subimg"${s.thumb_v ? ` style="background-image:url('/c/${s.guest_token}/thumb?v=${s.thumb_v}')"` : s.first_id ? ` style="background-image:url('/m/${s.first_id}/m')"` : ''}></span>
-<span class="subname">${esc(s.name)}</span><span class="subn">${s.n} ${s.n === 1 ? 'foto' : 'fotos'}</span></a><button type="button" class="cardbtn subshare" data-sharelink="/e/${s.guest_token}" aria-label="Compartir ${esc(s.name)}" title="Compartir enlace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button></div>`).join('')}</div></section>`;
+<span class="subname">${esc(s.name)}</span>${s.lead ? `<span class="subdesc">${esc(s.lead)}</span>` : ''}<span class="subn">${s.n} ${s.n === 1 ? 'foto' : 'fotos'}</span></a><button type="button" class="cardbtn subshare" data-sharelink="/e/${s.guest_token}" aria-label="Compartir ${esc(s.name)}" title="Compartir enlace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button></div>`).join('')}</div></section>`;
 }
 
 export function guestPage({ event, photos, total, page, pages, subs = [], parent = null, dl = null, orden = '' }) {

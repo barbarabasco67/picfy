@@ -245,6 +245,7 @@ ${uploadDialog(event.parent_id ? null : event, subs.map((s) => ({ ...s, upload_o
 <dialog id="subDlg" class="glassdlg"><form method="post" action="/galerias/${event.id}/sub" class="dlgbox">
 <header><h2>Crear subgalería</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <label class="field"><span>Nombre (por ejemplo, la sede)</span><input type="text" name="name" maxlength="120" required placeholder="Sede Norte"></label>
+<label class="field"><span>Descripción (opcional, sale bajo el nombre en su página)</span><textarea name="lead" maxlength="400" placeholder="Ej.: Pabellón municipal, sábado por la mañana"></textarea></label>
 <footer><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Crear y abrir</button></footer>
 </form></dialog>
 
@@ -261,7 +262,7 @@ ${uploadDialog(event.parent_id ? null : event, subs.map((s) => ({ ...s, upload_o
 <label class="field"><span>Fecha</span><input type="date" name="event_date" value="${esc(event.event_date || '')}"></label>
 <label class="field"><span>Máx. fotos por persona (0 = sin límite)</span><input type="number" name="photo_limit" min="0" max="2000" value="${event.photo_limit}"></label>
 </div>
-<label class="field"><span>Mensaje de bienvenida</span><textarea name="lead" maxlength="400">${esc(event.lead)}</textarea></label>
+<label class="field"><span>${event.parent_id ? 'Descripción de la subgalería' : 'Mensaje de bienvenida'}</span><textarea name="lead" maxlength="400">${esc(event.lead)}</textarea></label>
 <label class="check"><input type="checkbox" name="auto_approve" value="1" ${event.auto_approve ? 'checked' : ''}> Publicar las fotos al subirlas</label>
 <label class="check"><input type="checkbox" name="upload_open" value="1" ${event.upload_open ? 'checked' : ''}> Subida de fotos abierta</label>
 <label class="check"><input type="checkbox" name="gallery_open" value="1" ${event.gallery_open ? 'checked' : ''}> Galería visible para los invitados</label>

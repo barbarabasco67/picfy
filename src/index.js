@@ -161,7 +161,7 @@ app.get('/e/:token', async (c) => {
   let subs = [];
   if (event.show_subs && !event.parent_id) {
     subs = (await c.env.DB.prepare(
-      `SELECT s.name, s.guest_token, s.thumb_v, s.event_date, s.upload_open,
+      `SELECT s.name, s.lead, s.guest_token, s.thumb_v, s.event_date, s.upload_open,
               (SELECT p.id FROM photos p WHERE p.event_id = s.id AND p.state = 'approved' ORDER BY p.sort_order LIMIT 1) AS first_id,
               (SELECT COUNT(*) FROM photos p WHERE p.event_id = s.id AND p.state = 'approved') AS n
        FROM events s WHERE s.parent_id = ? AND s.gallery_open = 1 ${(await privacyReady(c.env.DB)) ? 'AND s.is_private = 0' : ''} ORDER BY s.name COLLATE NOCASE`,

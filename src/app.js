@@ -154,13 +154,15 @@ export function appRoutes(app) {
     const parent = await ownEvent(c, user);
     if (!parent) return go('/galerias');
     if (parent.parent_id) return go(`/galerias/${parent.id}`); // solo un nivel
-    const name = String((await c.req.formData()).get('name') || '').trim().slice(0, 120);
+    const fd = await c.req.formData();
+    const name = String(fd.get('name') || '').trim().slice(0, 120);
+    const lead = String(fd.get('lead') || '').trim().slice(0, 400);
     if (!name) return go(`/galerias/${parent.id}`);
     const id = randomHex(8);
     await c.env.DB.prepare(
       `INSERT INTO events (id, name, lead, event_date, guest_token, manage_hash, auto_approve, photo_limit, created_at, owner_id, parent_id, accent, cover_v, avatar_v)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(id, name, parent.lead, parent.event_date, randomHex(16), await sha256Hex(randomHex(32)), parent.auto_approve, parent.photo_limit, Date.now(), user.id, parent.id, parent.accent, parent.cover_v, parent.avatar_v).run();
+    ).bind(id, name, lead, parent.event_date, randomHex(16), await sha256Hex(randomHex(32)), parent.auto_approve, parent.photo_limit, Date.now(), user.id, parent.id, parent.accent, parent.cover_v, parent.avatar_v).run();
     try { await c.env.DB.prepare('UPDATE events SET allow_download = ? WHERE id = ?').bind(parent.allow_download ? 1 : 0, id).run(); } catch { /* sin migración 0008 */ }
     // la subgalería hereda el aspecto de la principal (copia de las imágenes)
     for (const kind of ['cover', 'avatar']) {
