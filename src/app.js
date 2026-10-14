@@ -2,7 +2,7 @@
 
 import { randomHex, sha256Hex, html, json } from './util.js';
 import { hashPassword, checkPassword, validEmail, startSession, endSession, currentUser } from './auth.js';
-import { authPage, galleriesPage, galleryPage } from './appviews.js';
+import { authPage, galleriesPage, galleryPage, accountPage } from './appviews.js';
 import { notFoundPage } from './views.js';
 import { orderSql, privacyReady } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
@@ -63,6 +63,89 @@ export function appRoutes(app) {
 
   app.post('/salir', async (c) => go('/entrar', { 'set-cookie': await endSession(c.env.DB, c.req.raw) }));
 
+  /* ----- Mi cuenta ----- */
+  async function userDefaults(db, id) {
+    try {
+      const r = await db.prepare('SELECT defaults FROM users WHERE id = ?').bind(id).first();
+      return r && r.defaults ? JSON.parse(r.defaults) : {};
+    } catch { return {}; }
+  }
+  async function fullUser(db, id) {
+    try { return await db.prepare('SELECT id, email, name, surname, pass_salt, pass_hash FROM users WHERE id = ?').bind(id).first(); }
+    catch { return db.prepare("SELECT id, email, name, '' AS surname, pass_salt, pass_hash FROM users WHERE id = ?").bind(id).first(); }
+  }
+  const SECTIONS = ['datos', 'password', 'galerias'];
+  async function accountView(c, user, section, ok = '', error = '') {
+    const u = await fullUser(c.env.DB, user.id);
+    return html(accountPage({ user: u, section, ok, error, defaults: await userDefaults(c.env.DB, user.id) }));
+  }
+  const toAcc = (section, kind, text) => go(`/cuenta/${section}?${kind}=${encodeURIComponent(text)}`);
+
+  app.get('/cuenta', (c) => go('/cuenta/datos'));
+  app.get('/cuenta/:s', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    const s = c.req.param('s');
+    if (!SECTIONS.includes(s)) return go('/cuenta/datos');
+    return accountView(c, user, s, c.req.query('ok') || '', c.req.query('err') || '');
+  });
+
+  app.post('/cuenta/datos', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    const f = await c.req.formData();
+    const name = String(f.get('name') || '').trim().slice(0, 80);
+    const surname = String(f.get('surname') || '').trim().slice(0, 120);
+    if (!name) return toAcc('datos', 'err', 'Escribe tu nombre.');
+    try { await c.env.DB.prepare('UPDATE users SET name = ?, surname = ? WHERE id = ?').bind(name, surname, user.id).run(); }
+    catch { await c.env.DB.prepare('UPDATE users SET name = ? WHERE id = ?').bind(name, user.id).run(); }
+    return toAcc('datos', 'ok', 'Datos guardados.');
+  });
+
+  app.post('/cuenta/correo', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    const f = await c.req.formData();
+    const email = String(f.get('email') || '').trim().toLowerCase();
+    const u = await fullUser(c.env.DB, user.id);
+    if (!validEmail(email)) return toAcc('datos', 'err', 'Ese correo no parece válido.');
+    if (!(await checkPassword(u, String(f.get('current') || '')))) return toAcc('datos', 'err', 'La contraseña no es correcta.');
+    if (email !== u.email && await c.env.DB.prepare('SELECT 1 FROM users WHERE email = ?').bind(email).first()) return toAcc('datos', 'err', 'Ya existe una cuenta con ese correo.');
+    await c.env.DB.prepare('UPDATE users SET email = ? WHERE id = ?').bind(email, user.id).run();
+    return toAcc('datos', 'ok', 'Correo actualizado.');
+  });
+
+  app.post('/cuenta/password', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    const f = await c.req.formData();
+    const u = await fullUser(c.env.DB, user.id);
+    const pw = String(f.get('password') || '');
+    if (!(await checkPassword(u, String(f.get('current') || '')))) return toAcc('password', 'err', 'La contraseña actual no es correcta.');
+    if (pw.length < 8) return toAcc('password', 'err', 'La nueva contraseña necesita al menos 8 caracteres.');
+    if (pw !== String(f.get('password2') || '')) return toAcc('password', 'err', 'Las dos contraseñas nuevas no coinciden.');
+    const salt = randomHex(16);
+    await c.env.DB.prepare('UPDATE users SET pass_salt = ?, pass_hash = ? WHERE id = ?').bind(salt, await hashPassword(pw, salt), user.id).run();
+    await c.env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(user.id).run();
+    return go('/cuenta/password?ok=' + encodeURIComponent('Contraseña cambiada.'), { 'set-cookie': await startSession(c.env.DB, user.id) });
+  });
+
+  app.post('/cuenta/galerias', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    const f = await c.req.formData();
+    const d = {
+      accent: validAccent(f.get('accent')) || '#edb265',
+      auto_approve: f.get('auto_approve') ? 1 : 0,
+      allow_download: f.get('allow_download') ? 1 : 0,
+      show_subs: f.get('show_subs') ? 1 : 0,
+      photo_limit: Math.max(0, Math.min(2000, parseInt(String(f.get('photo_limit') || '0'), 10) || 0)),
+    };
+    try { await c.env.DB.prepare('UPDATE users SET defaults = ? WHERE id = ?').bind(JSON.stringify(d), user.id).run(); }
+    catch { return toAcc('galerias', 'err', 'Falta aplicar la migración 0010 en la base de datos.'); }
+    return toAcc('galerias', 'ok', 'Valores guardados. Se usarán en las galerías nuevas.');
+  });
+
   /* ----- Galerías ----- */
   app.get('/galerias', async (c) => {
     const user = await currentUser(c);
@@ -76,7 +159,7 @@ export function appRoutes(app) {
          , (SELECT COUNT(*) FROM events s WHERE s.parent_id = e.id) AS subs
        FROM events e WHERE e.owner_id = ? AND e.parent_id IS NULL ORDER BY e.created_at DESC`,
     ).bind(user.id).all();
-    return html(galleriesPage({ user, events: rows.results, origin: new URL(c.req.url).origin }));
+    return html(galleriesPage({ user, events: rows.results, origin: new URL(c.req.url).origin, defaults: await userDefaults(c.env.DB, user.id) }));
   });
 
   app.post('/galerias', async (c) => {
@@ -89,12 +172,16 @@ export function appRoutes(app) {
     const limit = Math.max(0, Math.min(2000, parseInt(String(f.get('photo_limit') || '0'), 10) || 0));
     const lead = String(f.get('lead') || '').trim().slice(0, 400);
     const auto = f.get('auto_approve') ? 1 : 0;
+    const dflt = await userDefaults(c.env.DB, user.id);
     const id = randomHex(8);
     // El enlace de organizador por token sigue existiendo (compatibilidad); aquí nadie lo necesita.
     await c.env.DB.prepare(
       `INSERT INTO events (id, name, lead, event_date, guest_token, manage_hash, auto_approve, photo_limit, created_at, owner_id, accent)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(id, name, lead, date, randomHex(16), await sha256Hex(randomHex(32)), auto, limit, Date.now(), user.id, validAccent(f.get('accent'))).run();
+    for (const col of ['allow_download', 'show_subs']) {
+      if (dflt[col]) { try { await c.env.DB.prepare(`UPDATE events SET ${col} = 1 WHERE id = ?`).bind(id).run(); } catch {} }
+    }
     if ((c.req.header('accept') || '').includes('application/json')) return json({ id, url: `/galerias/${id}?ok=${encodeURIComponent('Galería creada. Comparte el enlace con tus invitados.')}` });
     return go(`/galerias/${id}?ok=${encodeURIComponent('Galería creada. Comparte el enlace con tus invitados.')}`);
   });

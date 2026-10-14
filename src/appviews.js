@@ -31,23 +31,23 @@ function appPage({ title, body, scripts = [], bodyAttrs = '' }) {
 const logo = `<a class="logo" href="/galerias"><span class="logo-dot"></span>Picfy</a>`;
 
 // Marco con barra superior y lateral de cristal
-function shell({ user, active = 'galerias', crumbs = '', main, collapsible = false }) {
+function shell({ user, active = 'galerias', crumbs = '', main, collapsible = false, side = '' }) {
   const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
   return `<header class="top glass">
 ${logo}
 <nav class="crumbs">${crumbs}</nav>
 <span class="spacer"></span>
-<div class="who"><span class="avatar" title="${esc(user.email)}">${esc(initials)}</span>
+<div class="who"><a class="avatar${active === 'cuenta' ? ' on' : ''}" href="/cuenta" title="Mi cuenta · ${esc(user.email)}" aria-label="Mi cuenta">${esc(initials)}</a>
 <form method="post" action="/salir"><button class="iconbtn" type="submit" title="Salir" aria-label="Salir">${ICON.out}</button></form></div>
 </header>
 <div class="frame${collapsible ? ' nav-collapsed' : ''}">
 <aside class="side glass${collapsible ? ' collapsed' : ''}">
 ${collapsible ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}
-<p class="side-h">Gestiona tus fotos</p>
+${side || `<p class="side-h">Gestiona tus fotos</p>
 <a class="nav ${active === 'galerias' ? 'on' : ''}" href="/galerias">${ICON.gal}<span>Galerías</span></a>
 <p class="side-h">Próximamente</p>
 <span class="nav off">${ICON.lock}<span>Colecciones</span></span>
-<span class="nav off">${ICON.lock}<span>Papelera</span></span>
+<span class="nav off">${ICON.lock}<span>Papelera</span></span>`}
 </aside>
 <main class="main">${main}</main>
 </div>`;
@@ -107,7 +107,7 @@ ${cover ? '<label class="check"><input type="checkbox" data-brand-remove="cover"
 
 /* ---------- Galerías ---------- */
 
-export function galleriesPage({ user, events, origin }) {
+export function galleriesPage({ user, events, origin, defaults = {} }) {
   const cards = events
     .map(
       (e) => `<a class="gcard glass" href="/galerias/${e.id}" data-name="${esc(e.name.toLowerCase())}">
@@ -134,11 +134,11 @@ ${events.length ? `<div class="gcards" id="gcards">${cards}</div><p class="muted
 <label class="field"><span>Título de la galería</span><input type="text" name="name" maxlength="120" required placeholder="Boda de Ana y Luis"></label>
 <div class="row2">
 <label class="field"><span>Fecha (opcional)</span><input type="date" name="event_date"></label>
-<label class="field"><span>Máx. fotos por persona (0 = sin límite)</span><input type="number" name="photo_limit" min="0" max="2000" value="0"></label>
+<label class="field"><span>Máx. fotos por persona (0 = sin límite)</span><input type="number" name="photo_limit" min="0" max="2000" value="${defaults.photo_limit || 0}"></label>
 </div>
 <label class="field"><span>Mensaje de bienvenida (opcional)</span><textarea name="lead" maxlength="400" placeholder="Los mejores recuerdos se viven juntos. Sube las fotos que hiciste."></textarea></label>
-<label class="check"><input type="checkbox" name="auto_approve" value="1" checked> Publicar las fotos al subirlas (si no, las revisas tú antes)</label>
-${brandFields()}
+<label class="check"><input type="checkbox" name="auto_approve" value="1" ${defaults.auto_approve === 0 ? '' : 'checked'}> Publicar las fotos al subirlas (si no, las revisas tú antes)</label>
+${brandFields(defaults.accent ? { accent: defaults.accent } : null)}
 <div class="notice err hidden" data-brand-msg></div>
 <footer><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Crear y abrir</button></footer>
 </form></dialog>`,
@@ -281,6 +281,66 @@ ${brandFields(event)}
 <button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>
 ${lightbox()}`,
+    }),
+  });
+}
+
+
+/* ---------- Mi cuenta ---------- */
+
+const USER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
+
+export function accountPage({ user, section = 'datos', ok = '', error = '', defaults = {} }) {
+  const nav = (k, label, icon) => `<a class="nav ${section === k ? 'on' : ''}" href="/cuenta/${k}">${icon}<span>${label}</span></a>`;
+  const side = `<p class="side-h">Configuración personal</p>
+${nav('datos', 'Datos de usuario', USER_ICON)}
+${nav('password', 'Contraseña', ICON.lock)}
+<p class="side-h">Tus galerías</p>
+${nav('galerias', 'Valores predeterminados', ICON.cog)}
+<p class="side-h">Sesión</p>
+<form method="post" action="/salir"><button class="nav linkbtn" type="submit">${ICON.out}<span>Cerrar sesión</span></button></form>`;
+  const msg = `${ok ? `<div class="notice ok">${esc(ok)}</div>` : ''}${error ? `<div class="notice err">${esc(error)}</div>` : ''}`;
+  const d = defaults;
+  const forms = {
+    datos: `<section class="glass card-s"><h2>Tus datos de usuario</h2>
+<form method="post" action="/cuenta/datos">
+<div class="row2">
+<label class="field"><span>Nombre</span><input type="text" name="name" value="${esc(user.name || '')}" maxlength="80" autocomplete="given-name" required></label>
+<label class="field"><span>Apellidos</span><input type="text" name="surname" value="${esc(user.surname || '')}" maxlength="120" autocomplete="family-name"></label>
+</div>
+<footer class="rowend"><button class="btn primary" type="submit">Guardar cambios</button></footer></form></section>
+<section class="glass card-s"><h2>Tu correo electrónico</h2>
+<form method="post" action="/cuenta/correo">
+<div class="row2">
+<label class="field"><span>Dirección de correo electrónico</span><input type="text" inputmode="email" name="email" value="${esc(user.email)}" maxlength="254" autocomplete="email" required></label>
+<label class="field"><span>Tu contraseña actual (para confirmar)</span><input type="password" name="current" autocomplete="current-password" required></label>
+</div>
+<footer class="rowend"><button class="btn primary" type="submit">Guardar cambios</button></footer></form></section>`,
+    password: `<section class="glass card-s"><h2>Cambiar la contraseña</h2>
+<form method="post" action="/cuenta/password">
+<label class="field"><span>Contraseña actual</span><input type="password" name="current" autocomplete="current-password" required></label>
+<div class="row2">
+<label class="field"><span>Nueva contraseña (mínimo 8 caracteres)</span><input type="password" name="password" minlength="8" autocomplete="new-password" required></label>
+<label class="field"><span>Repite la nueva contraseña</span><input type="password" name="password2" minlength="8" autocomplete="new-password" required></label>
+</div>
+<p class="muted">Al cambiarla se cierran las demás sesiones abiertas.</p>
+<footer class="rowend"><button class="btn primary" type="submit">Cambiar contraseña</button></footer></form></section>`,
+    galerias: `<section class="glass card-s"><h2>Valores predeterminados de las galerías</h2>
+<p class="muted">Se aplican a las galerías que crees a partir de ahora. Las que ya tienes no cambian.</p>
+<form method="post" action="/cuenta/galerias">
+<label class="field"><span>Color de acento</span><input type="color" name="accent" value="${esc(d.accent || '#edb265')}" class="colorin"></label>
+<label class="check"><input type="checkbox" name="auto_approve" value="1" ${d.auto_approve === 0 ? '' : 'checked'}> Publicar las fotos al subirlas (si no, las revisas tú antes)</label>
+<label class="check"><input type="checkbox" name="allow_download" value="1" ${d.allow_download ? 'checked' : ''}> Permitir que los invitados descarguen las fotos</label>
+<label class="check"><input type="checkbox" name="show_subs" value="1" ${d.show_subs ? 'checked' : ''}> Mostrar las subgalerías en la página de invitados</label>
+<label class="field"><span>Máx. fotos por persona (0 = sin límite)</span><input type="number" name="photo_limit" min="0" max="2000" value="${d.photo_limit || 0}"></label>
+<footer class="rowend"><button class="btn primary" type="submit">Guardar cambios</button></footer></form></section>`,
+  };
+  return appPage({
+    title: 'Mi cuenta',
+    body: shell({
+      user, active: 'cuenta', side,
+      crumbs: '<span>Mi cuenta</span>',
+      main: `<div class="head"><div><h1>Mi cuenta</h1><p class="muted">${esc(user.email)}</p></div></div>${msg}<div class="acc">${forms[section] || forms.datos}</div>`,
     }),
   });
 }
