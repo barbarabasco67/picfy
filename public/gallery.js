@@ -232,3 +232,23 @@
     if (k === 'a') run('approve'); else if (k === 'r') run('reject'); else if (k === 'f') run('fav');
   });
 })();
+
+// Selecciones del cliente: ver solo esas fotos o marcarlas como favoritas.
+(() => {
+  const dlg = document.getElementById('selDlg'), grid = document.getElementById('sortGrid');
+  if (!dlg || !grid) return;
+  const { post, toast } = window.PicfySort; const api = document.body.dataset.gapi;
+  dlg.addEventListener('click', async (e) => {
+    const art = e.target.closest('.selsend'); if (!art) return;
+    const ids = art.dataset.ids.split(',').filter(Boolean);
+    if (e.target.closest('[data-selshow]')) {
+      const set = new Set(ids); let n = 0;
+      grid.querySelectorAll('.tile').forEach((t) => { const ok = set.has(t.dataset.id); t.classList.toggle('hidden', !ok); if (ok) n++; });
+      const sh = document.getElementById('shown'); if (sh) sh.textContent = n + (n === 1 ? ' foto' : ' fotos');
+      dlg.close(); toast('Mostrando solo la selección. Recarga la página para volver a verlas todas.');
+    } else if (e.target.closest('[data-selfav]')) {
+      try { await post(api + '/mark', { ids, fav: 1 }); ids.forEach((id) => { const t = grid.querySelector(`.tile[data-id="${id}"]`); if (t) { t.dataset.fav = '1'; const b = t.querySelector('.favb'); if (b) b.classList.add('on'); } }); toast('Marcadas como favoritas'); }
+      catch { toast('No se pudo completar la acción.'); }
+    }
+  });
+})();

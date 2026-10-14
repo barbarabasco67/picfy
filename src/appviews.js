@@ -130,7 +130,7 @@ ${e.event_date ? `<div class="gdate">${esc(fmtDate(e.event_date))}</div>` : ''}
     .join('');
   return appPage({
     title: 'Galerías',
-    scripts: ['/app.js', '/brand.js'],
+    scripts: ['/app.js', '/brand.js', '/filepick.js'],
     body: shell({
       user,
       crumbs: '',
@@ -175,6 +175,17 @@ function expiryBanner(event) {
   return `<div class="alert${days <= 7 ? '' : ' ok'}">Caduca el ${esc(when)} (${days <= 1 ? 'mañana o hoy' : `en ${days} días`}). ${act}.</div>`;
 }
 
+function selectionsDialog(sels) {
+  if (!sels || !sels.ready) return '';
+  const when = (ms) => new Date(Number(ms)).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const list = sels.sends.length ? sels.sends.map((r) => `<article class="selsend" data-ids="${r.ids.join(',')}">
+<header><b>${esc(r.name || 'Sin nombre')}</b><span>${esc(when(r.created_at))} · ${r.n} ${r.n === 1 ? 'foto' : 'fotos'}${r.ename ? ' · ' + esc(r.ename) : ''}</span></header>
+${r.email ? `<p class="muted small">${esc(r.email)}</p>` : ''}${r.note ? `<p class="selnote">${esc(r.note)}</p>` : ''}
+<div class="stop">${r.ids.slice(0, 12).map((id) => `<div><img src="/m/${id}/m" alt="" loading="lazy"></div>`).join('')}${r.ids.length > 12 ? `<div class="more"><b>+${r.ids.length - 12}</b></div>` : ''}</div>
+<div class="selacts"><button class="btn sm" type="button" data-selshow>Ver solo estas en la galería</button><button class="btn sm" type="button" data-selfav>Marcar como favoritas</button></div></article>`).join('') : '<p class="muted">Todavía no has recibido ninguna selección.</p>';
+  return `<dialog id="selDlg" class="glassdlg wide"><div class="dlgbox"><header><h2>Selecciones del cliente</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>${list}</div></dialog>`;
+}
+
 function statsDialog(st) {
   if (!st) return '';
   const num = (n) => Number(n || 0).toLocaleString('es-ES');
@@ -194,7 +205,7 @@ ${top}
 const dayOf = (ms) => (ms ? new Date(Number(ms)).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }) : '');
 const dayLabel = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 
-export function galleryPage({ stats = null, user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
+export function galleryPage({ sels = null, stats = null, user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
   const guestUrl = `${origin}/e/${event.guest_token}`;
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
@@ -220,7 +231,7 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
   return appPage({
     title: event.name,
     bodyAttrs: `data-gapi="/api/g/${event.id}" data-gid="${event.id}" data-part="${partSize}" data-token="${event.guest_token}" data-limit="0" data-auto="1" data-owner="1" data-owner-name="${esc(user.name || 'Organizador')}"`,
-    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/reorder.js', '/app.js', '/guest.js', '/brand.js', '/gallery.js'],
+    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/reorder.js', '/app.js', '/guest.js', '/brand.js', '/filepick.js', '/gallery.js'],
     body: shell({
       user,
       collapsible: true,
@@ -240,6 +251,7 @@ ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(even
 <button class="btn primary block" type="button" id="openUpload" title="Subir archivos" aria-label="Subir archivos">${ICON.up}<span class="lbl">Subir archivos</span></button>
 <button class="btn block" type="button" data-open="zipDlg" title="Descargar ${counts.approved} archivos" aria-label="Descargar">${ICON.down}<span class="lbl">Descargar</span></button>
 <button class="btn block" type="button" data-open="statsDlg" title="Estadísticas" aria-label="Estadísticas">${ICON.chart}<span class="lbl">Estadísticas</span></button>
+${sels && sels.ready && (sels.sends.length || event.selection) ? `<button class="btn block" type="button" data-open="selDlg" title="Selecciones del cliente" aria-label="Selecciones del cliente">${ICON.heart}<span class="lbl">Selecciones${sels.sends.length ? ` (${sels.sends.length})` : ''}</span></button>` : ''}
 ${counts.pending ? `<button class="btn" type="button" id="showPending" title="Ver solo las pendientes">Revisar pendientes</button>` : ''}
 ${counts.pending ? `<button class="btn" type="button" id="approveAll" title="Aprobar las ${counts.pending} pendientes" aria-label="Aprobar las ${counts.pending} pendientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg><span class="lbl">Aprobar las ${counts.pending} pendientes</span><span class="badge">${counts.pending}</span></button>` : ''}
 </div>
@@ -283,6 +295,7 @@ ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><optio
 </div>
 
 ${statsDialog(stats)}
+${selectionsDialog(sels)}
 <dialog id="shareDlg" class="glassdlg"><div class="dlgbox">
 <header><h2>Compartir galería</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <p class="muted">Copia el enlace y envíaselo a tus invitados. Cualquiera con el enlace puede subir fotos.</p>
@@ -319,6 +332,7 @@ ${uploadDialog(event.parent_id ? null : event, subs.map((s) => ({ ...s, upload_o
 <label class="check"><input type="checkbox" name="gallery_open" value="1" ${event.gallery_open ? 'checked' : ''}> Galería visible para los invitados</label>
 <label class="check"><input type="checkbox" name="allow_download" value="1" ${event.allow_download ? 'checked' : ''}> Permitir que los invitados descarguen fotos (una a una, selección o ZIP)${event.parent_id ? '' : ' · se aplica también a las subgalerías'}</label>
 <label class="check"><input type="checkbox" name="social" value="1" ${event.social === 0 ? '' : 'checked'}> Permitir «me gusta» y comentarios en las fotos</label>
+<label class="check"><input type="checkbox" name="selection" value="1" ${event.selection ? 'checked' : ''}> Permitir que el cliente elija sus fotos favoritas y te envíe la selección</label>
 ${!event.parent_id ? `<label class="check"><input type="checkbox" name="show_subs" value="1" ${event.show_subs ? 'checked' : ''}> Mostrar las subgalerías en la página de invitados${subs.length ? '' : ' (aún no hay ninguna)'}</label>` : ''}
 ${event.parent_id ? `<fieldset class="privbox"><legend>Privacidad</legend>
 <label class="check"><input type="checkbox" name="is_private" value="1" ${event.is_private ? 'checked' : ''}> Subgalería privada: no sale en la galería general ni en su lista de sedes; solo se entra con su enlace</label>

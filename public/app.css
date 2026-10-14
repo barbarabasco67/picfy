@@ -610,3 +610,20 @@ fieldset.brand .check { margin-top: 4px; }
 @media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
 .tile.ph .soc i.eye { display: inline-flex; align-items: center; gap: 4px; }
 .tile.ph .soc i.eye svg { width: 13px; height: 13px; }
+
+/* selector de archivos propio */
+.fpick { display: flex; align-items: center; gap: 12px; padding: 8px; border: 1px dashed var(--line); border-radius: 14px; background: rgba(255, 255, 255, .6); min-width: 0; }
+.fpbtn { flex: none; padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font: inherit; font-size: .9rem; font-weight: 600; color: var(--ink, #1f1a12); cursor: pointer; }
+.fpbtn:hover { background: rgba(237, 178, 101, .22); border-color: rgba(237, 178, 101, .7); }
+.fptxt { font-size: .85rem; color: var(--muted, #7a6d5a); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.fphide { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; border: 0 !important; opacity: 0; pointer-events: none; }
+
+/* selecciones recibidas */
+.selsend { border: 1px solid var(--line); border-radius: 16px; background: rgba(255, 255, 255, .6); padding: 12px 14px; margin: 10px 0; display: grid; gap: 8px; }
+.selsend header { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.selsend header span { color: var(--muted, #7a6d5a); font-size: .85rem; }
+.selsend p { margin: 0; }
+.selnote { background: rgba(237, 178, 101, .16); padding: 8px 12px; border-radius: 10px; white-space: pre-wrap; }
+.selacts { display: flex; gap: 8px; flex-wrap: wrap; }
+.stop .more { display: grid; place-items: center; background: rgba(0, 0, 0, .08); }
+.stop .more b { position: static; background: none; color: var(--ink, #1f1a12); font-size: 1rem; }

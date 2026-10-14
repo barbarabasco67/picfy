@@ -13,6 +13,7 @@ import {
 } from './views.js';
 import { manageRoutes } from './manage.js';
 import { socialRoutes, viewRoutes } from './social.js';
+import { selectionRoutes } from './selection.js';
 import { appRoutes } from './app.js';
 import { currentUser, hashPassword } from './auth.js';
 import { buildZip, splitParts } from './zip.js';
@@ -188,6 +189,7 @@ app.get('/e/:token', async (c) => {
 
 socialRoutes(app, { accessOk, ownsEvent });
 viewRoutes(app, { accessOk, ownsEvent });
+selectionRoutes(app, { accessOk });
 
 async function guestFor(db, event, key) {
   if (!isHex(key, 32)) return null;

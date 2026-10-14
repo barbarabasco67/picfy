@@ -66,9 +66,21 @@ export function tile(p, extra = '', dlToken = '') {
   <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="" ${p.w && p.h ? `width="${p.w}" height="${p.h}"` : ''}>${extra}</a>${dlb}${by ? `<figcaption>${by}</figcaption>` : ''}${det}</figure>`;
 }
 
-export function lightbox(social = false, mod = false) {
+export function lightbox(social = false, mod = false, selection = false) {
   const soc = social ? `<div class="lbsoc hidden" id="lbSoc"><div class="lbpanel hidden" id="lbPanel"><button type="button" class="lbclose" id="lbPanelX" aria-label="Cerrar comentarios">×</button><div class="lblist" id="lbList"></div><form id="lbForm" class="lbform"><input id="lbName" maxlength="40" placeholder="Tu nombre" autocomplete="nickname"><div class="lbrow"><input id="lbText" maxlength="500" placeholder="Escribe un comentario…" autocomplete="off" required><button class="btn sm primary" type="submit">Enviar</button></div></form></div><div class="lbbtns"><span class="lbeye" id="lbEye" title="Visualizaciones"></span><button type="button" id="lbLike" aria-label="Me gusta"></button><button type="button" id="lbCom" aria-label="Comentarios"></button></div></div>` : '';
-  return `<div class="lb" id="lb" aria-hidden="true"><button class="x" aria-label="Cerrar">×</button><button class="prev" aria-label="Anterior">‹</button><img alt=""><button class="next" aria-label="Siguiente">›</button>${soc}${mod ? `<div class="lbmod" id="lbMod"><span class="lbst" id="lbSt"></span><button type="button" data-mod="approve"><u>A</u>probar</button><button type="button" data-mod="reject"><u>R</u>echazar</button><button type="button" data-mod="fav"><u>F</u>avorita</button></div>` : ''}</div>`;
+  return `<div class="lb" id="lb" aria-hidden="true"><button class="x" aria-label="Cerrar">×</button><button class="prev" aria-label="Anterior">‹</button><img alt=""><button class="next" aria-label="Siguiente">›</button>${soc}${selection ? '<button type="button" class="lbsel" id="lbSel"></button>' : ''}${mod ? `<div class="lbmod" id="lbMod"><span class="lbst" id="lbSt"></span><button type="button" data-mod="approve"><u>A</u>probar</button><button type="button" data-mod="reject"><u>R</u>echazar</button><button type="button" data-mod="fav"><u>F</u>avorita</button></div>` : ''}</div>`;
+}
+
+function selectionUi() {
+  return `<div class="glass selmine hidden" id="selMine"><span id="selMineN"></span><button type="button" class="btn sm primary" id="selSendOpen">Enviar mi selección</button></div>
+<dialog id="selSendDlg"><form class="dlg" id="selSendForm" method="dialog"><header><h2>Enviar mi selección</h2><button class="btn sm" type="button" data-close>Cerrar</button></header>
+<div class="body"><p class="muted" id="selSendInfo"></p>
+<label class="field"><span>Tu nombre</span><input id="selName" maxlength="60" required autocomplete="name"></label>
+<label class="field"><span>Tu email (opcional)</span><input id="selEmail" type="email" maxlength="120" autocomplete="email"></label>
+<label class="field"><span>Mensaje (opcional)</span><textarea id="selNote" maxlength="1000" rows="3" placeholder="Algo que quieras decirle al fotógrafo"></textarea></label>
+<p class="notice err hidden" id="selErr"></p>
+<p class="notice hidden" id="selOk">¡Selección enviada! Puedes seguir eligiendo y volver a enviarla.</p></div>
+<footer><button type="button" class="btn" data-close>Cancelar</button><button type="submit" class="btn primary" id="selSendGo">Enviar</button></footer></form></dialog>`;
 }
 
 export function landingPage() {
@@ -211,8 +223,8 @@ export function guestPage({ event, photos, total, page, pages, subs = [], parent
   const base = `/e/${event.guest_token}${orden ? `?orden=${orden}` : ''}`;
   return layout({
     title: `${event.name} · Picfy`,
-    bodyAttrs: `data-token="${event.guest_token}" data-limit="${event.photo_limit}" data-auto="${event.auto_approve}" data-social="${event.social === 0 ? 0 : 1}" style="${themeStyle(event.accent)}"`,
-    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/social.js', '/views.js', '/guest.js'],
+    bodyAttrs: `data-token="${event.guest_token}" data-limit="${event.photo_limit}" data-auto="${event.auto_approve}" data-social="${event.social === 0 ? 0 : 1}" data-selection="${event.selection ? 1 : 0}" style="${themeStyle(event.accent)}"`,
+    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/social.js', '/views.js', '/selection.js', '/guest.js'],
     body: `${parent ? `<a class="backbtn" href="/e/${parent.guest_token}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span>${esc(parent.name)}</span></a>` : ''}
 <header class="hero ${event.cover_v ? 'has-cover' : ''}">
 ${event.cover_v ? `<div class="hero-cover" style="background-image:url('/c/${event.guest_token}/cover?v=${event.cover_v}')"></div>` : ''}
@@ -225,7 +237,8 @@ ${event.upload_open ? `<button class="btn primary" id="openUpload" type="button"
 </div></header>
 <main class="wrap">${subCards(subs)}${event.gallery_open ? grid + pagination(base, page, pages) : '<div class="empty">La galería no está disponible por ahora.</div>'}</main>
 <p class="brand">Picfy</p>
-${lightbox(event.social !== 0)}
+${lightbox(event.social !== 0, false, Boolean(event.selection))}
+${event.selection ? selectionUi() : ''}
 ${uploadDialog(event, subs, event.consent ? (event.consent_text || DEFAULT_CONSENT) : '')}
 ${dl ? `<div class="glass selbar hidden" id="gSelBar"><span id="gSelN">0 seleccionadas</span><button type="button" class="btn sm" id="gSelAll">Todas</button><button type="button" class="btn sm primary" id="gSelDl" disabled>Descargar</button><button type="button" class="btn sm" id="gSelCancel">Cancelar</button></div><dialog id="dlDlg"><div class="dlg"><header><h2>Descargar fotos</h2><button class="btn sm" type="button" data-close>Cerrar</button></header><div class="body"><p class="muted small">${dl.total} fotos en ${dl.parts} ${dl.parts === 1 ? 'archivo ZIP' : 'archivos ZIP'}. También puedes pulsar «Seleccionar» para elegir unas cuantas.</p>${Array.from({ length: dl.parts }, (_, k) => `<a class="btn ${k === 0 ? 'primary' : ''}" style="display:block;margin:8px 0;text-align:center" href="/e/${event.guest_token}/zip?part=${k + 1}">${dl.parts === 1 ? 'Descargar todas (ZIP)' : `Parte ${k + 1}: fotos ${k * dl.partSize + 1}–${Math.min(dl.total, (k + 1) * dl.partSize)}`}</a>`).join('')}</div></div></dialog>` : ''}
 ${subs.length ? `<dialog id="subShare"><div class="dlg"><header class="dlg-h"><h2 id="subShareName">Compartir</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header><div class="qrbox"><div class="qr" id="subQr"></div></div><div class="linkrow"><code id="subShareUrl"></code></div><footer class="sharefoot"><button class="btn primary" id="subCopy" type="button">Copiar enlace</button><button class="btn" id="subNative" type="button" hidden>Compartir…</button></footer></div></dialog>` : ''}`,
