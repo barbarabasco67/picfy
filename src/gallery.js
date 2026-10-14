@@ -179,6 +179,14 @@ export function galleryRoutes(app) {
       else await c.env.DB.prepare('UPDATE events SET allow_download = ? WHERE id = ?').bind(dl, event.id).run();
     } catch { /* falta la migración 0008 */ }
     let msg = 'Ajustes guardados.';
+    if (!event.parent_id) {
+      const ex = String(f.get('expires') || '');
+      const exMs = /^\d{4}-\d{2}-\d{2}$/.test(ex) ? Date.parse(ex + 'T23:59:59') : null;
+      try {
+        await c.env.DB.prepare('UPDATE events SET consent = ?, consent_text = ?, expires_at = ?, expire_delete = ? WHERE id = ?')
+          .bind(f.get('consent') ? 1 : 0, String(f.get('consent_text') || '').trim().slice(0, 600), Number.isFinite(exMs) ? exMs : null, f.get('expire_delete') && exMs ? 1 : 0, event.id).run();
+      } catch { msg = 'Ajustes guardados, pero falta la actualización de la base de datos (migración 0013) para el consentimiento y la caducidad.'; }
+    }
     if (event.parent_id) {
       try {
         await c.env.DB.prepare('UPDATE events SET is_private = ? WHERE id = ?').bind(f.get('is_private') ? 1 : 0, event.id).run();

@@ -1,7 +1,7 @@
 // Pantallas de la plataforma (cuentas y galerías). Estilo: blanco, #edb265 y cristal.
 
 import { esc } from './util.js';
-import { layout, fmtDate, lightbox, uploadDialog } from './views.js';
+import { layout, fmtDate, lightbox, uploadDialog, DEFAULT_CONSENT } from './views.js';
 
 const ICON = {
   gal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></svg>',
@@ -151,6 +151,15 @@ ${brandFields(defaults.accent ? { accent: defaults.accent } : null)}
 const FLAG_NAMES = { red: 'Roja', orange: 'Naranja', green: 'Verde', black: 'Negra' };
 const flagDot = (f) => `<span class="fdot ${f}"></span>`;
 
+function expiryBanner(event) {
+  if (!event.expires_at) return '';
+  const days = Math.ceil((event.expires_at - Date.now()) / 86400000);
+  const when = new Date(event.expires_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+  const act = event.expire_delete ? 'Se borrará con todas sus fotos' : 'Dejará de verse y de aceptar fotos';
+  if (event.expires_at < Date.now()) return `<div class="alert">Esta galería caducó el ${esc(when)}. Los invitados ya no pueden verla${event.expire_delete ? '; se borrará en la próxima limpieza automática' : ''}.</div>`;
+  return `<div class="alert${days <= 7 ? '' : ' ok'}">Caduca el ${esc(when)} (${days <= 1 ? 'mañana o hoy' : `en ${days} días`}). ${act}.</div>`;
+}
+
 export function galleryPage({ user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
   const guestUrl = `${origin}/e/${event.guest_token}`;
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
@@ -180,7 +189,7 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
       user,
       collapsible: true,
       crumbs: `<a href="/galerias">Galerías</a><span>/</span>${parent ? `<a href="/galerias/${parent.id}">${esc(parent.name)}</a><span>/</span>` : ''}<b>${esc(event.name)}</b>`,
-      main: `${note ? `<div class="alert ok">${esc(note)}</div>` : ''}
+      main: `${note ? `<div class="alert ok">${esc(note)}</div>` : ''}${expiryBanner(event)}
 <div class="gwrap">
 <aside class="gside glass" id="gside">
 <h2>${esc(event.name)}</h2>
@@ -273,6 +282,12 @@ ${event.parent_id ? `<fieldset class="privbox"><legend>Privacidad</legend>
 <label class="field"><span>Contraseña de acceso (opcional)${event.access_hash ? ' · ya hay una puesta; escribe otra para cambiarla' : ''}</span><input type="text" name="access_password" maxlength="60" autocomplete="off" placeholder="${event.access_hash ? 'Nueva contraseña' : 'Sin contraseña'}"></label>
 ${event.access_hash ? '<label class="check"><input type="checkbox" name="access_clear" value="1"> Quitar la contraseña</label>' : ''}
 <p class="muted small" style="margin:0">Ideal para fotos de menores: manda el enlace (y la contraseña) solo a sus familias, y activa «Permitir que los invitados descarguen fotos» si quieres que se las bajen.</p></fieldset>` : ''}
+${!event.parent_id ? `<fieldset class="privbox"><legend>Consentimiento y caducidad</legend>
+<label class="check"><input type="checkbox" name="consent" value="1" ${event.consent ? 'checked' : ''}> Pedir consentimiento antes de subir fotos (los invitados marcan una casilla)</label>
+<label class="field"><span>Texto del aviso (si lo dejas vacío se usa el estándar)</span><textarea name="consent_text" maxlength="600" placeholder="${esc(DEFAULT_CONSENT)}">${esc(event.consent_text || '')}</textarea></label>
+<label class="field"><span>La galería caduca el (opcional)</span><input type="date" name="expires" value="${event.expires_at ? new Date(event.expires_at).toISOString().slice(0, 10) : ''}"></label>
+<label class="check"><input type="checkbox" name="expire_delete" value="1" ${event.expire_delete ? 'checked' : ''}> Al caducar, borrar la galería y todas sus fotos (si no, solo deja de verse y de aceptar fotos)</label>
+<p class="muted small" style="margin:0">Se aplica también a las subgalerías. Tras la fecha, los invitados ya no pueden ver, subir ni descargar. Tú sigues viéndola hasta que se borre.</p></fieldset>` : '<p class="muted small">El consentimiento y la caducidad se heredan de la galería principal.</p>'}
 ${brandFields(event)}
 <div class="notice err hidden" data-brand-msg></div>
 <footer>

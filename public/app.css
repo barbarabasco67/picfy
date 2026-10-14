@@ -502,3 +502,5 @@ a.avatar:hover, a.avatar.on { transform: translateY(-1px); box-shadow: 0 0 0 3px
 .avdel:hover { background: #e8837c; color: #fff; }
 .prof-id p.since { margin-top: 2px; font-size: .9rem; }
 .prof-id p.handle { font-weight: 600; }
+.consent { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--glass); border: 1px solid var(--glass-line); font-size: .9rem; line-height: 1.4; text-align: left; }
+.consent input { margin-top: 3px; flex: none; }

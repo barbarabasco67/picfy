@@ -4,7 +4,7 @@ import {
   makeSession, checkSession, getCookie,
 } from './util.js';
 import {
-  getEventByGuestToken, getEventById, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
+  getEventByGuestToken, getEventById, isExpired, purgeExpired, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
   applyOrder, nextSortOrder, deletePhotos, orderSql,
 } from './photos.js';
 import {
@@ -127,11 +127,18 @@ app.get('/e/:token/zip', async (c) => {
 
 const accessCookie = (event) => `picfy_a_${event.guest_token.slice(0, 12)}`;
 async function accessOk(c, event) {
-  if (!event.access_hash) return true;
   const me = await currentUser(c);
-  if (me && event.owner_id && me.id === event.owner_id) return true;
+  const mine = Boolean(me && event.owner_id && me.id === event.owner_id);
+  if (isExpired(event) && !mine) return false;           // galería caducada: solo la ve su dueño
+  if (!event.access_hash) return true;
+  if (mine) return true;
   const want = await sha256Hex(event.access_hash + event.guest_token);
   return timingSafeEqual(getCookie(c.req.raw, accessCookie(event)), want);
+}
+
+async function ownsEvent(c, event) {
+  const me = await currentUser(c);
+  return Boolean(me && event.owner_id && me.id === event.owner_id);
 }
 
 app.post('/e/:token/acceso', async (c) => {
@@ -152,6 +159,7 @@ app.post('/e/:token/acceso', async (c) => {
 app.get('/e/:token', async (c) => {
   const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
   if (!event) return html(notFoundPage('Este enlace no existe o ya no está activo.'), 404);
+  if (isExpired(event) && !(await ownsEvent(c, event))) return html(notFoundPage('Esta galería ha caducado y ya no está disponible.'), 410);
   if (!(await accessOk(c, event))) return html(accessPage(event), 401);
   const orden = Object.keys(GUEST_ORDERS).includes(c.req.query('orden')) ? c.req.query('orden') : '';
   const total = await countApproved(c.env.DB, event.id);
@@ -208,6 +216,8 @@ app.post('/api/e/:token/upload/init', async (c) => {
   ).bind(guest.id, Date.now() - 3600 * 1000).first();
   const me = await currentUser(c);
   const isOwner = Boolean(me && event.owner_id && me.id === event.owner_id);
+  if (event.consent && !isOwner && b.consent !== true) return json({ error: 'consent' }, 400);
+  if (event.consent && b.consent === true) { try { await c.env.DB.prepare('UPDATE guests SET consent_at = ? WHERE id = ? AND consent_at IS NULL').bind(Date.now(), guest.id).run(); } catch { /* migración 0013 */ } }
   const limit = isOwner ? 100000 : event.photo_limit > 0 ? event.photo_limit : HARD_GUEST_CAP;
   if (cnt.n >= limit) return json({ error: 'limit', limit }, 403);
 
@@ -371,4 +381,4 @@ app.onError((err, c) => {
   return c.req.path.startsWith('/api/') ? json({ error: 'server' }, 500) : html(notFoundPage('Algo ha fallado. Inténtalo de nuevo.'), 500);
 });
 
-export default app;
+export default { fetch: app.fetch, scheduled: (_e, env, ctx) => ctx.waitUntil(purgeExpired(env)) };

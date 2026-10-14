@@ -4,7 +4,7 @@ import { randomHex, sha256Hex, html, json } from './util.js';
 import { hashPassword, checkPassword, validEmail, startSession, endSession, currentUser } from './auth.js';
 import { authPage, galleriesPage, galleryPage, accountPage } from './appviews.js';
 import { notFoundPage } from './views.js';
-import { orderSql, privacyReady } from './photos.js';
+import { orderSql, privacyReady, deleteFamily } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
 import { splitParts } from './zip.js';
 
@@ -322,18 +322,7 @@ export function appRoutes(app) {
       await db.prepare('DELETE FROM events WHERE id = ?').bind(event.id).run();
       return go(`/galerias/${pid}`);
     }
-    const kids = (await c.env.DB.prepare('SELECT id FROM events WHERE parent_id = ? AND owner_id = ?').bind(event.id, user.id).all()).results.map((r) => r.id);
-    for (const eid of [...kids, event.id]) {
-      const rows = await c.env.DB.prepare('SELECT id FROM photos WHERE event_id = ?').bind(eid).all();
-      const keys = rows.results.flatMap((r) => ['o', 'm', 'l'].map((s) => `p/${r.id}/${s}`));
-      for (let k = 0; k < keys.length; k += 500) await c.env.PHOTOS.delete(keys.slice(k, k + 500));
-      await c.env.PHOTOS.delete([`c/${eid}/cover`, `c/${eid}/avatar`, `c/${eid}/thumb`]);
-      await c.env.DB.batch([
-        c.env.DB.prepare('DELETE FROM photos WHERE event_id = ?').bind(eid),
-        c.env.DB.prepare('DELETE FROM guests WHERE event_id = ?').bind(eid),
-        c.env.DB.prepare('DELETE FROM events WHERE id = ?').bind(eid),
-      ]);
-    }
+    await deleteFamily(c.env, event.id);
     return go(event.parent_id ? `/galerias/${event.parent_id}` : '/galerias');
   });
 }

@@ -24,7 +24,7 @@
   const dlg = $('upDlg');
   if (!dlg) return;
   const fileInput = $('fileInput'), drop = $('drop'), list = $('upList'), tools = $('upTools');
-  const startBtn = $('upStart'), msg = $('upMsg'), nameInput = $('guestName');
+  const startBtn = $('upStart'), msg = $('upMsg'), nameInput = $('guestName'), consentBox = $('upConsent');
   const OWNER = document.body.dataset.owner === '1';
   nameInput.value = OWNER ? (document.body.dataset.ownerName || 'Organizador') : (ls.get('picfy_name') || '');
 
@@ -155,8 +155,10 @@
     const picked = items.filter((i) => i.picked).length;
     $('upCount').textContent = items.length ? `${items.length} fotos${picked ? ` · ${picked} marcadas` : ''}` : '';
     tools.classList.toggle('hidden', !items.length);
-    startBtn.disabled = uploading || !waiting;
+    startBtn.disabled = uploading || !waiting || Boolean(consentBox && !consentBox.checked);
   }
+
+  if (consentBox) consentBox.addEventListener('change', () => count());
 
   function addFiles(files) {
     for (const f of files) {
@@ -207,6 +209,8 @@
     if (e instanceof HttpErr) {
       const code = e.body && e.body.error;
       if (code === 'limit') return 'Has llegado al máximo de fotos permitido en este evento.';
+      if (code === 'consent') return 'Marca la casilla de consentimiento para subir.';
+      if (code === 'access') return 'Esta galería ya no admite fotos.';
       if (code === 'closed') return 'La subida de fotos está cerrada.';
       if (code === 'type') return 'Formato no admitido (usa JPG, PNG, WebP o HEIC).';
       if (code === 'size') return 'La foto es demasiado grande.';
@@ -228,7 +232,7 @@
     setStatus(it, 'Subiendo…');
     const init = await retry(() => api(`${base}/upload/init`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ key: myKey(), name: nameInput.value.trim(), filename: f.name, type: f.type || 'image/jpeg', size: f.size, taken, w, h, crc }),
+      body: JSON.stringify({ key: myKey(), name: nameInput.value.trim(), filename: f.name, type: f.type || 'image/jpeg', size: f.size, taken, w, h, crc, consent: Boolean(consentBox && consentBox.checked) }),
     }));
     const id = init.id;
     await retry(() => put(`${base}/upload/${id}/m`, m));
@@ -253,7 +257,7 @@
         try { await uploadOne(it); }
         catch (e) {
           it.state = 'err'; setStatus(it, errText(e), 'err');
-          if (e instanceof HttpErr && e.body && ['limit', 'closed'].includes(e.body.error)) fatal = e;
+          if (e instanceof HttpErr && e.body && ['limit', 'closed', 'consent', 'access'].includes(e.body.error)) fatal = e;
         }
       }
     }

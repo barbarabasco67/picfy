@@ -14,9 +14,25 @@ export function orderSql(mode, alias = '') {
   return `${t} ASC, ${p}id ASC`;
 }
 
+// Una subgalería hereda consentimiento y caducidad de su galería principal.
+async function inheritFromParent(db, e) {
+  if (e && e.parent_id) {
+    try {
+      const p = await db.prepare('SELECT consent, consent_text, expires_at, expire_delete FROM events WHERE id = ?').bind(e.parent_id).first();
+      if (p) {
+        e.consent = e.consent || p.consent; e.consent_text = e.consent_text || p.consent_text;
+        e.expires_at = e.expires_at || p.expires_at; e.expire_delete = e.expire_delete || p.expire_delete;
+      }
+    } catch { /* falta la migración 0013 */ }
+  }
+  return e;
+}
+
+export const isExpired = (e) => Boolean(e && e.expires_at && Date.now() > e.expires_at);
+
 export async function getEventByGuestToken(db, token) {
   if (!isHex(token, 32)) return null;
-  return db.prepare('SELECT * FROM events WHERE guest_token = ?').bind(token).first();
+  return inheritFromParent(db, await db.prepare('SELECT * FROM events WHERE guest_token = ?').bind(token).first());
 }
 
 export async function getEventById(db, id) {
@@ -127,4 +143,31 @@ export async function deletePhotos(env, eventId, ids, guestId = null) {
   const dl = del.map((i) => `'${i}'`).join(',');
   await env.DB.prepare(`DELETE FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND id IN (${dl})`).bind(eventId).run();
   return del.length;
+}
+
+// Borra una galería con todas sus subgalerías: fotos (filas y R2), invitados e imágenes de personalización.
+export async function deleteFamily(env, eventId) {
+  const kids = (await env.DB.prepare('SELECT id FROM events WHERE parent_id = ?').bind(eventId).all()).results.map((r) => r.id);
+  for (const eid of [...kids, eventId]) {
+    const rows = await env.DB.prepare('SELECT id FROM photos WHERE event_id = ?').bind(eid).all();
+    const keys = rows.results.flatMap((r) => ['o', 'm', 'l'].map((s) => `p/${r.id}/${s}`));
+    for (let k = 0; k < keys.length; k += 500) await env.PHOTOS.delete(keys.slice(k, k + 500));
+    await env.PHOTOS.delete([`c/${eid}/cover`, `c/${eid}/avatar`, `c/${eid}/thumb`]);
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM photos WHERE event_id = ?').bind(eid),
+      env.DB.prepare('DELETE FROM guests WHERE event_id = ?').bind(eid),
+      env.DB.prepare('DELETE FROM events WHERE id = ?').bind(eid),
+    ]);
+  }
+}
+
+// Tarea diaria: borra las galerías caducadas que el organizador marcó para borrarse.
+export async function purgeExpired(env) {
+  let rows;
+  try {
+    rows = (await env.DB.prepare('SELECT id FROM events WHERE parent_id IS NULL AND expire_delete = 1 AND expires_at IS NOT NULL AND expires_at < ?').bind(Date.now()).all()).results;
+  } catch { return 0; }
+  let n = 0;
+  for (const r of rows) { try { await deleteFamily(env, r.id); n++; } catch (e) { console.error('purge', r.id, e && e.message); } }
+  return n;
 }
