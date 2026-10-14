@@ -185,7 +185,7 @@ ${p.event_id !== event.id && p.ename ? `<span class="sedechip">${esc(p.ename)}</
 <button class="mk flagb" type="button" data-mk="flag" aria-label="Bandera">${ICON.flag}</button>
 <button class="mk favb ${p.fav ? 'on' : ''}" type="button" data-mk="fav" aria-label="Favorita">${ICON.heart}</button>
 ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' ? 'En revisión' : 'No publicada'}</span>` : ''}
-<span class="cap">${esc(p.filename || '')}</span></div>`)
+${p.likes || p.coms ? `<span class="soc">${p.likes ? `<i>♥ ${p.likes}</i>` : ''}${p.coms ? `<i>💬 ${p.coms}</i>` : ''}</span>` : ''}<span class="cap">${esc(p.filename || '')}</span></div>`)
     .join('');
   const flagBtns = ['red', 'orange', 'green', 'black'].map((f) => `<button type="button" class="ftoggle" data-f="${f}" title="${FLAG_NAMES[f]}" aria-label="Bandera ${FLAG_NAMES[f].toLowerCase()}">${ICON.flag.replace('<svg', `<svg class="fl ${f}"`)}</button>`).join('');
   const flagMenu = ['red', 'orange', 'green', 'black'].map((f) => `<button type="button" data-setflag="${f}">${flagDot(f)} ${FLAG_NAMES[f]}</button>`).join('') + `<button type="button" data-setflag="">Quitar bandera</button>`;
@@ -291,6 +291,7 @@ ${uploadDialog(event.parent_id ? null : event, subs.map((s) => ({ ...s, upload_o
 <label class="check"><input type="checkbox" name="upload_open" value="1" ${event.upload_open ? 'checked' : ''}> Subida de fotos abierta</label>
 <label class="check"><input type="checkbox" name="gallery_open" value="1" ${event.gallery_open ? 'checked' : ''}> Galería visible para los invitados</label>
 <label class="check"><input type="checkbox" name="allow_download" value="1" ${event.allow_download ? 'checked' : ''}> Permitir que los invitados descarguen fotos (una a una, selección o ZIP)${event.parent_id ? '' : ' · se aplica también a las subgalerías'}</label>
+<label class="check"><input type="checkbox" name="social" value="1" ${event.social === 0 ? '' : 'checked'}> Permitir «me gusta» y comentarios en las fotos</label>
 ${!event.parent_id ? `<label class="check"><input type="checkbox" name="show_subs" value="1" ${event.show_subs ? 'checked' : ''}> Mostrar las subgalerías en la página de invitados${subs.length ? '' : ' (aún no hay ninguna)'}</label>` : ''}
 ${event.parent_id ? `<fieldset class="privbox"><legend>Privacidad</legend>
 <label class="check"><input type="checkbox" name="is_private" value="1" ${event.is_private ? 'checked' : ''}> Subgalería privada: no sale en la galería general ni en su lista de sedes; solo se entra con su enlace</label>

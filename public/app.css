@@ -573,3 +573,7 @@ fieldset.brand .check { margin-top: 4px; }
 .tool { font-size: .74rem; gap: 4px; }
 .tool svg { width: 20px; height: 20px; }
 @media (min-width: 861px) { #sortGrid { grid-template-columns: repeat(4, 1fr); } }
+
+/* contadores de me gusta / comentarios en las fotos del administrador */
+.tile.ph .soc { position: absolute; right: 6px; bottom: 6px; left: auto; z-index: 2; display: flex; gap: 4px; pointer-events: none; }
+.tile.ph .soc i { font-style: normal; font-size: .72rem; font-weight: 700; color: #fff; background: rgba(20, 20, 24, .6); padding: 2px 7px; border-radius: 99px; }

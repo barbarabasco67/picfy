@@ -12,6 +12,7 @@ import {
   guestPage, accessPage,
 } from './views.js';
 import { manageRoutes } from './manage.js';
+import { socialRoutes, socialReady } from './social.js';
 import { appRoutes } from './app.js';
 import { currentUser, hashPassword } from './auth.js';
 import { buildZip, splitParts } from './zip.js';
@@ -184,6 +185,8 @@ app.get('/e/:token', async (c) => {
   const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
   return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(total / partSize)), partSize, total } : null }));
 });
+
+socialRoutes(app, { accessOk, ownsEvent });
 
 async function guestFor(db, event, key) {
   if (!isHex(key, 32)) return null;

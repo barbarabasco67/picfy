@@ -5,8 +5,8 @@
   const img = lb.querySelector('img');
   let list = [], i = 0;
 
-  function show() { img.src = list[i]; lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); }
-  function close() { lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true'); img.removeAttribute('src'); }
+  function show() { img.src = list[i]; lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); lb.dispatchEvent(new CustomEvent('lbshow', { detail: { i } })); }
+  function close() { lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true'); img.removeAttribute('src'); lb.dispatchEvent(new Event('lbhide')); }
   function step(d) { if (!list.length) return; i = (i + d + list.length) % list.length; show(); }
 
   lb.querySelector('.x').addEventListener('click', close);
@@ -15,12 +15,13 @@
   lb.addEventListener('click', (e) => { if (e.target === lb) close(); });
   document.addEventListener('keydown', (e) => {
     if (!lb.classList.contains('open')) return;
+    if (e.target.closest && e.target.closest('input, textarea')) { if (e.key === 'Escape') e.target.blur(); return; }
     if (e.key === 'Escape') close();
     if (e.key === 'ArrowLeft') step(-1);
     if (e.key === 'ArrowRight') step(1);
   });
   let x0 = null;
-  lb.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+  lb.addEventListener('touchstart', (e) => { if (e.target.closest('.lbsoc')) { x0 = null; return; } x0 = e.touches[0].clientX; }, { passive: true });
   lb.addEventListener('touchend', (e) => {
     if (x0 === null) return;
     const dx = e.changedTouches[0].clientX - x0; x0 = null;

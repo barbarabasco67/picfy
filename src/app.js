@@ -7,6 +7,7 @@ import { notFoundPage } from './views.js';
 import { orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, cleanup, GALLERY_TRASH_DAYS } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
 import { splitParts } from './zip.js';
+import { socialReady } from './social.js';
 
 const go = (to, headers = {}) => new Response(null, { status: 303, headers: { location: to, ...headers } });
 
@@ -333,6 +334,17 @@ export function appRoutes(app) {
       ).bind(event.id).all(),
     ]);
     const photos = ph.results;
+    if (photos.length && await socialReady(db)) {
+      try {
+        const inl = photos.map((p) => `'${p.id}'`).join(',');
+        const [lk, cm] = await Promise.all([
+          db.prepare(`SELECT photo_id, COUNT(*) n FROM photo_likes WHERE photo_id IN (${inl}) GROUP BY photo_id`).all(),
+          db.prepare(`SELECT photo_id, COUNT(*) n FROM photo_comments WHERE photo_id IN (${inl}) GROUP BY photo_id`).all(),
+        ]);
+        const L = new Map(lk.results.map((r) => [r.photo_id, r.n])), C = new Map(cm.results.map((r) => [r.photo_id, r.n]));
+        photos.forEach((p) => { p.likes = L.get(p.id) || 0; p.coms = C.get(p.id) || 0; });
+      } catch { /* sin datos sociales */ }
+    }
     const priv = await privacyReady(db);
     const subs = (await db.prepare(
       `SELECT e.id, e.name, e.guest_token, e.thumb_v, ${priv ? 'e.is_private, (e.access_hash IS NOT NULL) AS has_pw,' : '0 AS is_private, 0 AS has_pw,'}

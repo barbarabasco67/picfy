@@ -178,6 +178,11 @@ export function galleryRoutes(app) {
       if (!event.parent_id && Boolean(event.allow_download) !== Boolean(dl)) await c.env.DB.prepare('UPDATE events SET allow_download = ? WHERE id = ? OR parent_id = ?').bind(dl, event.id, event.id).run();
       else await c.env.DB.prepare('UPDATE events SET allow_download = ? WHERE id = ?').bind(dl, event.id).run();
     } catch { /* falta la migración 0008 */ }
+    try {
+      const so = f.get('social') ? 1 : 0;
+      if (!event.parent_id) await c.env.DB.prepare('UPDATE events SET social = ? WHERE id = ? OR parent_id = ?').bind(so, event.id, event.id).run();
+      else await c.env.DB.prepare('UPDATE events SET social = ? WHERE id = ?').bind(so, event.id).run();
+    } catch { /* falta la migración 0015 */ }
     let msg = 'Ajustes guardados.';
     if (!event.parent_id) {
       const ex = String(f.get('expires') || '');
