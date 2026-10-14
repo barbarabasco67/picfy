@@ -4,7 +4,7 @@ import { randomHex, sha256Hex, html, json } from './util.js';
 import { hashPassword, checkPassword, validEmail, startSession, endSession, currentUser } from './auth.js';
 import { authPage, galleriesPage, galleryPage, accountPage, trashPage } from './appviews.js';
 import { notFoundPage } from './views.js';
-import { orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, TRASH_DAYS } from './photos.js';
+import { orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, cleanup, GALLERY_TRASH_DAYS } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
 import { splitParts } from './zip.js';
 
@@ -222,6 +222,7 @@ export function appRoutes(app) {
   app.get('/papelera', async (c) => {
     const user = await currentUser(c);
     if (!user) return go('/entrar');
+    await cleanup(c.env, user.id);
     let galleries = [], photos = [];
     if (await trashReady(c.env.DB)) {
       galleries = (await c.env.DB.prepare(
@@ -270,6 +271,7 @@ export function appRoutes(app) {
   app.get('/galerias', async (c) => {
     const user = await currentUser(c);
     if (!user) return go('/entrar');
+    c.executionCtx.waitUntil(cleanup(c.env, user.id).catch(() => {}));
     const rows = await c.env.DB.prepare(
       `SELECT e.id, e.name, e.event_date,
          (SELECT COUNT(*) FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'approved') AS approved,
@@ -407,7 +409,7 @@ export function appRoutes(app) {
     if (await trashReady(db)) {
       // galería principal: va a la papelera 30 días con sus subgalerías
       await db.prepare('UPDATE events SET deleted_at = ? WHERE id = ? OR parent_id = ?').bind(Date.now(), event.id, event.id).run();
-      return go('/galerias?ok=' + encodeURIComponent(`«${event.name}» está en la papelera. Puedes recuperarla durante ${TRASH_DAYS} días.`));
+      return go('/galerias?ok=' + encodeURIComponent(`«${event.name}» está en la papelera. Puedes recuperarla durante ${GALLERY_TRASH_DAYS} días.`));
     }
     await deleteFamily(c.env, event.id);
     return go(event.parent_id ? `/galerias/${event.parent_id}` : '/galerias');

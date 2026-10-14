@@ -4,7 +4,7 @@ import {
   makeSession, checkSession, getCookie,
 } from './util.js';
 import {
-  getEventByGuestToken, getEventById, isExpired, dailyCleanup, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
+  getEventByGuestToken, getEventById, isExpired, cleanup, deleteFamily, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
   applyOrder, nextSortOrder, deletePhotos, orderSql,
 } from './photos.js';
 import {
@@ -159,6 +159,10 @@ app.post('/e/:token/acceso', async (c) => {
 app.get('/e/:token', async (c) => {
   const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
   if (!event) return html(notFoundPage('Este enlace no existe o ya no está activo.'), 404);
+  if (isExpired(event) && event.expire_delete && !(await ownsEvent(c, event))) {
+    // caducada y marcada para borrarse: se borra al primer acceso pasada la fecha
+    c.executionCtx.waitUntil(deleteFamily(c.env, event.parent_id || event.id).catch(() => {}));
+  }
   if (isExpired(event) && !(await ownsEvent(c, event))) return html(notFoundPage('Esta galería ha caducado y ya no está disponible.'), 410);
   if (!(await accessOk(c, event))) return html(accessPage(event), 401);
   const orden = Object.keys(GUEST_ORDERS).includes(c.req.query('orden')) ? c.req.query('orden') : '';
@@ -381,4 +385,4 @@ app.onError((err, c) => {
   return c.req.path.startsWith('/api/') ? json({ error: 'server' }, 500) : html(notFoundPage('Algo ha fallado. Inténtalo de nuevo.'), 500);
 });
 
-export default { fetch: app.fetch, scheduled: (_e, env, ctx) => ctx.waitUntil(dailyCleanup(env)) };
+export default app;

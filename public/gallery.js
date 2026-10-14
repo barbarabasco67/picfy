@@ -97,7 +97,7 @@
     const act = b.dataset.act;
     try {
       if (act === 'clear') sort.clear();
-      else if (act === 'delete') { if (confirm(`¿Mandar ${ids.length} ${ids.length === 1 ? 'foto' : 'fotos'} a la papelera? Podrás recuperarlas durante 30 días.`)) { await sort.removeIds(ids); applyFilter(); } }
+      else if (act === 'delete') { if (confirm(`¿Mandar ${ids.length} ${ids.length === 1 ? 'foto' : 'fotos'} a la papelera? Podrás recuperarlas durante 7 días.`)) { await sort.removeIds(ids); applyFilter(); } }
       else if (act === 'approve' || act === 'reject') { await post(api + '/state', { action: act, ids }); location.reload(); }
       else if (act === 'fav') {
         const all = ids.every((i) => tile(i).dataset.fav === '1'); const v = all ? 0 : 1;

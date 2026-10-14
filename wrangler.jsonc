@@ -10,7 +10,6 @@
   "r2_buckets": [
     { "binding": "PHOTOS", "bucket_name": "fotos-boda" }
   ],
-  "triggers": { "crons": ["30 3 * * *"] },
   "keep_vars": true,
   "observability": { "enabled": true }
 }

@@ -39,9 +39,9 @@ const check = (n, c, e = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n, e); o
   check('invitados: 410 caducada', gs.status() === 410, gs.status());
   await p.goto(url); check('dueño ve la galería con aviso de caducada', (await p.textContent('.alert:has-text("caducó")')).length > 0);
 
-  // caducada con borrado: la tarea diaria la elimina
+  // caducada con borrado: se elimina al primer acceso
   await settings(async () => { await p.check('#setDlg [name=expire_delete]'); });
-  const cr = await fetch(B + '/cdn-cgi/handler/scheduled'); check('tarea diaria lanzada', cr.ok, cr.status);
+  const cr = await g.goto(link); check('primer acceso tras caducar: 410', cr.status() === 410, cr.status());
   await new Promise((r2) => setTimeout(r2, 1500));
   const after = await p.goto(url); check('galería borrada tras la caducidad', after.status() === 404 || p.url().includes('/galerias') && !p.url().includes(url.split('/').pop()), after.status() + ' ' + p.url());
   const g2 = await g.goto(link); check('enlace de invitados ya no existe', g2.status() === 404, g2.status());

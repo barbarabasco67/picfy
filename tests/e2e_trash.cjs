@@ -49,11 +49,10 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.click('#sortGrid .tile.ph >> nth=0 >> .chk'); await p.click('[data-act=delete]'); await p.waitForTimeout(800);
   await p.goto(B + '/papelera'); await p.check('.ttile input >> nth=0'); await p.click('text=Borrar lo marcado para siempre'); await p.waitForURL(/papelera\?ok/);
   check('borrada para siempre', (await p.locator('.ttile').count()) === 1, await p.locator('.ttile').count());
-  // a los 30 días la tarea diaria la elimina sola
+  // pasados 7 días se elimina sola al entrar en la papelera
   require('child_process').execSync(`npx wrangler d1 execute picfy --local --command "UPDATE photos SET deleted_at = 1 WHERE state = 'trashed'"`, { stdio: 'ignore' });
-  check('tarea diaria', (await fetch(B + '/cdn-cgi/handler/scheduled')).ok);
-  await new Promise((r) => setTimeout(r, 1500)); await p.goto(B + '/papelera');
-  check('purga a los 30 días', await p.isVisible('text=La papelera está vacía'));
+  await p.goto(B + '/papelera');
+  check('purga pasados los 7 días al entrar', await p.isVisible('text=La papelera está vacía'));
   if (await p.$('text=Vaciar la papelera')) await p.click('text=Vaciar la papelera');
   console.log(ok ? 'ALL OK' : 'SOME FAILED'); await b.close(); process.exit(ok ? 0 : 1);
 })().catch((e) => { console.error(e.message); process.exit(1); });

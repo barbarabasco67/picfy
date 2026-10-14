@@ -371,16 +371,16 @@ ${msg}<div class="accgrid">${forms[section] || forms.datos}</div>`,
 /* ---------- Papelera ---------- */
 
 export function trashPage({ user, galleries = [], photos = [], ready = true, ok = '' }) {
-  const left = (t) => Math.max(0, Math.ceil((t + 30 * 86400000 - Date.now()) / 86400000));
-  const dleft = (t) => { const d = left(t); return d <= 1 ? 'se borra hoy o mañana' : `quedan ${d} días`; };
+  const left = (t, days) => Math.max(0, Math.ceil((t + days * 86400000 - Date.now()) / 86400000));
+  const dleft = (t, days) => { const d = left(t, days); return d <= 1 ? 'se borra hoy o mañana' : `quedan ${d} días`; };
   const empty = !galleries.length && !photos.length;
-  const gal = galleries.map((g) => `<label class="trow glass"><input type="checkbox" name="gal" value="${g.id}"><span class="tname"><b>${esc(g.name)}</b><small>${g.n} ${g.n === 1 ? 'foto' : 'fotos'} · ${dleft(g.deleted_at)}</small></span></label>`).join('');
-  const ph = photos.map((p) => `<label class="ttile"><input type="checkbox" name="foto" value="${p.id}"><img src="/m/${p.id}/m" loading="lazy" alt=""><span>${esc(p.ename)} · ${dleft(p.deleted_at)}</span></label>`).join('');
+  const gal = galleries.map((g) => `<label class="trow glass"><input type="checkbox" name="gal" value="${g.id}"><span class="tname"><b>${esc(g.name)}</b><small>${g.n} ${g.n === 1 ? 'foto' : 'fotos'} · ${dleft(g.deleted_at, 30)}</small></span></label>`).join('');
+  const ph = photos.map((p) => `<label class="ttile"><input type="checkbox" name="foto" value="${p.id}"><img src="/m/${p.id}/m" loading="lazy" alt=""><span>${esc(p.ename)} · ${dleft(p.deleted_at, 7)}</span></label>`).join('');
   return appPage({
     title: 'Papelera',
     body: shell({
       user, active: 'papelera', crumbs: '<a href="/galerias">Galerías</a><span>/</span><b>Papelera</b>',
-      main: `<div class="head"><div><h1>Papelera</h1><p class="muted">Lo que borras se guarda aquí 30 días. Pasado ese tiempo se elimina para siempre.</p></div></div>
+      main: `<div class="head"><div><h1>Papelera</h1><p class="muted">Las fotos que borras se guardan aquí 7 días y las galerías enteras 30. Pasado ese tiempo se eliminan para siempre.</p></div></div>
 ${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}
 ${!ready ? '<div class="alert">Falta la actualización de la base de datos (migración 0014) para usar la papelera.</div>' : ''}
 ${empty ? '<div class="glass emptybox">La papelera está vacía.</div>' : `<form method="post" class="trashform">
