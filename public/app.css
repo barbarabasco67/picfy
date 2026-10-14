@@ -430,3 +430,16 @@ body.app .hero .lead { max-width: 640px; margin: 0 auto 22px; text-align: center
   .selbar b { flex: 1 0 100%; text-align: center; padding: 0; }
   .selbar select { max-width: 46%; flex: 1 1 40%; }
 }
+
+/* móvil: barra de vista en 2 líneas */
+@media (max-width: 560px) {
+  .gbar { gap: 8px 8px; padding: 8px 10px; }
+  .gbar .gsub { flex: 1 1 auto; margin: 0; white-space: nowrap; }
+  .gbar .gbtn { padding: 8px 12px; font-size: .9rem; }
+  .gbar .gorder { order: 3; }
+  .gbar .gorder .ddbtn { padding: 8px 12px; font-size: .9rem; }
+  .gbar .sizer { order: 4; flex: 1 1 0; min-width: 0; gap: 6px; }
+  .gbar .sizer input { width: 100%; min-width: 50px; }
+  .gbar .vtog { order: 5; flex: none; }
+  .gbar .vtog button { width: 34px; height: 32px; }
+}
