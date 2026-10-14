@@ -45,9 +45,9 @@ ${noside ? '' : `<aside class="side glass${collapsible ? ' collapsed' : ''}">
 ${collapsible ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}
 ${side || `<p class="side-h">Gestiona tus fotos</p>
 <a class="nav ${active === 'galerias' ? 'on' : ''}" href="/galerias">${ICON.gal}<span>Galerías</span></a>
+<a class="nav ${active === 'papelera' ? 'on' : ''}" href="/papelera">${ICON.trash}<span>Papelera</span></a>
 <p class="side-h">Próximamente</p>
-<span class="nav off">${ICON.lock}<span>Colecciones</span></span>
-<span class="nav off">${ICON.lock}<span>Papelera</span></span>`}
+<span class="nav off">${ICON.lock}<span>Colecciones</span></span>`}
 </aside>`}
 <main class="main">${main}</main>
 </div>`;
@@ -107,7 +107,7 @@ ${cover ? '<label class="check"><input type="checkbox" data-brand-remove="cover"
 
 /* ---------- Galerías ---------- */
 
-export function galleriesPage({ user, events, origin, defaults = {} }) {
+export function galleriesPage({ user, events, origin, defaults = {}, ok = '' }) {
   const cards = events
     .map(
       (e) => `<a class="gcard glass" href="/galerias/${e.id}" data-name="${esc(e.name.toLowerCase())}">
@@ -124,7 +124,7 @@ ${e.event_date ? `<div class="gdate">${esc(fmtDate(e.event_date))}</div>` : ''}
     body: shell({
       user,
       crumbs: '',
-      main: `<div class="head"><div><h1>Galerías</h1><p class="muted">Aquí ves tus galerías o creas otras nuevas.</p></div>
+      main: `${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}<div class="head"><div><h1>Galerías</h1><p class="muted">Aquí ves tus galerías o creas otras nuevas.</p></div>
 <input class="search glass" type="search" id="filter" placeholder="Filtrar" aria-label="Filtrar galerías"></div>
 <button class="btn primary" id="newGal" type="button">${ICON.plus} Crear una nueva galería</button>
 <h2 class="sec">Tus galerías</h2>
@@ -291,7 +291,7 @@ ${!event.parent_id ? `<fieldset class="privbox"><legend>Consentimiento y caducid
 ${brandFields(event)}
 <div class="notice err hidden" data-brand-msg></div>
 <footer>
-<button class="btn danger" type="submit" formaction="/galerias/${event.id}/borrar" formnovalidate data-nobrand onclick="return confirm('${event.parent_id ? 'Se borrará esta subgalería. Sus fotos NO se borran: pasan a la galería principal. ¿Seguir?' : 'Se borrará la galería, sus subgalerías y TODAS sus fotos. No se puede deshacer. ¿Seguir?'}')">${ICON.trash} ${event.parent_id ? 'Borrar subgalería' : 'Borrar galería'}</button>
+<button class="btn danger" type="submit" formaction="/galerias/${event.id}/borrar" formnovalidate data-nobrand onclick="return confirm('${event.parent_id ? 'Se borrará esta subgalería. Sus fotos NO se borran: pasan a la galería principal. ¿Seguir?' : 'La galería, sus subgalerías y todas sus fotos irán a la papelera. Podrás recuperarlas durante 30 días. ¿Seguir?'}')">${ICON.trash} ${event.parent_id ? 'Borrar subgalería' : 'Borrar galería'}</button>
 <span class="spacer"></span>
 <button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>
@@ -362,6 +362,33 @@ ${user.avatar_v ? '<button class="avdel" type="button" id="avDel" title="Quitar 
 <div class="notice err hidden" id="avMsg"></div>
 <nav class="tabs" aria-label="Mi cuenta">${tab('datos', 'Datos y correo')}${tab('password', 'Contraseña')}${tab('galerias', 'Galerías nuevas')}</nav>
 ${msg}<div class="accgrid">${forms[section] || forms.datos}</div>`,
+    }),
+  });
+}
+
+
+/* ---------- Papelera ---------- */
+
+export function trashPage({ user, galleries = [], photos = [], ready = true, ok = '' }) {
+  const left = (t) => Math.max(0, Math.ceil((t + 30 * 86400000 - Date.now()) / 86400000));
+  const dleft = (t) => { const d = left(t); return d <= 1 ? 'se borra hoy o mañana' : `quedan ${d} días`; };
+  const empty = !galleries.length && !photos.length;
+  const gal = galleries.map((g) => `<label class="trow glass"><input type="checkbox" name="gal" value="${g.id}"><span class="tname"><b>${esc(g.name)}</b><small>${g.n} ${g.n === 1 ? 'foto' : 'fotos'} · ${dleft(g.deleted_at)}</small></span></label>`).join('');
+  const ph = photos.map((p) => `<label class="ttile"><input type="checkbox" name="foto" value="${p.id}"><img src="/m/${p.id}/m" loading="lazy" alt=""><span>${esc(p.ename)} · ${dleft(p.deleted_at)}</span></label>`).join('');
+  return appPage({
+    title: 'Papelera',
+    body: shell({
+      user, active: 'papelera', crumbs: '<a href="/galerias">Galerías</a><span>/</span><b>Papelera</b>',
+      main: `<div class="head"><div><h1>Papelera</h1><p class="muted">Lo que borras se guarda aquí 30 días. Pasado ese tiempo se elimina para siempre.</p></div></div>
+${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}
+${!ready ? '<div class="alert">Falta la actualización de la base de datos (migración 0014) para usar la papelera.</div>' : ''}
+${empty ? '<div class="glass emptybox">La papelera está vacía.</div>' : `<form method="post" class="trashform">
+${galleries.length ? `<h2 class="sec">Galerías</h2><div class="tlist">${gal}</div>` : ''}
+${photos.length ? `<h2 class="sec">Fotos</h2><div class="tgrid">${ph}</div>` : ''}
+<div class="tbar glass"><button class="btn primary" type="submit" formaction="/papelera/restaurar">Recuperar lo marcado</button>
+<button class="btn danger" type="submit" formaction="/papelera/borrar" onclick="return confirm('Se borrará para siempre lo que has marcado. ¿Seguir?')">Borrar lo marcado para siempre</button>
+<span class="spacer"></span>
+<button class="btn" type="submit" formaction="/papelera/vaciar" onclick="return confirm('Se vaciará la papelera y no se podrá recuperar nada. ¿Seguir?')">Vaciar la papelera</button></div></form>`}`,
     }),
   });
 }

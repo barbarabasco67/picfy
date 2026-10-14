@@ -2,7 +2,7 @@
 
 import { isHex, json, html, randomHex } from './util.js';
 import { currentUser, hashPassword } from './auth.js';
-import { applyOrder, deletePhotos, orderSql, setSortMode, SORTS } from './photos.js';
+import { applyOrder, deletePhotos, trashPhotos, orderSql, setSortMode, SORTS } from './photos.js';
 import { buildZip, splitParts } from './zip.js';
 import { notFoundPage } from './views.js';
 
@@ -16,7 +16,7 @@ async function ownerEvent(c) {
   const id = c.req.param('id');
   if (!/^[0-9a-f]{16}$/.test(id)) return { user, event: null };
   const event = await c.env.DB.prepare('SELECT * FROM events WHERE id = ? AND owner_id = ?').bind(id, user.id).first();
-  return { user, event };
+  return { user, event: event && event.deleted_at ? null : event };
 }
 
 const BRAND_MAX = 3 * 1024 * 1024;
@@ -87,7 +87,7 @@ export function galleryRoutes(app) {
 
   app.post('/api/g/:id/delete', async (c) => {
     const x = await api(c); if (!x) return json({ error: 'auth' }, 403);
-    return json({ ok: true, deleted: await deletePhotos(c.env, x.event.id, validIds(x.body.ids)) });
+    return json({ ok: true, deleted: await trashPhotos(c.env, x.event.id, validIds(x.body.ids)) });
   });
 
   app.post('/api/g/:id/reorder', async (c) => {

@@ -2,9 +2,9 @@
 
 import { randomHex, sha256Hex, html, json } from './util.js';
 import { hashPassword, checkPassword, validEmail, startSession, endSession, currentUser } from './auth.js';
-import { authPage, galleriesPage, galleryPage, accountPage } from './appviews.js';
+import { authPage, galleriesPage, galleryPage, accountPage, trashPage } from './appviews.js';
 import { notFoundPage } from './views.js';
-import { orderSql, privacyReady, deleteFamily } from './photos.js';
+import { orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, TRASH_DAYS } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
 import { splitParts } from './zip.js';
 
@@ -77,7 +77,7 @@ export function appRoutes(app) {
   const SECTIONS = ['datos', 'password', 'galerias'];
   async function accountView(c, user, section, ok = '', error = '') {
     const u = await fullUser(c.env.DB, user.id);
-    const g = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM events WHERE owner_id = ? AND parent_id IS NULL').bind(user.id).first();
+    const g = await c.env.DB.prepare(`SELECT COUNT(*) AS n FROM events WHERE owner_id = ? AND parent_id IS NULL${(await trashReady(c.env.DB)) ? ' AND deleted_at IS NULL' : ''}`).bind(user.id).first();
     const ph = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM photos WHERE state = 'approved' AND event_id IN (SELECT id FROM events WHERE owner_id = ?)").bind(user.id).first();
     return html(accountPage({ user: u, section, ok, error, defaults: await userDefaults(c.env.DB, user.id), stats: { galleries: g.n, photos: ph.n } }));
   }
@@ -185,6 +185,56 @@ export function appRoutes(app) {
     return toAcc('galerias', 'ok', 'Valores guardados. Se usarán en las galerías nuevas.');
   });
 
+  /* ----- Papelera ----- */
+  const ids16 = (a) => a.map(String).filter((x) => /^[0-9a-f]{16}$/.test(x));
+  const ids32 = (a) => a.map(String).filter((x) => /^[0-9a-f]{32}$/.test(x));
+  app.get('/papelera', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    let galleries = [], photos = [];
+    if (await trashReady(c.env.DB)) {
+      galleries = (await c.env.DB.prepare(
+        `SELECT e.id, e.name, e.deleted_at, (SELECT COUNT(*) FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state IN ('approved','pending','rejected')) AS n
+         FROM events e WHERE e.owner_id = ? AND e.parent_id IS NULL AND e.deleted_at IS NOT NULL ORDER BY e.deleted_at DESC`).bind(user.id).all()).results;
+      photos = (await c.env.DB.prepare(
+        `SELECT p.id, p.filename, p.deleted_at, e.name AS ename FROM photos p JOIN events e ON e.id = p.event_id
+         WHERE e.owner_id = ? AND e.deleted_at IS NULL AND p.state = 'trashed' ORDER BY p.deleted_at DESC LIMIT 500`).bind(user.id).all()).results;
+    }
+    return html(trashPage({ user, galleries, photos, ready: await trashReady(c.env.DB), ok: c.req.query('ok') || '' }));
+  });
+
+  async function trashAct(c, mode) {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    if (!(await trashReady(c.env.DB))) return go('/papelera');
+    const f = await c.req.formData();
+    const db = c.env.DB;
+    let gids, pids;
+    if (mode === 'vaciar') {
+      gids = (await db.prepare('SELECT id FROM events WHERE owner_id = ? AND parent_id IS NULL AND deleted_at IS NOT NULL').bind(user.id).all()).results.map((r) => r.id);
+      pids = (await db.prepare("SELECT p.id FROM photos p JOIN events e ON e.id = p.event_id WHERE e.owner_id = ? AND p.state = 'trashed'").bind(user.id).all()).results.map((r) => r.id);
+    } else {
+      gids = ids16(f.getAll('gal'));
+      pids = ids32(f.getAll('foto'));
+      if (gids.length) gids = (await db.prepare(`SELECT id FROM events WHERE owner_id = ? AND parent_id IS NULL AND deleted_at IS NOT NULL AND id IN (${gids.map((i) => `'${i}'`).join(',')})`).bind(user.id).all()).results.map((r) => r.id);
+      if (pids.length) pids = (await db.prepare(`SELECT p.id FROM photos p JOIN events e ON e.id = p.event_id WHERE e.owner_id = ? AND p.state = 'trashed' AND p.id IN (${pids.map((i) => `'${i}'`).join(',')})`).bind(user.id).all()).results.map((r) => r.id);
+    }
+    let msg;
+    if (mode === 'restaurar') {
+      for (const g of gids) await db.prepare('UPDATE events SET deleted_at = NULL WHERE id = ? OR parent_id = ?').bind(g, g).run();
+      if (pids.length) await db.prepare(`UPDATE photos SET state = COALESCE(prev_state, 'approved'), prev_state = NULL, deleted_at = NULL WHERE state = 'trashed' AND id IN (${pids.map((i) => `'${i}'`).join(',')})`).run();
+      msg = gids.length + pids.length ? 'Recuperado.' : 'No has marcado nada.';
+    } else {
+      for (const g of gids) await deleteFamily(c.env, g);
+      await purgeTrashedPhotos(c.env, pids);
+      msg = gids.length + pids.length ? 'Borrado para siempre.' : 'No había nada que borrar.';
+    }
+    return go('/papelera?ok=' + encodeURIComponent(msg));
+  }
+  app.post('/papelera/restaurar', (c) => trashAct(c, 'restaurar'));
+  app.post('/papelera/borrar', (c) => trashAct(c, 'borrar'));
+  app.post('/papelera/vaciar', (c) => trashAct(c, 'vaciar'));
+
   /* ----- Galerías ----- */
   app.get('/galerias', async (c) => {
     const user = await currentUser(c);
@@ -196,9 +246,9 @@ export function appRoutes(app) {
          (SELECT p.id FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'approved'
             ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover
          , (SELECT COUNT(*) FROM events s WHERE s.parent_id = e.id) AS subs
-       FROM events e WHERE e.owner_id = ? AND e.parent_id IS NULL ORDER BY e.created_at DESC`,
+       FROM events e WHERE e.owner_id = ? AND e.parent_id IS NULL ${(await trashReady(c.env.DB)) ? 'AND e.deleted_at IS NULL' : ''} ORDER BY e.created_at DESC`,
     ).bind(user.id).all();
-    return html(galleriesPage({ user, events: rows.results, origin: new URL(c.req.url).origin, defaults: await userDefaults(c.env.DB, user.id) }));
+    return html(galleriesPage({ user, events: rows.results, origin: new URL(c.req.url).origin, defaults: await userDefaults(c.env.DB, user.id), ok: c.req.query('ok') || '' }));
   });
 
   app.post('/galerias', async (c) => {
@@ -228,7 +278,8 @@ export function appRoutes(app) {
   async function ownEvent(c, user) {
     const id = c.req.param('id');
     if (!/^[0-9a-f]{16}$/.test(id)) return null;
-    return c.env.DB.prepare('SELECT * FROM events WHERE id = ? AND owner_id = ?').bind(id, user.id).first();
+    const e = await c.env.DB.prepare('SELECT * FROM events WHERE id = ? AND owner_id = ?').bind(id, user.id).first();
+    return e && e.deleted_at ? null : e;
   }
 
   app.get('/galerias/:id', async (c) => {
@@ -321,6 +372,11 @@ export function appRoutes(app) {
       await c.env.PHOTOS.delete([`c/${event.id}/cover`, `c/${event.id}/avatar`, `c/${event.id}/thumb`]);
       await db.prepare('DELETE FROM events WHERE id = ?').bind(event.id).run();
       return go(`/galerias/${pid}`);
+    }
+    if (await trashReady(db)) {
+      // galería principal: va a la papelera 30 días con sus subgalerías
+      await db.prepare('UPDATE events SET deleted_at = ? WHERE id = ? OR parent_id = ?').bind(Date.now(), event.id, event.id).run();
+      return go('/galerias?ok=' + encodeURIComponent(`«${event.name}» está en la papelera. Puedes recuperarla durante ${TRASH_DAYS} días.`));
     }
     await deleteFamily(c.env, event.id);
     return go(event.parent_id ? `/galerias/${event.parent_id}` : '/galerias');

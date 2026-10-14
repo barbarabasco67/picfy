@@ -28,16 +28,52 @@ async function inheritFromParent(db, e) {
   return e;
 }
 
+export const TRASH_DAYS = 30;
+let trashState = { v: null, t: 0 };
+// ¿Está aplicada la migración 0014 (papelera)? Se recuerda un rato para no consultarlo en cada petición.
+export async function trashReady(db) {
+  if (trashState.v === true || (trashState.v === false && Date.now() - trashState.t < 30000)) return trashState.v;
+  try { await db.prepare('SELECT deleted_at FROM events LIMIT 1').first(); await db.prepare('SELECT deleted_at, prev_state FROM photos LIMIT 1').first(); trashState = { v: true, t: Date.now() }; }
+  catch { trashState = { v: false, t: Date.now() }; }
+  return trashState.v;
+}
+
+// Manda fotos a la papelera (si no hay migración, las borra del todo como antes).
+export async function trashPhotos(env, eventId, ids) {
+  if (!(await trashReady(env.DB))) return deletePhotos(env, eventId, ids);
+  ids = [...new Set(ids.filter((i) => isHex(i, 32)))];
+  if (!ids.length) return 0;
+  const r = await env.DB.prepare(
+    `UPDATE photos SET prev_state = state, state = 'trashed', deleted_at = ?2 WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND state IN ('approved','pending','rejected') AND id IN (${ids.map((i) => `'${i}'`).join(',')})`,
+  ).bind(eventId, Date.now()).run();
+  return r.meta?.changes ?? 0;
+}
+
+// Borra del todo fotos de la papelera (objetos de R2 y filas).
+export async function purgeTrashedPhotos(env, ids) {
+  ids = [...new Set(ids.filter((i) => isHex(i, 32)))];
+  for (let i = 0; i < ids.length; i += 200) {
+    const part = ids.slice(i, i + 200);
+    const keys = part.flatMap((id) => ['o', 'm', 'l'].map((s) => `p/${id}/${s}`));
+    for (let k = 0; k < keys.length; k += 500) await env.PHOTOS.delete(keys.slice(k, k + 500));
+    await env.DB.prepare(`DELETE FROM photos WHERE state = 'trashed' AND id IN (${part.map((x) => `'${x}'`).join(',')})`).run();
+  }
+  return ids.length;
+}
+
 export const isExpired = (e) => Boolean(e && e.expires_at && Date.now() > e.expires_at);
 
 export async function getEventByGuestToken(db, token) {
   if (!isHex(token, 32)) return null;
-  return inheritFromParent(db, await db.prepare('SELECT * FROM events WHERE guest_token = ?').bind(token).first());
+  const e = await db.prepare('SELECT * FROM events WHERE guest_token = ?').bind(token).first();
+  if (e && e.deleted_at) return null;
+  return inheritFromParent(db, e);
 }
 
 export async function getEventById(db, id) {
   if (!isHex(id, 16)) return null;
-  return db.prepare('SELECT * FROM events WHERE id = ?').bind(id).first();
+  const e = await db.prepare('SELECT * FROM events WHERE id = ?').bind(id).first();
+  return e && e.deleted_at ? null : e;
 }
 
 // Fotos visibles para todos, con paginación.
@@ -161,8 +197,20 @@ export async function deleteFamily(env, eventId) {
   }
 }
 
-// Tarea diaria: borra las galerías caducadas que el organizador marcó para borrarse.
-export async function purgeExpired(env) {
+// Tarea diaria: vacía lo que lleva más de 30 días en la papelera y borra las galerías caducadas marcadas para borrarse.
+export async function dailyCleanup(env) {
+  let n = await purgeExpired(env);
+  try {
+    const cutoff = Date.now() - TRASH_DAYS * 86400000;
+    const ph = (await env.DB.prepare("SELECT id FROM photos WHERE state = 'trashed' AND deleted_at < ?").bind(cutoff).all()).results.map((r) => r.id);
+    n += await purgeTrashedPhotos(env, ph);
+    const ge = (await env.DB.prepare('SELECT id FROM events WHERE parent_id IS NULL AND deleted_at IS NOT NULL AND deleted_at < ?').bind(cutoff).all()).results;
+    for (const g of ge) { try { await deleteFamily(env, g.id); n++; } catch (e) { console.error('trash purge', g.id, e && e.message); } }
+  } catch { /* falta la migración 0014 */ }
+  return n;
+}
+
+async function purgeExpired(env) {
   let rows;
   try {
     rows = (await env.DB.prepare('SELECT id FROM events WHERE parent_id IS NULL AND expire_delete = 1 AND expires_at IS NOT NULL AND expires_at < ?').bind(Date.now()).all()).results;

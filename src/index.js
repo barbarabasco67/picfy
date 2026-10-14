@@ -4,7 +4,7 @@ import {
   makeSession, checkSession, getCookie,
 } from './util.js';
 import {
-  getEventByGuestToken, getEventById, isExpired, purgeExpired, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
+  getEventByGuestToken, getEventById, isExpired, dailyCleanup, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
   applyOrder, nextSortOrder, deletePhotos, orderSql,
 } from './photos.js';
 import {
@@ -381,4 +381,4 @@ app.onError((err, c) => {
   return c.req.path.startsWith('/api/') ? json({ error: 'server' }, 500) : html(notFoundPage('Algo ha fallado. Inténtalo de nuevo.'), 500);
 });
 
-export default { fetch: app.fetch, scheduled: (_e, env, ctx) => ctx.waitUntil(purgeExpired(env)) };
+export default { fetch: app.fetch, scheduled: (_e, env, ctx) => ctx.waitUntil(dailyCleanup(env)) };

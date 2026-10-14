@@ -185,9 +185,9 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.goto(parentUrl);
   // borrar el padre borra las hijas
   await p.click('[data-open=setDlg]'); await p.click('#setDlg button.danger');
-  await p.waitForURL('**/galerias');
+  await p.waitForURL(/\/galerias(\?.*)?$/);
   const r = await p.goto(subUrls[0]);
-  check('subgalería borrada en cascada', r.status() === 404);
+  check('subgalería inaccesible tras mandar el padre a la papelera', r.status() === 404);
   await b.close();
   console.log(ok ? 'ALL OK' : 'SOME FAILED'); process.exit(ok ? 0 : 1);
 })().catch((e) => { console.error(e); process.exit(1); });
