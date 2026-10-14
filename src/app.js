@@ -185,6 +185,37 @@ export function appRoutes(app) {
     return toAcc('galerias', 'ok', 'Valores guardados. Se usarán en las galerías nuevas.');
   });
 
+  /* ----- Duplicar galería ----- */
+  // Copia los ajustes, la personalización y las subgalerías (sin fotos ni invitados).
+  app.post('/galerias/:id/duplicar', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    const event = await ownEvent(c, user);
+    if (!event || event.parent_id) return go('/galerias');
+    const db = c.env.DB;
+    const f = await c.req.formData().catch(() => null);
+    const typed = f ? String(f.get('name') || '').trim().slice(0, 120) : '';
+    const name = typed && typed !== event.name ? typed : `${event.name} (copia)`.slice(0, 120);
+    const SKIP = new Set(['id', 'guest_token', 'manage_hash', 'created_at', 'owner_id', 'expires_at', 'deleted_at', 'parent_id', 'name']);
+    async function clone(src, parentId, newName) {
+      const nid = randomHex(8);
+      const vals = { id: nid, name: newName, guest_token: randomHex(16), manage_hash: await sha256Hex(randomHex(32)), created_at: Date.now(), owner_id: user.id, parent_id: parentId };
+      for (const k of Object.keys(src)) if (!SKIP.has(k) && !(k in vals)) vals[k] = src[k];
+      const cols = Object.keys(vals);
+      await db.prepare(`INSERT INTO events (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`).bind(...cols.map((k) => vals[k])).run();
+      for (const kind of ['cover', 'avatar', 'thumb']) {
+        if (!src[kind + '_v']) continue;
+        const o = await c.env.PHOTOS.get(`c/${src.id}/${kind}`);
+        if (o) await c.env.PHOTOS.put(`c/${nid}/${kind}`, o.body, { httpMetadata: o.httpMetadata });
+      }
+      return nid;
+    }
+    const nid = await clone(event, null, name);
+    const subs = (await db.prepare('SELECT * FROM events WHERE parent_id = ? ORDER BY created_at').bind(event.id).all()).results;
+    for (const s of subs) await clone(s, nid, s.name);
+    return go(`/galerias/${nid}?ok=${encodeURIComponent(`Galería duplicada con sus ajustes${subs.length ? ' y subgalerías' : ''}. Las fotos no se copian.`)}`);
+  });
+
   /* ----- Papelera ----- */
   const ids16 = (a) => a.map(String).filter((x) => /^[0-9a-f]{16}$/.test(x));
   const ids32 = (a) => a.map(String).filter((x) => /^[0-9a-f]{32}$/.test(x));

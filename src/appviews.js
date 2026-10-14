@@ -293,6 +293,7 @@ ${brandFields(event)}
 <footer>
 <button class="btn danger" type="submit" formaction="/galerias/${event.id}/borrar" formnovalidate data-nobrand onclick="return confirm('${event.parent_id ? 'Se borrará esta subgalería. Sus fotos NO se borran: pasan a la galería principal. ¿Seguir?' : 'La galería, sus subgalerías y todas sus fotos irán a la papelera. Podrás recuperarlas durante 30 días. ¿Seguir?'}')">${ICON.trash} ${event.parent_id ? 'Borrar subgalería' : 'Borrar galería'}</button>
 <span class="spacer"></span>
+${event.parent_id ? '' : `<button class="btn" type="submit" formaction="/galerias/${event.id}/duplicar" formnovalidate data-nobrand title="Crea otra galería con los mismos ajustes y subgalerías, sin fotos">${ICON.plus} Duplicar</button>`}
 <button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>
 ${lightbox()}`,
