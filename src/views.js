@@ -72,15 +72,16 @@ export function lightbox(social = false, mod = false, selection = false) {
 }
 
 function selectionUi() {
-  return `<div class="glass selmine hidden" id="selMine"><span id="selMineN"></span><button type="button" class="btn sm primary" id="selSendOpen">Enviar mi selección</button></div>
-<dialog id="selSendDlg"><form class="dlg" id="selSendForm" method="dialog"><header><h2>Enviar mi selección</h2><button class="btn sm" type="button" data-close>Cerrar</button></header>
-<div class="body"><p class="muted" id="selSendInfo"></p>
-<label class="field"><span>Tu nombre</span><input id="selName" maxlength="60" required autocomplete="name"></label>
-<label class="field"><span>Tu email (opcional)</span><input id="selEmail" type="email" maxlength="120" autocomplete="email"></label>
-<label class="field"><span>Mensaje (opcional)</span><textarea id="selNote" maxlength="1000" rows="3" placeholder="Algo que quieras decirle al fotógrafo"></textarea></label>
+  return `<p class="selhint" id="selHint"><b>¿Cuáles te gustan más?</b> Toca el círculo de las fotos para elegirlas y, cuando termines, envía la lista al fotógrafo.</p>
+<div class="glass selmine hidden" id="selMine"><span id="selMineN"></span><button type="button" class="btn sm primary" id="selSendOpen">Enviar al fotógrafo</button></div>
+<dialog id="selSendDlg"><form class="dlg" id="selSendForm" method="dialog"><header><h2>Enviar mis favoritas</h2><button class="btn sm" type="button" data-close>Cerrar</button></header>
+<div class="body"><p class="selinfo" id="selSendInfo"></p>
+<label class="field"><span>Tu nombre</span><input class="txt" id="selName" maxlength="60" required autocomplete="name"></label>
+<label class="field"><span>Tu email (opcional, por si quiere contestarte)</span><input class="txt" id="selEmail" type="email" maxlength="120" autocomplete="email"></label>
+<label class="field"><span>Mensaje (opcional)</span><textarea class="txt" id="selNote" maxlength="1000" rows="3" placeholder="Por ejemplo: la primera me encanta para ampliarla"></textarea></label>
 <p class="notice err hidden" id="selErr"></p>
-<p class="notice hidden" id="selOk">¡Selección enviada! Puedes seguir eligiendo y volver a enviarla.</p></div>
-<footer><button type="button" class="btn" data-close>Cancelar</button><button type="submit" class="btn primary" id="selSendGo">Enviar</button></footer></form></dialog>`;
+<p class="notice hidden" id="selOk">¡Enviado! El fotógrafo ya tiene tu lista. Puedes seguir eligiendo y volver a enviarla.</p></div>
+<footer><button type="button" class="btn" data-close>Cancelar</button><button type="submit" class="btn primary" id="selSendGo">Enviar lista</button></footer></form></dialog>`;
 }
 
 export function landingPage() {

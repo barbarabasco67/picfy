@@ -33,7 +33,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await g.screenshot({ path: '/tmp/picfy_shots/sel_grid.png' });
   await g.click('#selSendOpen'); await g.fill('#selName', 'Marta'); await g.fill('#selEmail', 'marta@e.es'); await g.fill('#selNote', 'Estas me encantan');
   await g.screenshot({ path: '/tmp/picfy_shots/sel_dlg.png' });
-  await g.click('#selSendGo'); await g.waitForSelector('#selOk:not(.hidden)');
+  await g.waitForTimeout(200); await g.screenshot({ path: '/tmp/picfy_shots/sel_dlg.png' }); await g.click('#selSendGo'); await g.waitForSelector('#selOk:not(.hidden)');
   // fotógrafo
   await p.goto(adminUrl); const btn = await p.$('[data-open=selDlg]'); ok(btn, 'botón Selecciones');
   ok((await btn.textContent()).includes('(1)'), 'contador 1');

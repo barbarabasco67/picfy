@@ -15,6 +15,7 @@
   };
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
   const sel = new Set(); let total = 0, enabled = true;
+  const hint = $('selHint'); if (hint) gal.parentNode.insertBefore(hint, gal.previousElementSibling && gal.previousElementSibling.classList.contains('gbar') ? gal.previousElementSibling : gal);
   const figs = () => [...gal.querySelectorAll('figure.gitem')];
 
   function paintTile(fig) {
@@ -23,7 +24,7 @@
     b.title = sel.has(id) ? 'Quitar de mi selección' : 'Añadir a mi selección';
   }
   function paintBar() {
-    total = sel.size; bar.classList.toggle('hidden', !total);
+    total = sel.size; bar.classList.toggle('hidden', !total); if (hint) hint.classList.toggle('hidden', total > 0);
     $('selMineN').textContent = total + (total === 1 ? ' foto elegida' : ' fotos elegidas');
     figs().forEach(paintTile); paintLb();
   }
@@ -59,7 +60,7 @@
   // Enviar
   const dlg = $('selSendDlg'), form = $('selSendForm'), err = $('selErr'), ok = $('selOk');
   $('selSendOpen').addEventListener('click', () => {
-    $('selSendInfo').textContent = 'Vas a enviar ' + total + (total === 1 ? ' foto' : ' fotos') + ' al fotógrafo.';
+    $('selSendInfo').textContent = 'Le llegará la lista de las ' + total + (total === 1 ? ' foto que has elegido' : ' fotos que has elegido') + ', para que sepa cuáles te gustan más.';
     $('selName').value = ls.get('picfy_name') || ''; err.classList.add('hidden'); ok.classList.add('hidden'); $('selSendGo').disabled = false;
     dlg.showModal();
   });
