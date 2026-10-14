@@ -150,6 +150,16 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   check('el administrador sigue viendo todo (9)', (await p.$$('#sortGrid .tile.ph')).length === 9);
   check('chip de privada', await p.isVisible('.privchip'));
   await p.screenshot({ path: '/tmp/picfy_shots/priv_admin.png' });
+  // orden elegido por el invitado
+  await gp.goto(pl);
+  const idsDefault = await gp.$$eval('#gallery .tile', (n) => n.map((x) => x.dataset.id));
+  await gp.selectOption('#gorder', 'recientes'); await gp.waitForURL(/orden=recientes/);
+  const idsRec = await gp.$$eval('#gallery .tile', (n) => n.map((x) => x.dataset.id));
+  await gp.selectOption('#gorder', 'antiguas'); await gp.waitForURL(/orden=antiguas/);
+  const idsOld = await gp.$$eval('#gallery .tile', (n) => n.map((x) => x.dataset.id));
+  check('orden: recientes es lo inverso de antiguas', JSON.stringify(idsRec) === JSON.stringify([...idsOld].reverse()) && idsRec.length === 8);
+  check('el selector recuerda la opción', (await gp.inputValue('#gorder')) === 'antiguas');
+  await gp.goto(pl);
   // panel lateral contraído y flecha
   await p.goto(parentUrl);
   check('menú contraído por defecto', await p.$eval('.frame > .side', (e) => e.classList.contains('collapsed')));

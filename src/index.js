@@ -4,7 +4,7 @@ import {
   makeSession, checkSession, getCookie,
 } from './util.js';
 import {
-  getEventByGuestToken, getEventById, listApproved, countApproved, privacyReady, famPublic,
+  getEventByGuestToken, getEventById, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
   applyOrder, nextSortOrder, deletePhotos, orderSql,
 } from './photos.js';
 import {
@@ -153,10 +153,11 @@ app.get('/e/:token', async (c) => {
   const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
   if (!event) return html(notFoundPage('Este enlace no existe o ya no está activo.'), 404);
   if (!(await accessOk(c, event))) return html(accessPage(event), 401);
+  const orden = Object.keys(GUEST_ORDERS).includes(c.req.query('orden')) ? c.req.query('orden') : '';
   const total = await countApproved(c.env.DB, event.id);
   const pages = Math.max(1, Math.ceil(total / PER_PAGE));
   const page = Math.min(pages, Math.max(1, parseInt(c.req.query('page') || '1', 10) || 1));
-  const photos = event.gallery_open ? await listApproved(c.env.DB, event, PER_PAGE, (page - 1) * PER_PAGE) : [];
+  const photos = event.gallery_open ? await listApproved(c.env.DB, event, PER_PAGE, (page - 1) * PER_PAGE, orden) : [];
   let subs = [];
   if (event.show_subs && !event.parent_id) {
     subs = (await c.env.DB.prepare(
@@ -169,7 +170,7 @@ app.get('/e/:token', async (c) => {
   let parent = null;
   if (event.parent_id) parent = await c.env.DB.prepare('SELECT name, guest_token FROM events WHERE id = ?').bind(event.parent_id).first();
   const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
-  return html(guestPage({ event, photos, total, page, pages, subs, parent, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(total / partSize)), partSize, total } : null }));
+  return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(total / partSize)), partSize, total } : null }));
 });
 
 async function guestFor(db, event, key) {

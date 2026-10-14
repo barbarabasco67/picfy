@@ -393,3 +393,6 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 34px); r
 .privchip { position: absolute; left: 10px; bottom: 58px; z-index: 3; display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: .72rem; font-weight: 700; background: rgba(255,255,255,.88); color: var(--ink); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 1px 4px rgba(0,0,0,.15); }
 .privchip svg { width: 13px; height: 13px; }
 .cardtools { flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 16px); }
+
+.gorder select { font: inherit; font-size: .9rem; color: var(--ink); background: rgba(255,255,255,.7); border: 1px solid var(--glass-line); border-radius: 12px; padding: 8px 10px; max-width: 200px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

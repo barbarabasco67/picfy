@@ -374,3 +374,13 @@
     if (ids.length) location.href = `/e/${token}/zip?ids=${ids.join(',')}`;
   });
 })();
+
+// Orden de las fotos (lo resuelve el servidor para que también valga entre páginas)
+(() => {
+  const sel = document.getElementById('gorder'); if (!sel) return;
+  sel.addEventListener('change', () => {
+    const u = new URL(location.href); u.searchParams.delete('page');
+    if (sel.value) u.searchParams.set('orden', sel.value); else u.searchParams.delete('orden');
+    location.href = u.toString();
+  });
+})();
