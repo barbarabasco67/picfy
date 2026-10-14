@@ -212,7 +212,7 @@ export function guestPage({ event, photos, total, page, pages, subs = [], parent
   return layout({
     title: `${event.name} · Picfy`,
     bodyAttrs: `data-token="${event.guest_token}" data-limit="${event.photo_limit}" data-auto="${event.auto_approve}" data-social="${event.social === 0 ? 0 : 1}" style="${themeStyle(event.accent)}"`,
-    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/social.js', '/guest.js'],
+    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/social.js', '/views.js', '/guest.js'],
     body: `${parent ? `<a class="backbtn" href="/e/${parent.guest_token}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span>${esc(parent.name)}</span></a>` : ''}
 <header class="hero ${event.cover_v ? 'has-cover' : ''}">
 ${event.cover_v ? `<div class="hero-cover" style="background-image:url('/c/${event.guest_token}/cover?v=${event.cover_v}')"></div>` : ''}

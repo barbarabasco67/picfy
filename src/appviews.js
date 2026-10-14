@@ -9,6 +9,7 @@ const ICON = {
   share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
   eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
   up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>',
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>',
   out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>',
   flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/></svg>',
@@ -174,10 +175,27 @@ function expiryBanner(event) {
   return `<div class="alert${days <= 7 ? '' : ' ok'}">Caduca el ${esc(when)} (${days <= 1 ? 'mañana o hoy' : `en ${days} días`}). ${act}.</div>`;
 }
 
+function statsDialog(st) {
+  if (!st) return '';
+  const num = (n) => Number(n || 0).toLocaleString('es-ES');
+  const max = Math.max(1, ...st.days.map((x) => x.views));
+  const dl = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  const bars = st.days.map((x) => `<div class="sbar" title="${esc(dl(x.d))}: ${x.views}"><i style="height:${Math.round((x.views / max) * 100)}%"></i><span>${x.d.slice(8)}</span></div>`).join('');
+  const top = st.top.length ? `<h3 class="gh">Fotos más abiertas</h3><div class="stop">${st.top.map((t) => `<div><img src="/m/${t.id}/m" alt="" loading="lazy"><b>${num(t.n)}</b></div>`).join('')}</div>` : '';
+  return `<dialog id="statsDlg" class="glassdlg wide"><div class="dlgbox">
+<header><h2>Estadísticas</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+${st.ready ? '' : '<p class="notice">Las visitas aún no se están contando: falta activar el contador en la base de datos.</p>'}
+<div class="kpis"><div><dt>Visitas</dt><dd>${num(st.views)}</dd></div><div><dt>Visitantes</dt><dd>${num(st.visitors)}</dd></div><div><dt>Hoy</dt><dd>${num(st.today)}</dd></div><div><dt>Fotos</dt><dd>${num(st.photos)}</dd></div><div><dt>Me gusta</dt><dd>${num(st.likes)}</dd></div><div><dt>Comentarios</dt><dd>${num(st.comments)}</dd></div></div>
+<h3 class="gh">Visitas por día (últimos 14 días)</h3><div class="sbars">${bars}</div>
+${top}
+<p class="muted small">Tus propias visitas como organizador no se cuentan. Una visita es cada vez que alguien abre la galería en una sesión nueva del navegador; «visitantes» son dispositivos distintos.</p>
+</div></dialog>`;
+}
+
 const dayOf = (ms) => (ms ? new Date(Number(ms)).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }) : '');
 const dayLabel = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 
-export function galleryPage({ user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
+export function galleryPage({ stats = null, user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
   const guestUrl = `${origin}/e/${event.guest_token}`;
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
@@ -222,6 +240,7 @@ ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(even
 <div class="sidebtns">
 <button class="btn primary block" type="button" id="openUpload" title="Subir archivos" aria-label="Subir archivos">${ICON.up}<span class="lbl">Subir archivos</span></button>
 <button class="btn block" type="button" data-open="zipDlg" title="Descargar ${counts.approved} archivos" aria-label="Descargar">${ICON.down}<span class="lbl">Descargar</span></button>
+<button class="btn block" type="button" data-open="statsDlg" title="Estadísticas" aria-label="Estadísticas">${ICON.chart}<span class="lbl">Estadísticas</span></button>
 ${counts.pending ? `<button class="btn" type="button" id="showPending" title="Ver solo las pendientes">Revisar pendientes</button>` : ''}
 ${counts.pending ? `<button class="btn" type="button" id="approveAll" title="Aprobar las ${counts.pending} pendientes" aria-label="Aprobar las ${counts.pending} pendientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg><span class="lbl">Aprobar las ${counts.pending} pendientes</span><span class="badge">${counts.pending}</span></button>` : ''}
 </div>
@@ -264,6 +283,7 @@ ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><optio
 <button class="sb ic danger" type="button" data-act="delete" title="Borrar" aria-label="Borrar">${ICON.trash}</button>
 </div>
 
+${statsDialog(stats)}
 <dialog id="shareDlg" class="glassdlg"><div class="dlgbox">
 <header><h2>Compartir galería</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <p class="muted">Copia el enlace y envíaselo a tus invitados. Cualquiera con el enlace puede subir fotos.</p>

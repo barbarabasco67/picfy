@@ -7,7 +7,7 @@ import { notFoundPage } from './views.js';
 import { orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, cleanup, GALLERY_TRASH_DAYS } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
 import { splitParts } from './zip.js';
-import { socialReady } from './social.js';
+import { socialReady, loadStats } from './social.js';
 
 const go = (to, headers = {}) => new Response(null, { status: 303, headers: { location: to, ...headers } });
 
@@ -363,8 +363,10 @@ export function appRoutes(app) {
     const approved = photos.filter((p) => p.state === 'approved');
     const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
     const zipParts = splitParts(approved, partSize).map((p) => ({ count: p.length }));
+    let stats = null;
+    try { stats = await loadStats(db, event); } catch { /* sin estadísticas */ }
     return html(galleryPage({
-      user, event, photos, subs, parent, folders, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
+      stats, user, event, photos, subs, parent, folders, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
       counts: { approved: approved.length, pending: photos.filter((p) => p.state === 'pending').length },
       note: c.req.query('ok') || '',
     }));

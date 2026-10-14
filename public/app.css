@@ -594,3 +594,17 @@ fieldset.brand .check { margin-top: 4px; }
   .selbar b { padding: 0 8px; }
   .selbar .sb { padding-left: .6em; padding-right: .6em; }
 }
+
+/* estadísticas */
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 6px 0 4px; }
+.kpis > div { border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, .6); padding: 10px 14px; }
+.kpis dt { font-size: .78rem; color: var(--muted, #7a6d5a); } .kpis dd { margin: 2px 0 0; font-size: 1.5rem; font-weight: 800; }
+.sbars { display: flex; align-items: flex-end; gap: 5px; height: 130px; padding: 6px 2px 0; }
+.sbar { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; min-width: 0; }
+.sbar i { display: block; width: 100%; min-height: 3px; border-radius: 6px 6px 3px 3px; background: var(--accent, #edb265); }
+.sbar span { font-size: .68rem; color: var(--muted, #7a6d5a); }
+.stop { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
+.stop div { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; }
+.stop img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.stop b { position: absolute; right: 5px; bottom: 5px; font-size: .75rem; color: #fff; background: rgba(20, 20, 24, .65); padding: 2px 8px; border-radius: 99px; }
+@media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, 1fr); } }

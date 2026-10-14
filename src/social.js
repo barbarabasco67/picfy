@@ -88,3 +88,59 @@ export function socialRoutes(app, { accessOk, ownsEvent }) {
     return json({ ok: true });
   });
 }
+
+/* ---------- Estadísticas de visualizaciones ---------- */
+
+let vst = { v: null, t: 0 };
+export async function viewsReady(db) {
+  if (vst.v === true || (vst.v === false && Date.now() - vst.t < 30000)) return vst.v;
+  try { await db.prepare('SELECT 1 FROM gallery_views LIMIT 1').first(); await db.prepare('SELECT 1 FROM photo_views LIMIT 1').first(); vst = { v: true, t: Date.now() }; }
+  catch { vst = { v: false, t: Date.now() }; }
+  return vst.v;
+}
+const dayStr = (ms) => new Date(ms).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+
+export function viewRoutes(app, { accessOk, ownsEvent }) {
+  // Lo envía el navegador del invitado (los robots no ejecutan JS, así que no cuentan).
+  app.post('/api/e/:token/view', async (c) => {
+    const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
+    if (!event || !(await accessOk(c, event))) return json({ ok: false }, 403);
+    if (!(await viewsReady(c.env.DB)) || (await ownsEvent(c, event))) return json({ ok: true, skipped: true });
+    let b; try { b = await c.req.json(); } catch { return json({ error: 'json' }, 400); }
+    if (!isHex(b.key, 32)) return json({ error: 'key' }, 400);
+    const voter = await sha256Hex(b.key), db = c.env.DB;
+    if (b.photo) {
+      if (!isHex(b.photo, 32)) return json({ error: 'photo' }, 400);
+      const ph = await db.prepare(`SELECT id FROM photos WHERE id = ?2 AND state = 'approved' AND event_id IN ${FAM}`).bind(event.id, b.photo).first();
+      if (ph) await db.prepare('INSERT INTO photo_views (photo_id, n) VALUES (?, 1) ON CONFLICT(photo_id) DO UPDATE SET n = n + 1').bind(ph.id).run();
+    } else {
+      await db.prepare('INSERT INTO gallery_views (event_id, day, voter, n) VALUES (?, ?, ?, 1) ON CONFLICT(event_id, day, voter) DO UPDATE SET n = n + 1').bind(event.id, dayStr(Date.now()), voter).run();
+    }
+    return json({ ok: true });
+  });
+}
+
+// Datos para el panel del organizador (galería y subgalerías juntas).
+export async function loadStats(db, event) {
+  const fam = `(SELECT id FROM events WHERE id = ?1 OR parent_id = ?1)`;
+  const days = [];
+  for (let i = 13; i >= 0; i--) days.push(dayStr(Date.now() - i * 86400000));
+  const out = { ready: await viewsReady(db), views: 0, visitors: 0, today: 0, days: days.map((d) => ({ d, views: 0 })), top: [], likes: 0, comments: 0, photos: 0 };
+  out.photos = (await db.prepare(`SELECT COUNT(*) n FROM photos WHERE state = 'approved' AND event_id IN ${fam}`).bind(event.id).first()).n;
+  if (out.ready) {
+    const t = await db.prepare(`SELECT COALESCE(SUM(n),0) v, COUNT(DISTINCT voter) u FROM gallery_views WHERE event_id IN ${fam}`).bind(event.id).first();
+    out.views = t.v; out.visitors = t.u;
+    const per = (await db.prepare(`SELECT day, SUM(n) v FROM gallery_views WHERE event_id IN ${fam} AND day >= ?2 GROUP BY day`).bind(event.id, days[0]).all()).results;
+    const m = new Map(per.map((r) => [r.day, r.v]));
+    out.days.forEach((x) => { x.views = m.get(x.d) || 0; });
+    out.today = m.get(days[days.length - 1]) || 0;
+    out.top = (await db.prepare(`SELECT v.photo_id id, v.n FROM photo_views v JOIN photos p ON p.id = v.photo_id WHERE p.event_id IN ${fam} AND p.state = 'approved' ORDER BY v.n DESC LIMIT 6`).bind(event.id).all()).results;
+  }
+  if (await socialReady(db)) {
+    try {
+      out.likes = (await db.prepare(`SELECT COUNT(*) n FROM photo_likes l JOIN photos p ON p.id = l.photo_id WHERE p.event_id IN ${fam}`).bind(event.id).first()).n;
+      out.comments = (await db.prepare(`SELECT COUNT(*) n FROM photo_comments l JOIN photos p ON p.id = l.photo_id WHERE p.event_id IN ${fam}`).bind(event.id).first()).n;
+    } catch { /* sin datos */ }
+  }
+  return out;
+}
