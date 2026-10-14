@@ -35,14 +35,14 @@
   function badge(id) {
     const t = tiles.find((x) => x.dataset.id === id); if (!t) return;
     let b = t.querySelector('.soc'); const s = get(id);
-    if (!s.l && !s.c && !s.w) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement('span'); b.className = 'soc'; t.appendChild(b); }
-    b.innerHTML = (s.w ? `<i>${EYE}${s.w}</i>` : '') + (s.l ? `<i class="${s.m ? 'me' : ''}">${HEART}${s.l}</i>` : '') + (s.c ? `<i>${CHAT}${s.c}</i>` : '');
+    b.innerHTML = `<i>${EYE}${s.w || 0}</i>` + (s.l ? `<i class="${s.m ? 'me' : ''}">${HEART}${s.l}</i>` : '') + (s.c ? `<i>${CHAT}${s.c}</i>` : '');
   }
   function paint() {
     if (!curId) return; const s = get(curId);
     likeBtn.innerHTML = HEART + '<span>' + s.l + '</span>'; likeBtn.classList.toggle('on', Boolean(s.m));
     comBtn.innerHTML = CHAT + '<span>' + s.c + '</span>';
+    $('lbEye').innerHTML = EYE + '<span>' + (s.w || 0) + '</span>';
   }
   const fmt = (ms) => new Date(ms).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   function row(cm) {
@@ -86,6 +86,7 @@
   });
   lb.addEventListener('lbhide', () => { curId = null; panel.classList.add('hidden'); comBtn.classList.remove('on'); });
 
+  window.addEventListener('picfy:photoview', (e) => { const s = get(e.detail.id); s.w = (s.w || 0) + 1; badge(e.detail.id); if (e.detail.id === curId) paint(); });
   likeBtn.addEventListener('click', async () => {
     if (!curId) return; const id = curId, s = get(id);
     s.m = s.m ? 0 : 1; s.l += s.m ? 1 : -1; paint(); badge(id); // respuesta inmediata
@@ -120,7 +121,8 @@
       const r = await api('/social', { ids });
       if (r.off) { document.body.dataset.social = '0'; return; }
       isOwner = Boolean(r.owner);
-      Object.entries(r.items).forEach(([id, v]) => { state[id] = v; badge(id); });
+      Object.entries(r.items).forEach(([id, v]) => { state[id] = v; });
+      ids.forEach((id) => badge(id));
     } catch { /* sin conexión: se queda sin insignias */ }
   })();
 })();

@@ -12,6 +12,6 @@
   if (!lb || !gal) return;
   lb.addEventListener('lbshow', (e) => {
     const t = [...gal.querySelectorAll('a.tile')][e.detail.i]; if (!t || !t.dataset.id) return;
-    const key = 'picfy_pv_' + t.dataset.id; if (ss.get(key)) return; ss.set(key, '1'); send({ photo: t.dataset.id });
+    const key = 'picfy_pv_' + t.dataset.id; if (ss.get(key)) return; ss.set(key, '1'); send({ photo: t.dataset.id }).then(() => window.dispatchEvent(new CustomEvent('picfy:photoview', { detail: { id: t.dataset.id } })));
   });
 })();

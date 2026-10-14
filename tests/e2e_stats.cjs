@@ -23,12 +23,13 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   }
   const v = await (await b.newContext()).newPage(); await v.goto(B + '/e/' + token); await v.waitForSelector('a.tile .soc');
   ok((await v.textContent('a.tile .soc')).trim() === '2', 'ojito en la galería de invitados');
+  await v.click('a.tile'); await v.waitForTimeout(800); ok((await v.textContent('#lbEye')).trim() === '3', 'ojito en el visor se actualiza: ' + (await v.textContent('#lbEye')));
   await p.goto(adminUrl); await p.click('[data-open=statsDlg]'); await p.waitForTimeout(300);
   const k = await p.$$eval('.kpis dd', (d) => d.map((x) => x.textContent.trim()));
   ok(k[0] === '3' && k[1] === '3' && k[2] === '3', 'visitas/visitantes/hoy = ' + k.join(','));
   ok((await p.$$('.stop div')).length === 1, 'foto más abierta');
   await p.keyboard.press('Escape');
-  ok((await p.textContent('.tile.ph .soc .eye')).trim() === '2', 'ojito con 2 visualizaciones');
+  ok((await p.textContent('.tile.ph .soc .eye')).trim() === '3', 'ojito admin');
   await p.waitForTimeout(300); await p.screenshot({ path: '/tmp/picfy_shots/stats.png', clip: { x: 360, y: 300, width: 500, height: 300 } });
   console.log('ALL OK'); await b.close();
 })().catch((e) => { console.log('ERR', e.message); process.exit(1); });

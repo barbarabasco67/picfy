@@ -205,7 +205,7 @@ ${p.event_id !== event.id && p.ename ? `<span class="sedechip">${esc(p.ename)}</
 <button class="mk flagb" type="button" data-mk="flag" aria-label="Bandera">${ICON.flag}</button>
 <button class="mk favb ${p.fav ? 'on' : ''}" type="button" data-mk="fav" aria-label="Favorita">${ICON.heart}</button>
 ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' ? 'En revisión' : 'No publicada'}</span>` : ''}
-${p.likes || p.coms || p.views ? `<span class="soc">${p.views ? `<i class="eye">${ICON.eye}${p.views}</i>` : ''}${p.likes ? `<i>♥ ${p.likes}</i>` : ''}${p.coms ? `<i>💬 ${p.coms}</i>` : ''}</span>` : ''}<span class="cap">${esc(p.filename || '')}</span></div>`)
+<span class="soc"><i class="eye">${ICON.eye}${p.views || 0}</i>${p.likes ? `<i>♥ ${p.likes}</i>` : ''}${p.coms ? `<i>💬 ${p.coms}</i>` : ''}</span><span class="cap">${esc(p.filename || '')}</span></div>`)
     .join('');
   const dayCount = new Map(); photos.forEach((p) => { const d = dayOf(p.ts); if (d) dayCount.set(d, (dayCount.get(d) || 0) + 1); });
   const days = [...dayCount.entries()].sort();
