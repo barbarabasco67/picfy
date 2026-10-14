@@ -38,11 +38,12 @@ export async function endSession(db, request) {
 export async function currentUser(c) {
   const t = getCookie(c.req.raw, COOKIE);
   if (!/^[0-9a-f]{64}$/.test(t)) return null;
-  const row = await c.env.DB.prepare(
-    `SELECT u.id, u.email, u.name FROM sessions s JOIN users u ON u.id = s.user_id
-     WHERE s.token_hash = ? AND s.expires_at > ?`,
-  ).bind(await sha256Hex(t), Date.now()).first();
-  return row || null;
+  const h = await sha256Hex(t);
+  const q = (cols) => c.env.DB.prepare(
+    `SELECT ${cols} FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`,
+  ).bind(h, Date.now()).first();
+  try { return (await q('u.id, u.email, u.name, u.avatar_v')) || null; }
+  catch { return (await q('u.id, u.email, u.name')) || null; }   // antes de la migración 0011
 }
 
 export async function checkPassword(user, password) {

@@ -37,7 +37,7 @@ function shell({ user, active = 'galerias', crumbs = '', main, collapsible = fal
 ${logo}
 <nav class="crumbs">${crumbs}</nav>
 <span class="spacer"></span>
-<div class="who"><a class="avatar${active === 'cuenta' ? ' on' : ''}" href="/cuenta" title="Mi cuenta · ${esc(user.email)}" aria-label="Mi cuenta">${esc(initials)}</a>
+<div class="who"><a class="avatar${active === 'cuenta' ? ' on' : ''}" href="/cuenta" title="Mi cuenta · ${esc(user.email)}" aria-label="Mi cuenta"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</a>
 <form method="post" action="/salir"><button class="iconbtn" type="submit" title="Salir" aria-label="Salir">${ICON.out}</button></form></div>
 </header>
 <div class="frame${collapsible ? ' nav-collapsed' : ''}${noside ? ' no-side' : ''}">
@@ -330,15 +330,18 @@ export function accountPage({ user, section = 'datos', ok = '', error = '', defa
   };
   return appPage({
     title: 'Mi cuenta',
+    scripts: ['/account.js'],
     body: shell({
       user, active: 'cuenta', noside: true,
       crumbs: '<span>Mi cuenta</span>',
       main: `<div class="prof glass">
-<span class="prof-av">${esc(initials)}</span>
+<div class="prof-avbox"><span class="prof-av" id="profAv"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</span>
+<label class="avedit" title="Cambiar la foto de perfil" aria-label="Cambiar la foto de perfil">${ICON.up}<input type="file" id="avFile" accept="image/jpeg,image/png,image/webp" hidden></label></div>
 <div class="prof-id"><h1>${esc(full)}</h1><p>${esc(user.email)}${since ? ` · con Picfy desde ${esc(since)}` : ''}</p></div>
 <div class="prof-stats"><div><b>${stats.galleries || 0}</b><span>Galerías</span></div><div><b>${stats.photos || 0}</b><span>Fotos</span></div></div>
-<form method="post" action="/salir"><button class="btn" type="submit">${ICON.out} Cerrar sesión</button></form>
+<div class="prof-act">${user.avatar_v ? '<button class="btn" type="button" id="avDel">Quitar foto</button>' : ''}<form method="post" action="/salir"><button class="btn" type="submit">${ICON.out} Cerrar sesión</button></form></div>
 </div>
+<div class="notice err hidden" id="avMsg"></div>
 <nav class="tabs" aria-label="Mi cuenta">${tab('datos', 'Datos y correo')}${tab('password', 'Contraseña')}${tab('galerias', 'Galerías nuevas')}</nav>
 ${msg}<div class="accgrid">${forms[section] || forms.datos}</div>`,
     }),

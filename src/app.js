@@ -71,8 +71,8 @@ export function appRoutes(app) {
     } catch { return {}; }
   }
   async function fullUser(db, id) {
-    try { return await db.prepare('SELECT id, email, name, surname, created_at, pass_salt, pass_hash FROM users WHERE id = ?').bind(id).first(); }
-    catch { return db.prepare("SELECT id, email, name, '' AS surname, created_at, pass_salt, pass_hash FROM users WHERE id = ?").bind(id).first(); }
+    try { return await db.prepare('SELECT id, email, name, surname, avatar_v, created_at, pass_salt, pass_hash FROM users WHERE id = ?').bind(id).first(); }
+    catch { return db.prepare("SELECT id, email, name, '' AS surname, 0 AS avatar_v, created_at, pass_salt, pass_hash FROM users WHERE id = ?").bind(id).first(); }
   }
   const SECTIONS = ['datos', 'password', 'galerias'];
   async function accountView(c, user, section, ok = '', error = '') {
@@ -82,6 +82,35 @@ export function appRoutes(app) {
     return html(accountPage({ user: u, section, ok, error, defaults: await userDefaults(c.env.DB, user.id), stats: { galleries: g.n, photos: ph.n } }));
   }
   const toAcc = (section, kind, text) => go(`/cuenta/${section}?${kind}=${encodeURIComponent(text)}`);
+
+  // Foto de perfil: solo la ve su dueño (se pinta en las páginas de administración).
+  app.get('/cuenta/foto', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return c.notFound();
+    const obj = await c.env.PHOTOS.get(`u/${user.id}/avatar`);
+    if (!obj) return c.notFound();
+    return new Response(obj.body, { headers: { 'content-type': obj.httpMetadata?.contentType || 'image/jpeg', 'cache-control': 'private, max-age=31536000, immutable' } });
+  });
+  app.put('/cuenta/foto', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return json({ error: 'auth' }, 403);
+    const type = (c.req.header('content-type') || '').split(';')[0];
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(type)) return json({ error: 'type' }, 415);
+    const len = Number(c.req.header('content-length') || 0);
+    if (!(len > 0 && len <= 1024 * 1024)) return json({ error: 'size' }, 413);
+    const v = Date.now();
+    try { await c.env.DB.prepare('UPDATE users SET avatar_v = ? WHERE id = ?').bind(v, user.id).run(); }
+    catch { return json({ error: 'migracion' }, 409); }
+    await c.env.PHOTOS.put(`u/${user.id}/avatar`, c.req.raw.body, { httpMetadata: { contentType: type } });
+    return json({ ok: true, v });
+  });
+  app.delete('/cuenta/foto', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return json({ error: 'auth' }, 403);
+    await c.env.PHOTOS.delete(`u/${user.id}/avatar`);
+    try { await c.env.DB.prepare('UPDATE users SET avatar_v = 0 WHERE id = ?').bind(user.id).run(); } catch {}
+    return json({ ok: true });
+  });
 
   app.get('/cuenta', (c) => go('/cuenta/datos'));
   app.get('/cuenta/:s', async (c) => {
