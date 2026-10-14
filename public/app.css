@@ -494,3 +494,6 @@ a.avatar:hover, a.avatar.on { transform: translateY(-1px); box-shadow: 0 0 0 3px
 .avedit svg { width: 16px; height: 16px; } .avedit:hover { background: var(--accent); }
 .prof-act { display: flex; gap: 8px; flex-wrap: wrap; }
 @media (max-width: 760px) { .prof-act { width: 100%; } }
+.backlink { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 14px; padding: 9px 16px; border-radius: 999px; text-decoration: none; font-weight: 600; color: var(--ink, #1f1a12);
+  background: var(--glass); border: 1px solid var(--glass-line); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.backlink:hover { background: var(--accent); color: var(--accent-ink, #2a1d08); }

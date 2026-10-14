@@ -333,8 +333,9 @@ export function accountPage({ user, section = 'datos', ok = '', error = '', defa
     scripts: ['/account.js'],
     body: shell({
       user, active: 'cuenta', noside: true,
-      crumbs: '<span>Mi cuenta</span>',
-      main: `<div class="prof glass">
+      crumbs: '<a href="/galerias">Galerías</a><span class="sep">/</span><b>Mi cuenta</b>',
+      main: `<a class="backlink" href="/galerias">← Volver a mis galerías</a>
+<div class="prof glass">
 <div class="prof-avbox"><span class="prof-av" id="profAv"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</span>
 <label class="avedit" title="Cambiar la foto de perfil" aria-label="Cambiar la foto de perfil">${ICON.up}<input type="file" id="avFile" accept="image/jpeg,image/png,image/webp" hidden></label></div>
 <div class="prof-id"><h1>${esc(full)}</h1><p>${esc(user.email)}${since ? ` · con Picfy desde ${esc(since)}` : ''}</p></div>
