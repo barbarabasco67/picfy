@@ -37,7 +37,7 @@ const assert = (c, m) => { if (!c) { console.error('FALLO:', m); process.exitCod
   assert(await p.isChecked('#setDlg [name=allow_download]'), 'descarga por defecto');
   assert(await p.isChecked('#setDlg [name=show_subs]'), 'subs por defecto');
   // salir y entrar con la nueva
-  await p.goto(B + '/cuenta/datos'); await p.click('.side button.linkbtn'); await p.waitForURL('**/entrar');
+  await p.goto(B + '/cuenta/datos'); await p.click('.prof button'); await p.waitForURL('**/entrar');
   await p.fill('[name=email]', e2); await p.fill('[name=password]', 'nueva-12345');
   await Promise.all([p.waitForNavigation(), p.click('button[type=submit]')]);
   assert(p.url().includes('/galerias'), 'login con datos nuevos');

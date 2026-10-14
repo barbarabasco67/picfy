@@ -71,13 +71,15 @@ export function appRoutes(app) {
     } catch { return {}; }
   }
   async function fullUser(db, id) {
-    try { return await db.prepare('SELECT id, email, name, surname, pass_salt, pass_hash FROM users WHERE id = ?').bind(id).first(); }
-    catch { return db.prepare("SELECT id, email, name, '' AS surname, pass_salt, pass_hash FROM users WHERE id = ?").bind(id).first(); }
+    try { return await db.prepare('SELECT id, email, name, surname, created_at, pass_salt, pass_hash FROM users WHERE id = ?').bind(id).first(); }
+    catch { return db.prepare("SELECT id, email, name, '' AS surname, created_at, pass_salt, pass_hash FROM users WHERE id = ?").bind(id).first(); }
   }
   const SECTIONS = ['datos', 'password', 'galerias'];
   async function accountView(c, user, section, ok = '', error = '') {
     const u = await fullUser(c.env.DB, user.id);
-    return html(accountPage({ user: u, section, ok, error, defaults: await userDefaults(c.env.DB, user.id) }));
+    const g = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM events WHERE owner_id = ? AND parent_id IS NULL').bind(user.id).first();
+    const ph = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM photos WHERE state = 'approved' AND event_id IN (SELECT id FROM events WHERE owner_id = ?)").bind(user.id).first();
+    return html(accountPage({ user: u, section, ok, error, defaults: await userDefaults(c.env.DB, user.id), stats: { galleries: g.n, photos: ph.n } }));
   }
   const toAcc = (section, kind, text) => go(`/cuenta/${section}?${kind}=${encodeURIComponent(text)}`);
 
