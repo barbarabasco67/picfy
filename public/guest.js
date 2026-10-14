@@ -377,10 +377,22 @@
 
 // Orden de las fotos (lo resuelve el servidor para que también valga entre páginas)
 (() => {
-  const sel = document.getElementById('gorder'); if (!sel) return;
-  sel.addEventListener('change', () => {
-    const u = new URL(location.href); u.searchParams.delete('page');
-    if (sel.value) u.searchParams.set('orden', sel.value); else u.searchParams.delete('orden');
-    location.href = u.toString();
+  const dd = document.getElementById('gorder'); if (!dd) return;
+  const btn = document.getElementById('gorderBtn'), menu = dd.querySelector('.ddmenu');
+  const close = () => { menu.classList.add('hidden'); btn.setAttribute('aria-expanded', 'false'); };
+  const open = () => { menu.classList.remove('hidden'); btn.setAttribute('aria-expanded', 'true'); const s = menu.querySelector('[aria-selected=true]'); if (s) s.focus(); };
+  btn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.contains('hidden') ? open() : close(); });
+  document.addEventListener('click', (e) => { if (!dd.contains(e.target)) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  menu.addEventListener('keydown', (e) => {
+    const items = [...menu.querySelectorAll('li')], i = items.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); (items[i + 1] || items[0]).focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); (items[i - 1] || items[items.length - 1]).focus(); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.activeElement.click(); }
   });
+  menu.querySelectorAll('li').forEach((li) => li.addEventListener('click', () => {
+    const u = new URL(location.href); u.searchParams.delete('page');
+    if (li.dataset.v) u.searchParams.set('orden', li.dataset.v); else u.searchParams.delete('orden');
+    close(); location.href = u.toString();
+  }));
 })();

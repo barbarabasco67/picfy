@@ -153,12 +153,13 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   // orden elegido por el invitado
   await gp.goto(pl);
   const idsDefault = await gp.$$eval('#gallery .tile', (n) => n.map((x) => x.dataset.id));
-  await gp.selectOption('#gorder', 'recientes'); await gp.waitForURL(/orden=recientes/);
+  await gp.click('#gorderBtn'); await gp.click('#gorder li[data-v=recientes]'); await gp.waitForURL(/orden=recientes/);
   const idsRec = await gp.$$eval('#gallery .tile', (n) => n.map((x) => x.dataset.id));
-  await gp.selectOption('#gorder', 'antiguas'); await gp.waitForURL(/orden=antiguas/);
+  await gp.click('#gorderBtn'); await gp.click('#gorder li[data-v=antiguas]'); await gp.waitForURL(/orden=antiguas/);
   const idsOld = await gp.$$eval('#gallery .tile', (n) => n.map((x) => x.dataset.id));
   check('orden: recientes es lo inverso de antiguas', JSON.stringify(idsRec) === JSON.stringify([...idsOld].reverse()) && idsRec.length === 8);
-  check('el selector recuerda la opción', (await gp.inputValue('#gorder')) === 'antiguas');
+  check('el selector recuerda la opción', /Más antiguas/.test(await gp.textContent('#gorderLbl')));
+  await gp.click('#gorderBtn'); await gp.screenshot({ path: '/tmp/picfy_shots/order_menu.png' }); await gp.keyboard.press('Escape');
   await gp.goto(pl);
   // panel lateral contraído y flecha
   await p.goto(parentUrl);
