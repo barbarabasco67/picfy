@@ -166,7 +166,7 @@ export function galleryRoutes(app) {
     const limit = Math.max(0, Math.min(2000, parseInt(String(f.get('photo_limit') || '0'), 10) || 0));
     const vals = [name, date, limit, String(f.get('lead') || '').trim().slice(0, 400),
       f.get('auto_approve') ? 1 : 0, f.get('upload_open') ? 1 : 0, f.get('gallery_open') ? 1 : 0, validAccent(f.get('accent'))];
-    const base = 'UPDATE events SET name = ?, event_date = ?, photo_limit = ?, lead = ?, auto_approve = ?, upload_open = ?, gallery_open = ?, accent = ?';
+    const base = 'UPDATE events SET name = ?, event_date = ?, photo_limit = ?, lead = ?, auto_approve = ?, upload_open = ?, gallery_open = ?, accent = COALESCE(?, accent)';
     if (event.parent_id) await c.env.DB.prepare(base + ' WHERE id = ?').bind(...vals, event.id).run();
     else {
       try { await c.env.DB.prepare(base + ', show_subs = ? WHERE id = ?').bind(...vals, f.get('show_subs') ? 1 : 0, event.id).run(); }
@@ -197,6 +197,17 @@ export function galleryRoutes(app) {
       } catch { msg = 'Ajustes guardados, pero falta la actualización de la base de datos (migración 0009) para la privacidad.'; }
     }
     return c.redirect(`/galerias/${event.id}?ok=${encodeURIComponent(msg)}`, 303);
+  });
+
+  // Solo el color (las fotos de perfil y cabecera se suben aparte, por /api/g/:id/brand)
+  app.post('/galerias/:id/personalizar', async (c) => {
+    const { user, event } = await ownerEvent(c);
+    if (!user) return c.redirect('/entrar', 303);
+    if (!event) return html(notFoundPage('No encontramos esa galería.'), 404);
+    const f = await c.req.formData();
+    const accent = validAccent(f.get('accent'));
+    if (accent) await c.env.DB.prepare('UPDATE events SET accent = ? WHERE id = ?').bind(accent, event.id).run();
+    return c.redirect(`/galerias/${event.id}?ok=${encodeURIComponent('Personalización guardada.')}`, 303);
   });
 
   app.post('/galerias/:id/mostrar-subs', async (c) => {

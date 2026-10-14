@@ -15,6 +15,8 @@ const ICON = {
   heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.7-8 11-8 11z"/></svg>',
   down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>',
   cog: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>',
+  brush: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.4 0 2-.9 2-1.8 0-1.2-1-1.6-1-2.7 0-1 .8-1.5 1.8-1.5H17a4 4 0 004-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/></svg>',
+  pipette: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.7 3.3a2.4 2.4 0 00-3.4 0l-3 3-1-1-1.4 1.4 1 1L4 15.6V20h4.4l8.2-8.2 1 1 1.4-1.4-1-1 3-3a2.4 2.4 0 000-3.4z"/></svg>',
   lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>',
 };
 export { ICON };
@@ -92,9 +94,16 @@ function brandFields(event = null) {
 <div class="bp-body"><div class="bp-avatar" ${avatar ? `style="background-image:url('${avatar}')"` : ''}></div><b class="bp-title">Así se verá</b><span class="bp-btn">Subir fotos</span></div>
 </div>
 <div class="brow">
-<label class="field"><span>Color de los botones</span>
+<div class="field colormod"><span>Color de los botones</span>
 <span class="swrow"><input type="color" name="accent" value="${esc(accent)}" aria-label="Color de los botones">
-${SWATCHES.map((c) => `<button type="button" class="sw" data-c="${c}" style="background:${c}" aria-label="Color ${c}"></button>`).join('')}</span></label>
+${SWATCHES.map((c) => `<button type="button" class="sw" data-c="${c}" style="background:${c}" aria-label="Color ${c}"></button>`).join('')}</span>
+<div class="cmod">
+<label class="cm"><span>HEX</span><input type="text" class="hexin" maxlength="7" spellcheck="false" autocomplete="off" value="${esc(accent)}" aria-label="Código HEX del color"></label>
+<label class="cm"><span>R</span><input type="number" class="rgbin" data-ch="0" min="0" max="255" aria-label="Rojo"></label>
+<label class="cm"><span>G</span><input type="number" class="rgbin" data-ch="1" min="0" max="255" aria-label="Verde"></label>
+<label class="cm"><span>B</span><input type="number" class="rgbin" data-ch="2" min="0" max="255" aria-label="Azul"></label>
+<button type="button" class="btn sm eyedrop" hidden title="Elige un color de cualquier parte de la pantalla">${ICON.pipette} Pipeta</button>
+</div></div>
 </div>
 <div class="brow two">
 <label class="field"><span>Foto de perfil</span><input type="file" accept="image/*" data-brand-file="avatar">
@@ -201,6 +210,7 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
 ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(event.event_date))}</p>` : ''}
 <div class="trio">
 <button class="tool" type="button" data-open="setDlg">${ICON.cog}<span>Ajustes</span></button>
+<button class="tool" type="button" data-open="brandDlg">${ICON.brush}<span>Personalizar</span></button>
 <a class="tool" href="/e/${event.guest_token}" target="_blank" rel="noopener">${ICON.eye}<span>Vista previa</span></a>
 <button class="tool" type="button" id="openShare">${ICON.share}<span>Compartir</span></button>
 </div>
@@ -269,10 +279,8 @@ ${uploadDialog(event.parent_id ? null : event, subs.map((s) => ({ ...s, upload_o
 <div class="zips">${zipList}</div>
 </div></dialog>
 
-<dialog id="setDlg" class="glassdlg wide"><form method="post" action="/galerias/${event.id}/ajustes" class="dlgbox" data-brand-form="settings" data-gapi="/api/g/${event.id}">
+<dialog id="setDlg" class="glassdlg wide"><form method="post" action="/galerias/${event.id}/ajustes" class="dlgbox" >
 <header><h2>Configuración</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
-<div class="dtabs" role="tablist"><button type="button" role="tab" class="on" data-dtab="aj">Ajustes</button><button type="button" role="tab" data-dtab="pe">Personalización</button></div>
-<div data-dpanel="aj">
 <label class="field"><span>Nombre</span><input type="text" name="name" maxlength="120" value="${esc(event.name)}" required></label>
 <div class="row2">
 <label class="field"><span>Fecha</span><input type="date" name="event_date" value="${esc(event.event_date || '')}"></label>
@@ -295,16 +303,19 @@ ${!event.parent_id ? `<fieldset class="privbox"><legend>Consentimiento y caducid
 <label class="field"><span>La galería caduca el (opcional)</span><input type="date" name="expires" value="${event.expires_at ? new Date(event.expires_at).toISOString().slice(0, 10) : ''}"></label>
 <label class="check"><input type="checkbox" name="expire_delete" value="1" ${event.expire_delete ? 'checked' : ''}> Al caducar, borrar la galería y todas sus fotos (si no, solo deja de verse y de aceptar fotos)</label>
 <p class="muted small" style="margin:0">Se aplica también a las subgalerías. Tras la fecha, los invitados ya no pueden ver, subir ni descargar. Tú sigues viéndola hasta que se borre.</p></fieldset>` : '<p class="muted small">El consentimiento y la caducidad se heredan de la galería principal.</p>'}
-</div>
-<div data-dpanel="pe" hidden>
-${brandFields(event)}
-</div>
+
 <div class="notice err hidden" data-brand-msg></div>
 <footer>
 <button class="btn danger" type="submit" formaction="/galerias/${event.id}/borrar" formnovalidate data-nobrand onclick="return confirm('${event.parent_id ? 'Se borrará esta subgalería. Sus fotos NO se borran: pasan a la galería principal. ¿Seguir?' : 'La galería, sus subgalerías y todas sus fotos irán a la papelera. Podrás recuperarlas durante 30 días. ¿Seguir?'}')">${ICON.trash} ${event.parent_id ? 'Borrar subgalería' : 'Borrar galería'}</button>
 <span class="spacer"></span>
 ${event.parent_id ? '' : `<button class="btn" type="submit" formaction="/galerias/${event.id}/duplicar" formnovalidate data-nobrand title="Crea otra galería con los mismos ajustes y subgalerías, sin fotos">${ICON.plus} Duplicar</button>`}
 <button class="btn primary" type="submit">Guardar</button></footer>
+</form></dialog>
+<dialog id="brandDlg" class="glassdlg wide"><form method="post" action="/galerias/${event.id}/personalizar" class="dlgbox" data-brand-form="settings" data-gapi="/api/g/${event.id}">
+<header><h2>Personalización</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+${brandFields(event)}
+<div class="notice err hidden" data-brand-msg></div>
+<footer><span class="spacer"></span><button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>
 ${lightbox()}`,
     }),

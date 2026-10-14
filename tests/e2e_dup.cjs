@@ -14,10 +14,12 @@ const check = (n, c, e = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n, e); o
   await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
   await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Campus Navidad'); await p.click('#newDlg button[type=submit]');
   await p.waitForURL(/\/galerias\/[0-9a-f]{16}/); const url = p.url().split('?')[0];
+  await p.click('[data-open=brandDlg]');
+  await p.evaluate(() => { const c = document.querySelector('#brandDlg input[name=accent]'); c.value = '#2f7bd9'; c.dispatchEvent(new Event('input', { bubbles: true })); });
+  await p.setInputFiles('#brandDlg [data-brand-file=avatar]', `${process.cwd()}/tests/img/p00.jpg`);
+  await p.click('#brandDlg button.primary'); await p.waitForURL(/\?ok/);
   await p.click('[data-open=setDlg]');
-  await p.evaluate(() => { const c = document.querySelector('#setDlg input[name=accent]'); c.value = '#2f7bd9'; c.dispatchEvent(new Event('input', { bubbles: true })); });
   await p.check('#setDlg [name=allow_download]'); await p.check('#setDlg [name=consent]'); await p.fill('#setDlg [name=photo_limit]', '12');
-  await p.setInputFiles('#setDlg [data-brand-file=avatar]', `${process.cwd()}/tests/img/p00.jpg`);
   await p.click('#setDlg button.primary'); await p.waitForURL(/\?ok/);
   await p.click('[data-open=subDlg]'); await p.fill('#subDlg input[name=name]', 'Sede Madrid'); await p.fill('#subDlg textarea[name=lead]', 'Pabellón'); await p.click('#subDlg button[type=submit]');
   await p.waitForURL(/\/galerias\/[0-9a-f]{16}\?ok/);
@@ -30,8 +32,9 @@ const check = (n, c, e = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n, e); o
   check('mismo límite de fotos', (await p.inputValue('#setDlg [name=photo_limit]')) === '12');
   check('misma descarga', await p.isChecked('#setDlg [name=allow_download]'));
   check('mismo consentimiento', await p.isChecked('#setDlg [name=consent]'));
-  check('mismo color', (await p.inputValue('#setDlg input[name=accent]')).toLowerCase() === '#2f7bd9');
-  check('foto de perfil copiada', await p.evaluate(() => /avatar/.test(document.querySelector('#setDlg .bp-avatar').getAttribute('style') || '')));
+  await p.keyboard.press('Escape'); await p.click('[data-open=brandDlg]');
+  check('mismo color', (await p.inputValue('#brandDlg input[name=accent]')).toLowerCase() === '#2f7bd9');
+  check('foto de perfil copiada', await p.evaluate(() => /avatar/.test(document.querySelector('#brandDlg .bp-avatar').getAttribute('style') || '')));
   await p.keyboard.press('Escape');
   check('subgalería copiada', await p.isVisible('.subs .gcard:has-text("Sede Madrid")'));
   check('sin fotos', (await p.locator('#sortGrid .tile.ph').count()) === 0);

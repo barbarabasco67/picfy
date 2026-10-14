@@ -57,12 +57,14 @@ const img = (i) => `${process.cwd()}/tests/img/p${String(i).padStart(2, '0')}.jp
   await g.setViewportSize({ width: 1360, height: 900 }); await g.waitForTimeout(500); await g.screenshot({ path: '/tmp/picfy_shots/b2d_invitado.png' }); await g.setViewportSize({ width: 430, height: 860 });
 
   // Editar: cambiar color y quitar cabecera
-  await p.click('[data-open=setDlg]');
-  await p.click('#setDlg [data-dtab=pe]');
-  await p.click('#setDlg .sw[data-c="#2f9e5f"]');
-  await p.check('#setDlg [data-brand-remove=cover]');
+  await p.click('[data-open=brandDlg]');
+  await p.click('#brandDlg .sw[data-c="#2f9e5f"]');
+  check('el HEX sigue al color', (await p.inputValue('#brandDlg .hexin')) === '#2f9e5f');
+  await p.fill('#brandDlg .hexin', '2f9e5f'); await p.fill('#brandDlg .rgbin >> nth=0', '47');
+  check('RGB y HEX coinciden', (await p.inputValue('#brandDlg .hexin')) === '#2f9e5f', await p.inputValue('#brandDlg .hexin'));
+  await p.check('#brandDlg [data-brand-remove=cover]');
   await p.screenshot({ path: '/tmp/picfy_shots/b3_editar.png' });
-  await p.click('#setDlg button.primary'); await p.waitForSelector('.alert.ok:has-text("Ajustes guardados")');
+  await p.click('#brandDlg button.primary'); await p.waitForSelector('.alert.ok:has-text("Personalización guardada")');
   await g.reload(); await g.waitForTimeout(500);
   check('cabecera quitada', !(await g.isVisible('.hero-cover')));
   const nc = await g.$eval('#openUpload', (e) => getComputedStyle(e).backgroundColor); check('color nuevo', nc === 'rgb(47, 158, 95)', nc);

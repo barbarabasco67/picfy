@@ -544,3 +544,25 @@ a.avatar:hover, a.avatar.on { transform: translateY(-1px); box-shadow: 0 0 0 3px
   .selbar > *:not(b):not([data-act=clear]) { order: 2; }
   .selbar .sepv { display: none; }
 }
+
+/* ---- Personalización: más aire entre elementos ---- */
+.trio { grid-template-columns: repeat(2, 1fr); }
+fieldset.brand { display: grid; gap: 26px; padding: 22px 22px 24px; margin: 0; }
+fieldset.brand legend { padding: 0 8px; }
+fieldset.brand .bprev { margin: 0; }
+fieldset.brand .brow { margin: 0; }
+fieldset.brand .brow.two { gap: 24px; }
+fieldset.brand .field { gap: 12px; display: grid; }
+fieldset.brand .swrow { gap: 12px; }
+.sw { width: 30px; height: 30px; }
+.cmod { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; margin-top: 6px; }
+.cm { display: grid; gap: 6px; font-size: .78rem; color: var(--muted); }
+.cm span { font-weight: 700; letter-spacing: .04em; }
+.cm input { height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.85); font: inherit; color: var(--ink, #1f1a12); }
+.cm .hexin { width: 104px; font-family: ui-monospace, Menlo, monospace; text-transform: lowercase; }
+.cm .rgbin { width: 68px; }
+.eyedrop { height: 40px; display: inline-flex; align-items: center; gap: 8px; }
+.eyedrop svg { width: 18px; height: 18px; }
+fieldset.brand .brow input[type=file] { display: block; width: 100%; padding: 8px; border: 1px dashed var(--line); border-radius: 14px; background: rgba(255,255,255,.6); font-size: .85rem; color: var(--muted); }
+fieldset.brand input[type=file]::file-selector-button { margin-right: 12px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font: inherit; font-weight: 600; color: var(--ink, #1f1a12); cursor: pointer; }
+fieldset.brand .check { margin-top: 4px; }

@@ -23,8 +23,31 @@
       const n = parseInt(color.value.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
       prev.style.setProperty('--ink', (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62 ? '#2a1d08' : '#fff');
     };
-    color.addEventListener('input', paint); paint();
-    box.querySelectorAll('.sw').forEach((s) => s.addEventListener('click', () => { color.value = s.dataset.c; paint(); }));
+    const hexin = box.querySelector('.hexin'), rgbin = [...box.querySelectorAll('.rgbin')], eye = box.querySelector('.eyedrop');
+    const hex2 = (n) => n.toString(16).padStart(2, '0');
+    const sync = () => {                       // del selector de color al HEX y al RGB
+      if (hexin) hexin.value = color.value;
+      const n = parseInt(color.value.slice(1), 16);
+      rgbin.forEach((i) => { i.value = [n >> 16, (n >> 8) & 255, n & 255][+i.dataset.ch]; });
+    };
+    const setColor = (v) => { color.value = v; paint(); sync(); };
+    const cleanHex = (t) => {                  // acepta "edb265", "#edb265" y "#eb6"
+      t = String(t).trim().replace(/^#/, '').toLowerCase();
+      if (/^[0-9a-f]{3}$/.test(t)) t = t.split('').map((c) => c + c).join('');
+      return /^[0-9a-f]{6}$/.test(t) ? '#' + t : null;
+    };
+    if (hexin) hexin.addEventListener('input', () => { const v = cleanHex(hexin.value); if (v) { color.value = v; paint(); const n = parseInt(v.slice(1), 16); rgbin.forEach((i) => { i.value = [n >> 16, (n >> 8) & 255, n & 255][+i.dataset.ch]; }); } });
+    if (hexin) hexin.addEventListener('blur', sync);
+    rgbin.forEach((i) => i.addEventListener('input', () => {
+      const [r, g, b2] = rgbin.map((x) => Math.max(0, Math.min(255, parseInt(x.value, 10) || 0)));
+      color.value = '#' + hex2(r) + hex2(g) + hex2(b2); paint(); if (hexin) hexin.value = color.value;
+    }));
+    if (eye && 'EyeDropper' in window) {       // la pipeta solo existe en Chrome y Edge
+      eye.hidden = false;
+      eye.addEventListener('click', async () => { try { const r = await new window.EyeDropper().open(); setColor(r.sRGBHex.toLowerCase()); } catch { /* cancelado */ } });
+    }
+    color.addEventListener('input', () => { paint(); sync(); }); paint(); sync();
+    box.querySelectorAll('.sw').forEach((s) => s.addEventListener('click', () => setColor(s.dataset.c)));
 
     box.querySelectorAll('[data-brand-file]').forEach((inp) => inp.addEventListener('change', async () => {
       const kind = inp.dataset.brandFile, f = inp.files[0];
