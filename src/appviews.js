@@ -45,9 +45,9 @@ ${noside ? '' : `<aside class="side glass${collapsible ? ' collapsed' : ''}">
 ${collapsible ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}
 ${side || `<p class="side-h">Gestiona tus fotos</p>
 <a class="nav ${active === 'galerias' ? 'on' : ''}" href="/galerias">${ICON.gal}<span>Galerías</span></a>
-<a class="nav ${active === 'papelera' ? 'on' : ''}" href="/papelera">${ICON.trash}<span>Papelera</span></a>
 <p class="side-h">Próximamente</p>
-<span class="nav off">${ICON.lock}<span>Colecciones</span></span>`}
+<span class="nav off">${ICON.lock}<span>Colecciones</span></span>
+<a class="nav trashnav ${active === 'papelera' ? 'on' : ''}" href="/papelera">${ICON.trash}<span>Papelera</span></a>`}
 </aside>`}
 <main class="main">${main}</main>
 </div>`;
@@ -131,6 +131,8 @@ ${e.event_date ? `<div class="gdate">${esc(fmtDate(e.event_date))}</div>` : ''}
 ${events.length ? `<div class="gcards" id="gcards">${cards}</div><p class="muted hidden" id="noMatch">Ninguna galería coincide.</p>` : `<div class="glass emptybox">Todavía no tienes galerías. Crea la primera y comparte el enlace con tus invitados.</div>`}
 <dialog id="newDlg" class="glassdlg wide"><form method="post" action="/galerias" class="dlgbox" data-brand-form="create">
 <header><h2>Crear una nueva galería</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div class="dtabs" role="tablist"><button type="button" role="tab" class="on" data-dtab="aj">Datos</button><button type="button" role="tab" data-dtab="pe">Personalización</button></div>
+<div data-dpanel="aj">
 <label class="field"><span>Título de la galería</span><input type="text" name="name" maxlength="120" required placeholder="Boda de Ana y Luis"></label>
 <div class="row2">
 <label class="field"><span>Fecha (opcional)</span><input type="date" name="event_date"></label>
@@ -138,7 +140,10 @@ ${events.length ? `<div class="gcards" id="gcards">${cards}</div><p class="muted
 </div>
 <label class="field"><span>Mensaje de bienvenida (opcional)</span><textarea name="lead" maxlength="400" placeholder="Los mejores recuerdos se viven juntos. Sube las fotos que hiciste."></textarea></label>
 <label class="check"><input type="checkbox" name="auto_approve" value="1" ${defaults.auto_approve === 0 ? '' : 'checked'}> Publicar las fotos al subirlas (si no, las revisas tú antes)</label>
+</div>
+<div data-dpanel="pe" hidden>
 ${brandFields(defaults.accent ? { accent: defaults.accent } : null)}
+</div>
 <div class="notice err hidden" data-brand-msg></div>
 <footer><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Crear y abrir</button></footer>
 </form></dialog>`,
@@ -266,6 +271,8 @@ ${uploadDialog(event.parent_id ? null : event, subs.map((s) => ({ ...s, upload_o
 
 <dialog id="setDlg" class="glassdlg wide"><form method="post" action="/galerias/${event.id}/ajustes" class="dlgbox" data-brand-form="settings" data-gapi="/api/g/${event.id}">
 <header><h2>Configuración</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div class="dtabs" role="tablist"><button type="button" role="tab" class="on" data-dtab="aj">Ajustes</button><button type="button" role="tab" data-dtab="pe">Personalización</button></div>
+<div data-dpanel="aj">
 <label class="field"><span>Nombre</span><input type="text" name="name" maxlength="120" value="${esc(event.name)}" required></label>
 <div class="row2">
 <label class="field"><span>Fecha</span><input type="date" name="event_date" value="${esc(event.event_date || '')}"></label>
@@ -288,7 +295,10 @@ ${!event.parent_id ? `<fieldset class="privbox"><legend>Consentimiento y caducid
 <label class="field"><span>La galería caduca el (opcional)</span><input type="date" name="expires" value="${event.expires_at ? new Date(event.expires_at).toISOString().slice(0, 10) : ''}"></label>
 <label class="check"><input type="checkbox" name="expire_delete" value="1" ${event.expire_delete ? 'checked' : ''}> Al caducar, borrar la galería y todas sus fotos (si no, solo deja de verse y de aceptar fotos)</label>
 <p class="muted small" style="margin:0">Se aplica también a las subgalerías. Tras la fecha, los invitados ya no pueden ver, subir ni descargar. Tú sigues viéndola hasta que se borre.</p></fieldset>` : '<p class="muted small">El consentimiento y la caducidad se heredan de la galería principal.</p>'}
+</div>
+<div data-dpanel="pe" hidden>
 ${brandFields(event)}
+</div>
 <div class="notice err hidden" data-brand-msg></div>
 <footer>
 <button class="btn danger" type="submit" formaction="/galerias/${event.id}/borrar" formnovalidate data-nobrand onclick="return confirm('${event.parent_id ? 'Se borrará esta subgalería. Sus fotos NO se borran: pasan a la galería principal. ¿Seguir?' : 'La galería, sus subgalerías y todas sus fotos irán a la papelera. Podrás recuperarlas durante 30 días. ¿Seguir?'}')">${ICON.trash} ${event.parent_id ? 'Borrar subgalería' : 'Borrar galería'}</button>

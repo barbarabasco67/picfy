@@ -82,3 +82,16 @@
     });
   });
 })();
+
+// Pestañas dentro de los diálogos (Ajustes / Personalización)
+(function () {
+  document.querySelectorAll('.dtabs').forEach((bar) => {
+    const form = bar.closest('form');
+    const show = (k) => {
+      bar.querySelectorAll('[data-dtab]').forEach((t) => t.classList.toggle('on', t.dataset.dtab === k));
+      form.querySelectorAll('[data-dpanel]').forEach((p) => { p.hidden = p.dataset.dpanel !== k; });
+    };
+    bar.querySelectorAll('[data-dtab]').forEach((t) => t.addEventListener('click', () => show(t.dataset.dtab)));
+    form.addEventListener('invalid', () => show(bar.querySelector('[data-dtab]').dataset.dtab), true);   // un campo obligatorio sin rellenar siempre se ve
+  });
+})();

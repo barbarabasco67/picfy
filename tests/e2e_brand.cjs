@@ -17,6 +17,7 @@ const img = (i) => `${process.cwd()}/tests/img/p${String(i).padStart(2, '0')}.jp
   // Crear con personalización
   await p.click('#newGal');
   await p.fill('#newDlg input[name=name]', 'Boda personalizada');
+  await p.click('#newDlg [data-dtab=pe]');
   await p.click('#newDlg .sw[data-c="#2f6fed"]');
   await p.setInputFiles('#newDlg [data-brand-file=avatar]', img(2));
   await p.setInputFiles('#newDlg [data-brand-file=cover]', img(5));
@@ -57,6 +58,7 @@ const img = (i) => `${process.cwd()}/tests/img/p${String(i).padStart(2, '0')}.jp
 
   // Editar: cambiar color y quitar cabecera
   await p.click('[data-open=setDlg]');
+  await p.click('#setDlg [data-dtab=pe]');
   await p.click('#setDlg .sw[data-c="#2f9e5f"]');
   await p.check('#setDlg [data-brand-remove=cover]');
   await p.screenshot({ path: '/tmp/picfy_shots/b3_editar.png' });

@@ -517,3 +517,30 @@ a.avatar:hover, a.avatar.on { transform: translateY(-1px); box-shadow: 0 0 0 3px
 .ttile:has(input:checked) { outline: 3px solid var(--accent); }
 .tbar { position: sticky; bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 22px; padding: 10px 12px; border-radius: 18px; z-index: 5; }
 @media (max-width: 560px) { .tbar .btn { flex: 1 1 100%; } .tgrid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---- Menú lateral a toda la altura, papelera abajo ---- */
+@media (min-width: 861px) {
+  .frame:not(.no-side) .side { height: calc(100vh - 108px); }
+}
+.side .trashnav { margin-top: auto; }
+
+/* ---- Pestañas de los diálogos ---- */
+.dtabs { display: flex; gap: 6px; padding: 4px; margin: 0 0 14px; border-radius: 999px; background: rgba(255,255,255,.55); border: 1px solid var(--glass-line); width: max-content; max-width: 100%; }
+.dtabs button { border: 0; background: none; font: inherit; font-weight: 600; padding: 8px 18px; border-radius: 999px; color: var(--muted); cursor: pointer; }
+.dtabs button.on { background: var(--accent); color: var(--accent-ink, #2a1d08); }
+[data-dpanel][hidden] { display: none !important; }
+
+/* ---- Barra de selección: gris oscuro para que se vea ---- */
+.selbar.glass { background: rgba(38, 38, 42, .95); border-color: rgba(255, 255, 255, .14); color: #fff; box-shadow: 0 14px 40px rgba(0, 0, 0, .35); }
+.selbar b { color: #fff; }
+.selbar .sb { color: #fff; }
+.selbar .sb:hover { background: rgba(255, 255, 255, .16); }
+.selbar .sb.danger:hover { background: rgba(255, 120, 100, .25); color: #ffb3a8; }
+.selbar .sepv { background: rgba(255, 255, 255, .22); }
+.selbar .menu { color: var(--ink, #1f1a12); }
+@media (max-width: 560px) {
+  .selbar b { flex: 1 1 calc(100% - 52px); text-align: left; padding: 0 8px; }
+  .selbar .sb[data-act=clear] { order: 1; }
+  .selbar > *:not(b):not([data-act=clear]) { order: 2; }
+  .selbar .sepv { display: none; }
+}
