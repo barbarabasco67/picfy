@@ -45,6 +45,10 @@ export function socialRoutes(app, { accessOk, ownsEvent }) {
     const items = {};
     for (const r of likes) items[r.photo_id] = { l: r.n, m: r.mine ? 1 : 0, c: 0 };
     for (const r of coms) (items[r.photo_id] ||= { l: 0, m: 0, c: 0 }).c = r.n;
+    if (await viewsReady(db)) {
+      const vw = (await db.prepare(`SELECT photo_id, n FROM photo_views WHERE photo_id IN (${inl})`).all()).results;
+      for (const r of vw) (items[r.photo_id] ||= { l: 0, m: 0, c: 0 }).w = r.n;
+    }
     return json({ items, owner: await ownsEvent(c, x.event) });
   });
 

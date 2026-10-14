@@ -26,6 +26,7 @@
   };
   const HEART = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.6-9.2-9A5.2 5.2 0 0 1 12 6.6 5.2 5.2 0 0 1 21.2 11C19 15.4 12 20 12 20z"/></svg>';
   const CHAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>';
+  const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
   const likeBtn = $('lbLike'), comBtn = $('lbCom'), panel = $('lbPanel'), list = $('lbList'), form = $('lbForm');
   const state = {}; // id -> { l, m, c }
   let isOwner = false, curId = null, tiles = [];
@@ -34,9 +35,9 @@
   function badge(id) {
     const t = tiles.find((x) => x.dataset.id === id); if (!t) return;
     let b = t.querySelector('.soc'); const s = get(id);
-    if (!s.l && !s.c) { if (b) b.remove(); return; }
+    if (!s.l && !s.c && !s.w) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement('span'); b.className = 'soc'; t.appendChild(b); }
-    b.innerHTML = (s.l ? `<i class="${s.m ? 'me' : ''}">${HEART}${s.l}</i>` : '') + (s.c ? `<i>${CHAT}${s.c}</i>` : '');
+    b.innerHTML = (s.w ? `<i>${EYE}${s.w}</i>` : '') + (s.l ? `<i class="${s.m ? 'me' : ''}">${HEART}${s.l}</i>` : '') + (s.c ? `<i>${CHAT}${s.c}</i>` : '');
   }
   function paint() {
     if (!curId) return; const s = get(curId);

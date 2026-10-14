@@ -188,7 +188,6 @@ ${st.ready ? '' : '<p class="notice">Las visitas aún no se están contando: fal
 <div class="kpis"><div><dt>Visitas</dt><dd>${num(st.views)}</dd></div><div><dt>Visitantes</dt><dd>${num(st.visitors)}</dd></div><div><dt>Hoy</dt><dd>${num(st.today)}</dd></div><div><dt>Fotos</dt><dd>${num(st.photos)}</dd></div><div><dt>Me gusta</dt><dd>${num(st.likes)}</dd></div><div><dt>Comentarios</dt><dd>${num(st.comments)}</dd></div></div>
 <h3 class="gh">Visitas por día (últimos 14 días)</h3><div class="sbars">${bars}</div>
 ${top}
-<p class="muted small">Tus propias visitas como organizador no se cuentan. Una visita es cada vez que alguien abre la galería en una sesión nueva del navegador; «visitantes» son dispositivos distintos.</p>
 </div></dialog>`;
 }
 

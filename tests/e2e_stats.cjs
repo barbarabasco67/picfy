@@ -21,9 +21,11 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
     const g = await (await b.newContext()).newPage(); await g.goto(B + '/e/' + token); await g.waitForSelector('a.tile');
     await g.click('a.tile'); await g.waitForTimeout(800);
   }
+  const v = await (await b.newContext()).newPage(); await v.goto(B + '/e/' + token); await v.waitForSelector('a.tile .soc');
+  ok((await v.textContent('a.tile .soc')).trim() === '2', 'ojito en la galería de invitados');
   await p.goto(adminUrl); await p.click('[data-open=statsDlg]'); await p.waitForTimeout(300);
   const k = await p.$$eval('.kpis dd', (d) => d.map((x) => x.textContent.trim()));
-  ok(k[0] === '2' && k[1] === '2' && k[2] === '2', 'visitas/visitantes/hoy = ' + k.join(','));
+  ok(k[0] === '3' && k[1] === '3' && k[2] === '3', 'visitas/visitantes/hoy = ' + k.join(','));
   ok((await p.$$('.stop div')).length === 1, 'foto más abierta');
   await p.keyboard.press('Escape');
   ok((await p.textContent('.tile.ph .soc .eye')).trim() === '2', 'ojito con 2 visualizaciones');
