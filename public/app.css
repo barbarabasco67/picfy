@@ -586,3 +586,11 @@ fieldset.brand .check { margin-top: 4px; }
 .lbmod u { text-decoration: underline; text-underline-offset: 3px; }
 .lbst { color: #fff; font-size: .8rem; font-weight: 700; padding: 0 10px; white-space: nowrap; }
 .lbst[data-s=pending] { color: #ffd08a; } .lbst[data-s=rejected] { color: #ff9a8c; }
+
+/* barra de selección: todo en una línea en pantallas anchas */
+@media (min-width: 861px) {
+  .selbar { flex-wrap: nowrap; gap: 4px; padding: 6px 8px; }
+  .selbar select { flex: 0 1 138px; min-width: 0; max-width: 138px; text-overflow: ellipsis; }
+  .selbar b { padding: 0 8px; }
+  .selbar .sb { padding-left: .6em; padding-right: .6em; }
+}

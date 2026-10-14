@@ -93,6 +93,7 @@
     paint(); badge(id);
   });
   comBtn.addEventListener('click', () => setPanel(panel.classList.contains('hidden')));
+  $('lbPanelX').addEventListener('click', (e) => { e.stopPropagation(); setPanel(false); });
   const nameIn = $('lbName'), textIn = $('lbText');
   nameIn.value = ls.get('picfy_name') || '';
   form.addEventListener('submit', async (e) => {

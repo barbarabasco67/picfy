@@ -16,7 +16,7 @@
   document.addEventListener('keydown', (e) => {
     if (!lb.classList.contains('open')) return;
     if (e.target.closest && e.target.closest('input, textarea')) { if (e.key === 'Escape') e.target.blur(); return; }
-    if (e.key === 'Escape') close();
+    if (e.key === 'Escape') { const pn = document.getElementById('lbPanel'); if (pn && !pn.classList.contains('hidden')) { document.getElementById('lbPanelX').click(); return; } close(); }
     if (e.key === 'ArrowLeft') step(-1);
     if (e.key === 'ArrowRight') step(1);
   });
