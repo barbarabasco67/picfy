@@ -215,8 +215,8 @@ ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(even
 <button class="tool" type="button" id="openShare">${ICON.share}<span>Compartir</span></button>
 </div>
 <div class="sidebtns">
-<button class="btn primary block" type="button" id="openUpload" title="Subir nuevos archivos" aria-label="Subir nuevos archivos">${ICON.up}<span class="lbl">Subir nuevos archivos</span></button>
-<button class="btn block" type="button" data-open="zipDlg" title="Descargar ${counts.approved} archivos" aria-label="Descargar ${counts.approved} archivos">${ICON.down}<span class="lbl">Descargar ${counts.approved} archivos</span></button>
+<button class="btn primary block" type="button" id="openUpload" title="Subir archivos" aria-label="Subir archivos">${ICON.up}<span class="lbl">Subir archivos</span></button>
+<button class="btn block" type="button" data-open="zipDlg" title="Descargar ${counts.approved} archivos" aria-label="Descargar">${ICON.down}<span class="lbl">Descargar</span></button>
 ${counts.pending ? `<button class="btn" type="button" id="approveAll" title="Aprobar las ${counts.pending} pendientes" aria-label="Aprobar las ${counts.pending} pendientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg><span class="lbl">Aprobar las ${counts.pending} pendientes</span><span class="badge">${counts.pending}</span></button>` : ''}
 </div>
 <dl class="stats"><div><dt>Publicadas</dt><dd>${counts.approved}</dd></div><div><dt>Por revisar</dt><dd>${counts.pending}</dd></div></dl>
@@ -237,10 +237,11 @@ ${subs.length ? `<div class="gcards small">${subs.map((s) => `<div class="gcard-
 ${s.is_private ? `<span class="privchip" title="Privada: no sale en la galería general">${ICON.lock} Privada${s.has_pw ? ' · con contraseña' : ''}</span>` : ''}
 <div class="cardtools"><button type="button" class="cardbtn" data-sharelink="/e/${s.guest_token}" data-sharename="${esc(s.name)}" title="Compartir enlace" aria-label="Compartir ${esc(s.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button><label class="cardbtn wide" title="Elegir la imagen del cuadro" aria-label="Elegir portada de ${esc(s.name)}">${ICON.up}<span>Portada</span><input type="file" accept="image/jpeg,image/png,image/webp" hidden data-thumb="${s.id}"></label>${s.thumb_v ? `<button type="button" class="cardbtn" data-thumbdel="${s.id}" title="Quitar portada" aria-label="Quitar portada">${ICON.trash}</button>` : ''}</div></div>`).join('')}</div>` : `<p class="muted small" style="margin:8px 0 0">Una subgalería tiene su propio enlace, moderación y descarga. Úsala, por ejemplo, para cada sede de un torneo.</p>`}</div>`}
 <div class="gtools"><span class="muted small" id="shown">${photos.length} fotos</span><span class="spacer"></span><button class="btn sm" type="button" id="pickAll">Seleccionar todo</button></div>
-${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid" style="--tile:170px">${tiles}</div><p class="muted hidden" id="noMatch2">Ninguna foto coincide con el filtro.</p>` : `<div class="glass emptybox">Esta galería todavía no tiene fotos. Comparte el enlace para que tus invitados suban las suyas.</div>`}
+${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid">${tiles}</div><p class="muted hidden" id="noMatch2">Ninguna foto coincide con el filtro.</p>` : `<div class="glass emptybox">Esta galería todavía no tiene fotos. Comparte el enlace para que tus invitados suban las suyas.</div>`}
 </section></div>
 
 <div class="selbar glass hidden" id="selbar" role="toolbar" aria-label="Acciones sobre la selección">
+<button class="sb ic" type="button" data-act="clear" title="Quitar selección" aria-label="Quitar selección">×</button>
 <b id="selN">0</b>
 <span class="sepv"></span>
 <button class="sb" type="button" data-act="approve" title="Aprobar">Aprobar</button>
@@ -253,7 +254,6 @@ ${event.parent_id ? `<button class="sb" type="button" id="asCover" title="Usar l
 ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><option value="">Pasar al álbum de…</option>${opts}</select>` : ''}
 <button class="sb ic" type="button" data-act="download" title="Descargar" aria-label="Descargar">${ICON.down}</button>
 <button class="sb ic danger" type="button" data-act="delete" title="Borrar" aria-label="Borrar">${ICON.trash}</button>
-<button class="sb ic" type="button" data-act="clear" title="Quitar selección" aria-label="Quitar selección">×</button>
 </div>
 
 <dialog id="shareDlg" class="glassdlg"><div class="dlgbox">

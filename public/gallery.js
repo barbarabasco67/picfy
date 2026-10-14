@@ -142,7 +142,7 @@
   });
 
   const size = $('size');
-  const apply = () => grid.style.setProperty('--tile', size.value + 'px');
+  const apply = () => { grid.style.setProperty('--tile', size.value + 'px'); if (matchMedia('(min-width:861px)').matches) grid.style.gridTemplateColumns = 'repeat(' + Math.max(2, Math.min(8, Math.round(680 / size.value))) + ', 1fr)'; };
   size.addEventListener('input', apply); apply();
 })();
 
