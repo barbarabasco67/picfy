@@ -27,6 +27,28 @@ h1{font-size:clamp(2.1rem,4.4vw,3.6rem);line-height:1.04;letter-spacing:-.04em}
 .frame::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(112deg,transparent calc(var(--sh,50%) - 22%),rgba(255,255,255,.38) var(--sh,50%),transparent calc(var(--sh,50%) + 22%))}
 .phone,.float{transform:translateY(calc(var(--ct,0)*-44px));will-change:transform}
 .phone{border-radius:30px}
+
+/* botones con menos relleno */
+.btn{padding:.52em 1.1em;font-size:.97rem}
+.btn.lg{padding:.62em 1.25em;font-size:1rem}
+nav.main a:not(.btn){padding:6px 12px}
+/* bloque final sin morado: ámbar cálido */
+.end{background:linear-gradient(140deg,#f6cf93 0%,#edb265 52%,#e5964c 100%);color:var(--ink)}
+.end h2{color:var(--ink)}
+.end p{color:rgba(28,22,17,.82)}
+.end .btn:not(.primary){background:rgba(255,255,255,.55);border-color:rgba(28,22,17,.18);color:var(--ink)}
+.end .btn.primary{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:0 10px 26px rgba(28,22,17,.28)}
+.end .btn.primary:hover{background:#2d241b}
+.bg .b3{--c:rgba(229,150,76,.2)}
+.bg .b2{--c:rgba(237,140,96,.2)}
+/* movimiento propio en algunas fotos */
+.kb img{animation:kb 20s ease-in-out infinite alternate;transform-origin:60% 40%}
+.kb2 img{animation-duration:26s;animation-delay:-8s;transform-origin:30% 60%}
+@keyframes kb{from{transform:scale(1) translate(0,0)}to{transform:scale(1.07) translate(-1.6%,-1.2%)}}
+.phone{animation:bob 7s ease-in-out infinite}
+.float{animation:bob 8s ease-in-out infinite;animation-delay:-3s}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -12px}}
+@media (prefers-reduced-motion:reduce){.kb img,.phone,.float{animation:none}}
 @media (max-width:980px){.stage .phone{right:0}}
 @media (prefers-reduced-motion:reduce){.bg i b{animation:none}.bg i,.frame,.phone,.float{transform:none!important}.frame::after{display:none}}
 `;
@@ -111,7 +133,7 @@ export function landingPage() {
         <li>Duplica el torneo con sus sedes y ajustes para la próxima edición (las fotos no se copian)</li>
       </ul>
     </div>
-    <div class="pic"><div class="frame">${img('guest-desktop.webp', 'Página del torneo con tres tarjetas de sedes: Pabellón Norte, Pista Central y Polideportivo Sur', 1500, 949)}</div></div>
+    <div class="pic"><div class="frame kb">${img('guest-desktop.webp', 'Página del torneo con tres tarjetas de sedes: Pabellón Norte, Pista Central y Polideportivo Sur', 1500, 949)}</div></div>
   </div>
 
   <div class="feat flip">
@@ -140,11 +162,11 @@ export function landingPage() {
         <li>Ordena por hora de captura y arrastra para cambiar el orden</li>
       </ul>
     </div>
-    <div class="pic"><div class="frame">${img('admin-sub.webp', 'Panel de la sede Pista Central con fotos marcadas con banderas y favoritas', 1700, 1062)}</div></div>
+    <div class="pic"><div class="frame kb kb2">${img('admin-sub.webp', 'Panel de la sede Pista Central con fotos marcadas con banderas y favoritas', 1700, 1062)}</div></div>
   </div>
 
   <div class="feat flip">
-    <div class="pic"><div class="frame">${img('lightbox.webp', 'Una foto a pantalla completa con los comentarios de los asistentes', 1500, 949)}</div></div>
+    <div class="pic"><div class="frame kb">${img('lightbox.webp', 'Una foto a pantalla completa con los comentarios de los asistentes', 1500, 949)}</div></div>
     <div class="txt">
       <h2>Los equipos encuentran sus fotos y las descargan</h2>
       <p>Una galería limpia con la portada del torneo, que se abre en cualquier móvil. Las fotos están ordenadas por hora de captura y se ven a pantalla completa.</p>
@@ -167,7 +189,7 @@ export function landingPage() {
       </ul>
     </div>
     <div class="pic" style="margin-bottom:9%">
-      <div class="frame">${img('selection.webp', 'Galería de una sede con fotos elegidas y el botón Enviar al fotógrafo', 1500, 949)}</div>
+      <div class="frame kb kb2">${img('selection.webp', 'Galería de una sede con fotos elegidas y el botón Enviar al fotógrafo', 1500, 949)}</div>
       <div class="float" style="right:-3%;bottom:-12%;width:46%">${img('selections.webp', 'Lista de fotos elegidas por un club, con su mensaje, en el panel del fotógrafo', 900, 518)}</div>
     </div>
   </div>
@@ -195,7 +217,7 @@ export function landingPage() {
         <li>Color, portada y foto de perfil distintos en cada galería</li>
       </ul>
     </div>
-    <div class="pic"><div class="frame">${img('collection.webp', 'Página de una colección con tres galerías de la temporada 2026', 1500, 660)}</div></div>
+    <div class="pic"><div class="frame kb">${img('collection.webp', 'Página de una colección con tres galerías de la temporada 2026', 1500, 660)}</div></div>
   </div>
 </section>
 
