@@ -596,7 +596,7 @@ fieldset.brand .check { margin-top: 4px; }
 }
 
 /* estadísticas */
-.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 6px 0 4px; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 6px 0 4px; }
 .kpis > div { border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, .6); padding: 10px 14px; }
 .kpis dt { font-size: .78rem; color: var(--muted, #7a6d5a); } .kpis dd { margin: 2px 0 0; font-size: 1.5rem; font-weight: 800; }
 .sbars { display: flex; align-items: flex-end; gap: 5px; height: 130px; padding: 6px 2px 0; }
@@ -658,3 +658,8 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 24px); r
 .glassdlg .txt { display: block; width: 100%; box-sizing: border-box; font: inherit; color: var(--ink, #1f1a12); background: rgba(255, 255, 255, .9); border: 1px solid var(--line); border-radius: 14px; padding: .7em 1em; outline: none; }
 .glassdlg .txt:focus { border-color: var(--accent, #edb265); box-shadow: 0 0 0 3px rgba(237, 178, 101, .28); }
 @media (max-width: 560px) { .colcover { width: 64px; height: 50px; } .colitem { gap: 10px; } }
+
+.upl { list-style: none; margin: 0 0 4px; padding: 0; display: grid; gap: 6px; }
+.upl li { display: flex; justify-content: space-between; gap: 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.6); padding: 8px 14px; }
+.upl b { font-weight: 800; }
+@media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, 1fr); } }

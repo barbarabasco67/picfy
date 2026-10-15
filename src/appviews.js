@@ -191,13 +191,21 @@ function statsDialog(st) {
   const num = (n) => Number(n || 0).toLocaleString('es-ES');
   const max = Math.max(1, ...st.days.map((x) => x.views));
   const dl = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-  const bars = st.days.map((x) => `<div class="sbar" title="${esc(dl(x.d))}: ${x.views}"><i style="height:${Math.round((x.views / max) * 100)}%"></i><span>${x.d.slice(8)}</span></div>`).join('');
+  const barsOf = (arr, key) => { const mx = Math.max(1, ...arr.map((x) => x[key])); return arr.map((x) => `<div class="sbar" title="${esc(dl(x.d))}: ${x[key]}"><i style="height:${Math.round((x[key] / mx) * 100)}%"></i><span>${x.d.slice(8)}</span></div>`).join(''); };
+  const bars = barsOf(st.days.map((x) => ({ d: x.d, v: x.views })), 'v');
+  const upBars = st.up && st.up.length ? `<h3 class="gh">Fotos subidas por día</h3><div class="sbars">${barsOf(st.up, 'n')}</div>` : '';
+  const dlBars = st.dl && st.dl.length ? `<h3 class="gh">Descargas por día</h3><div class="sbars">${barsOf(st.dl, 'n')}</div>` : '';
+  const people = st.uploaders && st.uploaders.length ? `<h3 class="gh">Invitados que más suben</h3><ol class="upl">${st.uploaders.map((u) => `<li><span>${esc(u.name || 'Invitado ' + String(u.id).slice(0, 4))}</span><b>${num(u.n)}</b></li>`).join('')}</ol>` : '';
   const top = st.top.length ? `<h3 class="gh">Fotos más abiertas</h3><div class="stop">${st.top.map((t) => `<div><img src="/m/${t.id}/m" alt="" loading="lazy"><b>${num(t.n)}</b></div>`).join('')}</div>` : '';
   return `<dialog id="statsDlg" class="glassdlg wide"><div class="dlgbox">
 <header><h2>Estadísticas</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 ${st.ready ? '' : '<p class="notice">Las visitas aún no se están contando: falta activar el contador en la base de datos.</p>'}
-<div class="kpis"><div><dt>Visitas</dt><dd>${num(st.views)}</dd></div><div><dt>Visitantes</dt><dd>${num(st.visitors)}</dd></div><div><dt>Hoy</dt><dd>${num(st.today)}</dd></div><div><dt>Fotos</dt><dd>${num(st.photos)}</dd></div><div><dt>Me gusta</dt><dd>${num(st.likes)}</dd></div><div><dt>Comentarios</dt><dd>${num(st.comments)}</dd></div></div>
+${st.dlReady ? '' : '<p class="notice">Las descargas aún no se están contando: falta activar el contador en la base de datos.</p>'}
+<div class="kpis"><div><dt>Visitas</dt><dd>${num(st.views)}</dd></div><div><dt>Visitantes</dt><dd>${num(st.visitors)}</dd></div><div><dt>Hoy</dt><dd>${num(st.today)}</dd></div><div><dt>Fotos</dt><dd>${num(st.photos)}</dd></div><div><dt>Invitados que suben</dt><dd>${num(st.uploadersN)}</dd></div><div><dt>Descargas</dt><dd>${num(st.downloads)}</dd></div><div><dt>Me gusta</dt><dd>${num(st.likes)}</dd></div><div><dt>Comentarios</dt><dd>${num(st.comments)}</dd></div></div>
 <h3 class="gh">Visitas por día (últimos 14 días)</h3><div class="sbars">${bars}</div>
+${upBars}
+${dlBars}
+${people}
 ${top}
 </div></dialog>`;
 }

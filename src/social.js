@@ -124,12 +124,27 @@ export function viewRoutes(app, { accessOk, ownsEvent }) {
   });
 }
 
+let dst = { v: null, t: 0 };
+export async function dlReady(db) {
+  if (dst.v === true || (dst.v === false && Date.now() - dst.t < 30000)) return dst.v;
+  try { await db.prepare('SELECT 1 FROM gallery_downloads LIMIT 1').first(); dst = { v: true, t: Date.now() }; }
+  catch { dst = { v: false, t: Date.now() }; }
+  return dst.v;
+}
+// Suma n fotos descargadas por un invitado (el dueño no cuenta).
+export async function countDownload(db, event, n) {
+  try {
+    if (!(await dlReady(db))) return;
+    await db.prepare('INSERT INTO gallery_downloads (event_id, day, n) VALUES (?, ?, ?) ON CONFLICT(event_id, day) DO UPDATE SET n = n + excluded.n').bind(event.id, dayStr(Date.now()), n).run();
+  } catch { /* sin contador */ }
+}
+
 // Datos para el panel del organizador (galería y subgalerías juntas).
 export async function loadStats(db, event) {
   const fam = `(SELECT id FROM events WHERE id = ?1 OR parent_id = ?1)`;
   const days = [];
   for (let i = 13; i >= 0; i--) days.push(dayStr(Date.now() - i * 86400000));
-  const out = { ready: await viewsReady(db), views: 0, visitors: 0, today: 0, days: days.map((d) => ({ d, views: 0 })), top: [], likes: 0, comments: 0, photos: 0 };
+  const out = { ready: await viewsReady(db), views: 0, visitors: 0, today: 0, days: days.map((d) => ({ d, views: 0 })), top: [], likes: 0, comments: 0, photos: 0, downloads: 0, dlReady: await dlReady(db), up: [], uploaders: [], uploadersN: 0 };
   out.photos = (await db.prepare(`SELECT COUNT(*) n FROM photos WHERE state = 'approved' AND event_id IN ${fam}`).bind(event.id).first()).n;
   if (out.ready) {
     const t = await db.prepare(`SELECT COALESCE(SUM(n),0) v, COUNT(DISTINCT voter) u FROM gallery_views WHERE event_id IN ${fam}`).bind(event.id).first();
@@ -139,6 +154,24 @@ export async function loadStats(db, event) {
     out.days.forEach((x) => { x.views = m.get(x.d) || 0; });
     out.today = m.get(days[days.length - 1]) || 0;
     out.top = (await db.prepare(`SELECT v.photo_id id, v.n FROM photo_views v JOIN photos p ON p.id = v.photo_id WHERE p.event_id IN ${fam} AND p.state = 'approved' ORDER BY v.n DESC LIMIT 6`).bind(event.id).all()).results;
+  }
+  // Fotos subidas por día e invitados que más suben
+  try {
+    const first = new Date(days[0] + 'T00:00:00').getTime() - 86400000;
+    const rows = (await db.prepare(`SELECT uploaded_at t FROM photos WHERE event_id IN ${fam} AND state IN ('approved','pending','rejected') AND uploaded_at >= ?2`).bind(event.id, first).all()).results;
+    const um = new Map();
+    rows.forEach((r) => { const d = dayStr(Number(r.t)); um.set(d, (um.get(d) || 0) + 1); });
+    out.up = days.map((d) => ({ d, n: um.get(d) || 0 }));
+    out.uploaders = (await db.prepare(`SELECT g.name, g.id, COUNT(*) n FROM photos p JOIN guests g ON g.id = p.guest_id WHERE p.event_id IN ${fam} AND p.state IN ('approved','pending') GROUP BY g.id ORDER BY n DESC, g.created_at LIMIT 5`).bind(event.id).all()).results;
+    out.uploadersN = (await db.prepare(`SELECT COUNT(DISTINCT guest_id) n FROM photos WHERE event_id IN ${fam} AND state IN ('approved','pending')`).bind(event.id).first()).n;
+  } catch { /* sin datos */ }
+  if (out.dlReady) {
+    try {
+      out.downloads = (await db.prepare(`SELECT COALESCE(SUM(n),0) n FROM gallery_downloads WHERE event_id IN ${fam}`).bind(event.id).first()).n;
+      const per = (await db.prepare(`SELECT day, SUM(n) v FROM gallery_downloads WHERE event_id IN ${fam} AND day >= ?2 GROUP BY day`).bind(event.id, days[0]).all()).results;
+      const m = new Map(per.map((r) => [r.day, r.v]));
+      out.dl = days.map((d) => ({ d, n: m.get(d) || 0 }));
+    } catch { /* sin datos */ }
   }
   if (await socialReady(db)) {
     try {

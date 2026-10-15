@@ -12,7 +12,7 @@ import {
   guestPage, accessPage,
 } from './views.js';
 import { manageRoutes } from './manage.js';
-import { socialRoutes, viewRoutes } from './social.js';
+import { socialRoutes, viewRoutes, countDownload } from './social.js';
 import { selectionRoutes } from './selection.js';
 import { publicCollectionRoute } from './collections.js';
 import { appRoutes } from './app.js';
@@ -90,6 +90,7 @@ app.get('/e/:token/dl/:id', async (c) => {
   const obj = await c.env.PHOTOS.get(`p/${id}/o`);
   if (!obj) return c.notFound();
   const name = (row.filename || `${id}.jpg`).replace(/[^\w.\- ]+/g, '_');
+  if (!(await ownsEvent(c, event))) await countDownload(c.env.DB, event, 1);
   return new Response(obj.body, { headers: {
     'content-type': obj.httpMetadata?.contentType || 'image/jpeg', 'content-length': String(obj.size),
     'content-disposition': `attachment; filename="${name}"`, 'cache-control': 'private, max-age=3600',
@@ -120,6 +121,7 @@ app.get('/e/:token/zip', async (c) => {
     used.add(name);
     return { key: `p/${r.id}/o`, name, size: r.size, crc: r.crc32, ms: r.taken_at ?? r.uploaded_at };
   });
+  if (!(await ownsEvent(c, event))) await countDownload(c.env.DB, event, entries.length);
   const { stream, length } = buildZip(c.env.PHOTOS, entries);
   const label = safe(event.name).replace(/\s+/g, '-') || 'galeria';
   const fname = pick.length ? `${label}-seleccion.zip` : parts.length > 1 ? `${label}-parte${part}.zip` : `${label}.zip`;
