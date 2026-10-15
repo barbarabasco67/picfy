@@ -87,6 +87,35 @@ export async function slugReady(db) {
   return slugState.v;
 }
 
+// Garantiza que cada galería tenga su enlace con nombre (se crea solo a partir del nombre) y lo añade a las filas.
+export async function attachSlugs(db, rows) {
+  const list = rows.filter((r) => r && r.id);
+  if (!list.length || !(await slugReady(db))) return rows;
+  try {
+    const ids = list.map((r) => `'${String(r.id).replace(/[^0-9a-f]/g, '')}'`).join(',');
+    const have = new Map((await db.prepare(`SELECT id, name, parent_id, slug FROM events WHERE id IN (${ids})`).all()).results.map((r) => [r.id, r]));
+    for (const r of list) {
+      const cur = have.get(r.id);
+      if (!cur) continue;
+      if (cur.slug) { r.slug = cur.slug; continue; }
+      const parent = cur.parent_id ? have.get(cur.parent_id) || await db.prepare('SELECT name FROM events WHERE id = ?').bind(cur.parent_id).first() : null;
+      const a = slugify(cur.name) || 'galeria';
+      const cands = [a, parent ? slugify(`${parent.name}-${cur.name}`) : null].filter((x) => x && x.length >= 3);
+      for (let i = 2; i < 40; i++) cands.push(`${a.slice(0, 36)}-${i}`);
+      cands.push(`${a.slice(0, 30)}-${Math.random().toString(36).slice(2, 8)}`);
+      for (const sl of cands) {
+        try {
+          const res = await db.prepare('UPDATE events SET slug = ? WHERE id = ? AND slug IS NULL AND NOT EXISTS (SELECT 1 FROM events WHERE slug = ?)').bind(sl, r.id, sl).run();
+          if (res.meta && res.meta.changes) { r.slug = sl; cur.slug = sl; break; }
+          const again = await db.prepare('SELECT slug FROM events WHERE id = ?').bind(r.id).first();
+          if (again && again.slug) { r.slug = again.slug; break; }
+        } catch { /* ya usado: probamos la siguiente */ }
+      }
+    }
+  } catch { /* sin enlaces con nombre: se queda el de siempre */ }
+  return rows;
+}
+
 // "Torneo Las Rozas 2026!" -> "torneo-las-rozas-2026"
 export const slugify = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
 

@@ -1,7 +1,7 @@
 // Colecciones: agrupan varias galerías (por ejemplo, las de un mismo cliente) bajo un único enlace.
 import { randomHex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
-import { privacyReady, isExpired } from './photos.js';
+import { privacyReady, isExpired, attachSlugs } from './photos.js';
 import { collectionsPage, collectionPage } from './appviews.js';
 import { collectionPublicPage, notFoundPage } from './views.js';
 
@@ -132,6 +132,7 @@ export function publicCollectionRoute(app) {
        FROM collection_items i JOIN events e ON e.id = i.event_id
        WHERE i.collection_id = ? AND e.deleted_at IS NULL AND e.gallery_open = 1 ${priv ? 'AND e.is_private = 0' : ''} ORDER BY i.sort_order, e.created_at`,
     ).bind(col.id).all()).results.filter((e) => !isExpired(e));
+    await attachSlugs(db, rows);
     return html(collectionPublicPage({ col, items: rows }));
   });
 }

@@ -43,7 +43,7 @@ const img = (i) => `${process.cwd()}/tests/img/p${String(i).padStart(2, '0')}.jp
 
   // Página de invitados con el aspecto elegido
   await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
-  const guestUrl = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
+  const guestUrl = B + '/e/' + await p.$eval('body', (b) => b.dataset.token); await p.keyboard.press('Escape');
   const g = await (await b.newContext({ viewport: { width: 430, height: 860 } })).newPage();
   await g.goto(guestUrl); await g.waitForTimeout(700);
   check('cabecera visible', await g.isVisible('.hero-cover'));
@@ -77,7 +77,7 @@ const img = (i) => `${process.cwd()}/tests/img/p${String(i).padStart(2, '0')}.jp
   await p.click('[data-open=subDlg]'); await p.fill('#subDlg input[name=name]', 'Sede A'); await p.click('#subDlg button.primary');
   await p.waitForURL(/\/galerias\/[0-9a-f]{16}\?ok/);
   await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
-  const subGuest = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
+  const subGuest = B + '/e/' + await p.$eval('body', (b) => b.dataset.token); await p.keyboard.press('Escape');
   await g.goto(subGuest); await g.waitForTimeout(500);
   check('subgalería hereda color y perfil', (await g.$eval('#openUpload', (e) => getComputedStyle(e).backgroundColor)) === 'rgb(47, 158, 95)' && await g.isVisible('.hero-avatar'));
 

@@ -37,7 +37,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await g.goto(link); await g.waitForSelector('.colcard');
   ok((await g.$$('.colcard')).length === 2 && (await g.textContent('h1')).includes('Boda de Marta'), 'página pública');
   await g.screenshot({ path: '/tmp/picfy_shots/col_public.png' });
-  await Promise.all([g.waitForNavigation(), g.click('.colcard')]); ok(/\/e\/[0-9a-f]{32}/.test(g.url()), 'enlaza a la galería');
+  await Promise.all([g.waitForNavigation(), g.click('.colcard')]); ok(/\/g\/[a-z0-9-]+$/.test(g.url()), 'enlaza a la galería con nombre');
   // quitar y borrar
   await Promise.all([p.waitForNavigation(), p.click('.colitem:first-child form[action$=quitar] button')]);
   ok((await p.$$('.colitem')).length === 1, 'quitada');

@@ -43,7 +43,7 @@ const email = `t${Date.now()}@ejemplo.es`;
   check('galería creada', !!(await p.$('.gside h2:has-text("Torneo 3x3")')));
   await p.click('#openShare');
   await p.waitForSelector('#shareDlg .qr svg');
-  const guestUrl = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B);
+  const guestUrl = B + '/e/' + await p.$eval('body', (b) => b.dataset.token);
   check('enlace de invitados', /\/e\/[0-9a-f]{32}$/.test(guestUrl), guestUrl);
   await p.screenshot({ path: SHOTS + '/4_compartir.png' });
   await p.keyboard.press('Escape');

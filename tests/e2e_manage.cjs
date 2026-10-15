@@ -26,7 +26,7 @@ const email = `m${Date.now()}@ejemplo.es`;
   await p.click('#newDlg button[type=submit]'); await p.waitForURL(/\/galerias\/[0-9a-f]{16}/);
   const galUrl = p.url().split('?')[0]; const gid = galUrl.split('/').pop();
   await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
-  const guestUrl = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B);
+  const guestUrl = B + '/e/' + await p.$eval('body', (b) => b.dataset.token);
   await p.keyboard.press('Escape');
 
   // Dos invitados (dos contextos = dos álbumes) suben fotos

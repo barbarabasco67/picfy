@@ -16,7 +16,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Para borrar'); await p.click('#newDlg button[type=submit]');
   await p.waitForURL(/\/galerias\/[0-9a-f]{16}/); const url = p.url().split('?')[0];
   await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
-  const link = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
+  const link = B + '/e/' + await p.$eval('body', (b) => b.dataset.token); await p.keyboard.press('Escape');
   await p.click('#openUpload').catch(() => {});
   await p.setInputFiles('#fileInput', imgs(4)); await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 4);
   await p.click('#upStart'); await p.waitForSelector('.toast', { timeout: 90000 });

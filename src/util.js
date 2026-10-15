@@ -78,3 +78,6 @@ export function themeStyle(hex) {
   const d = (v) => Math.round(v * 0.9);
   return `--accent:${hex};--accent-strong:rgb(${d(r)},${d(g)},${d(b)});--accent-ink:${ink};--accent-rgb:${r},${g},${b};`;
 }
+
+// Enlace público de una galería: el nombre elegido si lo tiene, si no el de letras y números.
+export const glink = (e) => (e && e.slug ? `/g/${e.slug}` : `/e/${e.guest_token}`);

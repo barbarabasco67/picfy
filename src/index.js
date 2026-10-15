@@ -4,7 +4,7 @@ import {
   makeSession, checkSession, getCookie,
 } from './util.js';
 import {
-  getEventByGuestToken, getEventBySlug, getEventById, isExpired, cleanup, deleteFamily, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
+  getEventByGuestToken, getEventBySlug, attachSlugs, getEventById, isExpired, cleanup, deleteFamily, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
   applyOrder, nextSortOrder, deletePhotos, orderSql,
 } from './photos.js';
 import {
@@ -162,11 +162,20 @@ app.post('/e/:token/acceso', async (c) => {
 
 /* ---------- Invitados ---------- */
 
-app.get('/e/:token', async (c) => guestView(c, await getEventByGuestToken(c.env.DB, c.req.param('token'))));
+app.get('/e/:token', async (c) => {
+  const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
+  if (event) {
+    await attachSlugs(c.env.DB, [event]);
+    // el enlace de letras y números solo existe para redirigir al enlace con nombre
+    if (event.slug) return c.redirect(`/g/${event.slug}${new URL(c.req.url).search}`, 302);
+  }
+  return guestView(c, event);
+});
 app.get('/g/:slug', async (c) => guestView(c, await getEventBySlug(c.env.DB, c.req.param('slug'))));
 
 async function guestView(c, event) {
   if (!event) return html(notFoundPage('Este enlace no existe o ya no está activo.'), 404);
+  await attachSlugs(c.env.DB, [event]);
   if (isExpired(event) && event.expire_delete && !(await ownsEvent(c, event))) {
     // caducada y marcada para borrarse: se borra al primer acceso pasada la fecha
     c.executionCtx.waitUntil(deleteFamily(c.env, event.parent_id || event.id).catch(() => {}));
@@ -181,14 +190,15 @@ async function guestView(c, event) {
   let subs = [];
   if (event.show_subs && !event.parent_id) {
     subs = (await c.env.DB.prepare(
-      `SELECT s.name, s.lead, s.guest_token, s.thumb_v, s.event_date, s.upload_open,
+      `SELECT s.id, s.name, s.lead, s.guest_token, s.thumb_v, s.event_date, s.upload_open,
               (SELECT p.id FROM photos p WHERE p.event_id = s.id AND p.state = 'approved' ORDER BY p.sort_order LIMIT 1) AS first_id,
               (SELECT COUNT(*) FROM photos p WHERE p.event_id = s.id AND p.state = 'approved') AS n
        FROM events s WHERE s.parent_id = ? AND s.gallery_open = 1 ${(await privacyReady(c.env.DB)) ? 'AND s.is_private = 0' : ''} ORDER BY s.name COLLATE NOCASE`,
     ).bind(event.id).all()).results;
+    await attachSlugs(c.env.DB, subs);
   }
   let parent = null;
-  if (event.parent_id) parent = await c.env.DB.prepare('SELECT name, guest_token FROM events WHERE id = ?').bind(event.parent_id).first();
+  if (event.parent_id) { parent = await c.env.DB.prepare('SELECT id, name, guest_token FROM events WHERE id = ?').bind(event.parent_id).first(); await attachSlugs(c.env.DB, [parent]); }
   const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
   return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(total / partSize)), partSize, total } : null }));
 }

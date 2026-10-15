@@ -4,7 +4,7 @@ import { randomHex, sha256Hex, html, json } from './util.js';
 import { hashPassword, checkPassword, validEmail, startSession, endSession, currentUser } from './auth.js';
 import { authPage, galleriesPage, galleryPage, accountPage, trashPage } from './appviews.js';
 import { notFoundPage } from './views.js';
-import { orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, cleanup, GALLERY_TRASH_DAYS } from './photos.js';
+import { attachSlugs, orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, cleanup, GALLERY_TRASH_DAYS } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
 import { collectionRoutes } from './collections.js';
 import { splitParts } from './zip.js';
@@ -375,6 +375,7 @@ export function appRoutes(app) {
          (SELECT p.id FROM photos p WHERE p.event_id = e.id AND p.state = 'approved' ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover
        FROM events e WHERE e.parent_id = ? ORDER BY e.created_at ASC`,
     ).bind(event.id).all()).results;
+    await attachSlugs(db, [event, ...subs]);
     const parent = event.parent_id
       ? await db.prepare('SELECT id, name FROM events WHERE id = ? AND owner_id = ?').bind(event.parent_id, user.id).first()
       : null;

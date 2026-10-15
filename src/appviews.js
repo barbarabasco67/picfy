@@ -1,6 +1,6 @@
 // Pantallas de la plataforma (cuentas y galerías). Estilo: blanco, #edb265 y cristal.
 
-import { esc } from './util.js';
+import { esc, glink } from './util.js';
 import { layout, fmtDate, lightbox, uploadDialog, DEFAULT_CONSENT } from './views.js';
 
 const ICON = {
@@ -214,7 +214,7 @@ const dayOf = (ms) => (ms ? new Date(Number(ms)).toLocaleDateString('sv-SE', { t
 const dayLabel = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 
 export function galleryPage({ sels = null, stats = null, user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
-  const guestUrl = event.slug ? `${origin}/g/${event.slug}` : `${origin}/e/${event.guest_token}`;
+  const guestUrl = origin + glink(event);
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
     .map((p) => `<div class="tile ph" data-id="${p.id}" data-full="/m/${p.id}/l" data-state="${p.state}" data-flag="${p.flag || ''}" data-fav="${p.fav ? 1 : 0}" data-name="${esc((p.filename || '').toLowerCase())}" data-guest="${p.guest_id}" data-day="${dayOf(p.ts)}" title="${esc(gname.get(p.guest_id) || '')}${p.event_id !== event.id && p.ename ? ' · ' + esc(p.ename) : ''}">
@@ -252,7 +252,7 @@ ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(even
 <div class="trio">
 <button class="tool" type="button" data-open="setDlg">${ICON.cog}<span>Ajustes</span></button>
 <button class="tool" type="button" data-open="brandDlg">${ICON.brush}<span>Personalizar</span></button>
-<a class="tool" href="${event.slug ? '/g/' + event.slug : '/e/' + event.guest_token}" target="_blank" rel="noopener">${ICON.eye}<span>Vista previa</span></a>
+<a class="tool" href="${glink(event)}" target="_blank" rel="noopener">${ICON.eye}<span>Vista previa</span></a>
 <button class="tool" type="button" id="openShare">${ICON.share}<span>Compartir</span></button>
 </div>
 <div class="sidebtns">
@@ -281,7 +281,7 @@ ${event.parent_id ? '' : `<div class="subs"><div class="bar"><h2 class="sec" sty
 <form method="post" action="/galerias/${event.id}/mostrar-subs" class="subtog"><label class="check"><input type="checkbox" name="show_subs" value="1" ${event.show_subs ? 'checked' : ''} onchange="this.form.submit()"> Mostrarlas en la página de invitados</label></form>
 ${subs.length ? `<div class="gcards small">${subs.map((s) => `<div class="gcard-wrap"><a class="gcard glass" href="/galerias/${s.id}"><div class="cover">${s.thumb_v ? `<img src="/c/${s.guest_token}/thumb?v=${s.thumb_v}" alt="" loading="lazy">` : s.cover ? `<img src="/m/${s.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}${s.new_sel ? `<span class="chip newsel">${s.new_sel === 1 ? 'Selección nueva' : s.new_sel + ' selecciones nuevas'}</span>` : ''}${s.pending ? `<span class="chip warn">${s.pending} por revisar</span>` : ''}</div><div class="gmeta"><strong>${esc(s.name)}</strong><span>${s.approved}</span></div></a>
 ${s.is_private ? `<span class="privchip" title="Privada: no sale en la galería general">${ICON.lock} Privada${s.has_pw ? ' · con contraseña' : ''}</span>` : ''}
-<div class="cardtools"><button type="button" class="cardbtn" data-sharelink="/e/${s.guest_token}" data-sharename="${esc(s.name)}" title="Compartir enlace" aria-label="Compartir ${esc(s.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button><label class="cardbtn wide" title="Elegir la imagen del cuadro" aria-label="Elegir portada de ${esc(s.name)}">${ICON.up}<span>Portada</span><input type="file" accept="image/jpeg,image/png,image/webp" hidden data-thumb="${s.id}"></label>${s.thumb_v ? `<button type="button" class="cardbtn" data-thumbdel="${s.id}" title="Quitar portada" aria-label="Quitar portada">${ICON.trash}</button>` : ''}</div></div>`).join('')}</div>` : `<p class="muted small" style="margin:8px 0 0">Una subgalería tiene su propio enlace, moderación y descarga. Úsala, por ejemplo, para cada sede de un torneo.</p>`}</div>`}
+<div class="cardtools"><button type="button" class="cardbtn" data-sharelink="${glink(s)}" data-sharename="${esc(s.name)}" title="Compartir enlace" aria-label="Compartir ${esc(s.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button><label class="cardbtn wide" title="Elegir la imagen del cuadro" aria-label="Elegir portada de ${esc(s.name)}">${ICON.up}<span>Portada</span><input type="file" accept="image/jpeg,image/png,image/webp" hidden data-thumb="${s.id}"></label>${s.thumb_v ? `<button type="button" class="cardbtn" data-thumbdel="${s.id}" title="Quitar portada" aria-label="Quitar portada">${ICON.trash}</button>` : ''}</div></div>`).join('')}</div>` : `<p class="muted small" style="margin:8px 0 0">Una subgalería tiene su propio enlace, moderación y descarga. Úsala, por ejemplo, para cada sede de un torneo.</p>`}</div>`}
 <div class="gtools"><span class="muted small" id="shown">${photos.length} fotos</span><span class="spacer"></span><button class="btn sm" type="button" id="pickAll">Seleccionar todo</button></div>
 ${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid">${tiles}</div><p class="muted hidden" id="noMatch2">Ninguna foto coincide con el filtro.</p>` : `<div class="glass emptybox">Esta galería todavía no tiene fotos. Comparte el enlace para que tus invitados suban las suyas.</div>`}
 </section></div>
@@ -336,7 +336,7 @@ ${uploadDialog(event.parent_id ? null : event, subs.map((s) => ({ ...s, upload_o
 </div>
 <label class="field"><span>${event.parent_id ? 'Descripción de la subgalería' : 'Mensaje de bienvenida'}</span><textarea name="lead" maxlength="400">${esc(event.lead)}</textarea></label>
 <label class="field"><span>Terminación del enlace (opcional)</span><span class="slugrow"><i>${esc(new URL(guestUrl).host)}/g/</i><input type="text" name="slug" maxlength="40" autocomplete="off" spellcheck="false" value="${esc(event.slug || '')}" placeholder="torneo-las-rozas"></span></label>
-<p class="muted small" style="margin:-4px 0 6px">Solo letras, números y guiones. El enlace largo de siempre sigue funcionando. Déjalo vacío para quitar el personalizado.</p>
+<p class="muted small" style="margin:-4px 0 6px">Solo letras, números y guiones. El enlace largo de siempre sigue funcionando. Si lo dejas vacío se crea solo a partir del nombre de la galería.</p>
 <label class="check"><input type="checkbox" name="auto_approve" value="1" ${event.auto_approve ? 'checked' : ''}> Publicar las fotos al subirlas</label>
 <label class="check"><input type="checkbox" name="upload_open" value="1" ${event.upload_open ? 'checked' : ''}> Subida de fotos abierta</label>
 <label class="check"><input type="checkbox" name="gallery_open" value="1" ${event.gallery_open ? 'checked' : ''}> Galería visible para los invitados</label>

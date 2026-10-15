@@ -25,7 +25,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
     check('migas con padre', await p.isVisible(`.crumbs a:has-text("Torneo grande")`));
     check('subgalería no ofrece más subgalerías', !(await p.isVisible('[data-open=subDlg]')));
     await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
-    const link = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
+    const link = B + '/e/' + await p.$eval('body', (b) => b.dataset.token); await p.keyboard.press('Escape');
     const g = await (await b.newContext({ viewport: { width: 420, height: 800 } })).newPage();
     await g.goto(link); await g.click('#openUpload');
     const files = imgs(n === 'Sede Norte' ? 3 : 4);
@@ -38,7 +38,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   check('contadores 3 y 4', (await p.$$eval('.subs .gmeta span', (n) => n.map((x) => x.textContent))).join() === '3,4');
   // mostrar subgalerías a los invitados
   await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
-  const pl = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
+  const pl = B + '/e/' + await p.$eval('body', (b) => b.dataset.token); await p.keyboard.press('Escape');
   const gp = await (await b.newContext({ viewport: { width: 1360, height: 900 } })).newPage();
   await gp.goto(pl);
   check('sin opción: no se ven sedes', (await gp.$$('.subcard')).length === 0);
@@ -77,27 +77,28 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await gp.goto(pl); await gp.click('.subcard >> nth=0'); await gp.waitForSelector('#gallery .tile');
   check('descargas activadas en la sede', !!(await gp.$('#selToggle')));
   check('botón descargar por foto', (await gp.$$('.dlbtn')).length === 4);
-  const one = await gp.request.get(gp.url().split('?')[0] + '/dl/' + (await gp.getAttribute('.tile >> nth=0', 'data-id')));
+  const subTok = await gp.$eval('body', (b) => b.dataset.token);
+  const one = await gp.request.get(B + '/e/' + subTok + '/dl/' + (await gp.getAttribute('.tile >> nth=0', 'data-id')));
   check('descarga individual', one.status() === 200 && /attachment/.test(one.headers()['content-disposition'] || ''));
   await gp.click('#selToggle'); await gp.waitForSelector('#selMine:not(.hidden)');
   check('4 elegidas', (await gp.$$('.selpick.on')).length === 4 && (await gp.textContent('#selMineN')).startsWith('4'));
   const ids = await gp.$$eval('.tile', (n) => n.map((x) => x.dataset.id).join(','));
-  const z = await gp.request.get(gp.url().split('?')[0] + '/zip?ids=' + ids);
+  const z = await gp.request.get(B + '/e/' + subTok + '/zip?ids=' + ids);
   const zb = await z.body();
   check('ZIP de selección', z.status() === 200 && zb[0] === 0x50 && zb[1] === 0x4b, zb.length);
-  const za = await gp.request.get(gp.url().split('?')[0] + '/zip');
+  const za = await gp.request.get(B + '/e/' + subTok + '/zip');
   check('ZIP de todas', za.status() === 200 && (await za.body()).length > 1000);
   await gp.screenshot({ path: '/tmp/picfy_shots/dl_sel.png' });
   await gp.goto(pl);
   await gp.click('.subshare >> nth=0');
   await gp.waitForSelector('#subShare[open] svg');
-  check('ventana compartir con QR y enlace', /\/e\//.test(await gp.textContent('#subShareUrl')));
+  check('ventana compartir con QR y enlace', /\/g\//.test(await gp.textContent('#subShareUrl')));
   await gp.screenshot({ path: '/tmp/picfy_shots/subs_share.png' });
   await gp.click('#subShare [data-close]');
   await gp.click('.subcard >> nth=0');
   await gp.waitForSelector('h1:has-text("Sede")');
-  check('botón volver a la galería', await gp.isVisible('.backbtn') && (await gp.getAttribute('.backbtn', 'href')) === pl.replace(B, ''));
-  check('la tarjeta lleva a la sede', /\/e\//.test(gp.url()) && gp.url() !== pl);
+  check('botón volver a la galería', (await gp.isVisible('.backbtn')) && /^\/g\/[a-z0-9-]+$/.test(await gp.getAttribute('.backbtn', 'href')));
+  check('la tarjeta lleva a la sede', /\/g\//.test(gp.url()) && gp.url() !== pl);
   // la galería principal incluye las fotos de las sedes
   await p.goto(parentUrl);
   const nAll = (await p.$$('#sortGrid .tile.ph')).length;
@@ -126,7 +127,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.click('[data-open=setDlg]'); await p.check('#setDlg input[name=is_private]'); await p.fill('#setDlg input[name=access_password]', 'clave1'); await p.check('#setDlg input[name=allow_download]');
   await p.click('#setDlg button.primary'); await p.waitForSelector('.alert.ok:has-text("Ajustes guardados")');
   await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
-  const privLink = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
+  const privLink = B + '/e/' + await p.$eval('body', (b) => b.dataset.token); await p.keyboard.press('Escape');
   await p.click('#openUpload'); await p.setInputFiles('#fileInput', `${process.cwd()}/tests/img/p02.jpg`);
   await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 1);
   await p.click('#upStart'); await p.waitForSelector('.toast', { timeout: 90000 });

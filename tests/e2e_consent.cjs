@@ -15,7 +15,7 @@ const check = (n, c, e = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n, e); o
   await p.waitForURL(/\/galerias\/[0-9a-f]{16}/); const url = p.url().split('?')[0];
   const settings = async (fn) => { await p.goto(url); await p.click('[data-open=setDlg]'); await fn(); await p.click('#setDlg button.primary'); await p.waitForURL(/\?ok/); };
   await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
-  const link = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
+  const link = B + '/e/' + await p.$eval('body', (b) => b.dataset.token); await p.keyboard.press('Escape');
 
   await settings(async () => { await p.check('#setDlg [name=consent]'); await p.fill('#setDlg [name=consent_text]', 'Tengo permiso de las familias.'); });
   const g = await (await b.newContext({ viewport: { width: 420, height: 800 } })).newPage();
