@@ -1,7 +1,7 @@
 // Página de inicio pública de Picfy (picfy.es). HTML y CSS propios, sin depender de la app.
 import { ASSET_V } from './version.js';
 
-const CSS = `
+export const CSS = `
 @font-face{font-family:"Bricolage";font-style:normal;font-weight:200 800;font-display:swap;src:url(/vendor/fonts/bricolage-grotesque-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:"Bricolage";font-style:normal;font-weight:200 800;font-display:swap;src:url(/vendor/fonts/bricolage-grotesque-latin-ext-wght-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0}
 :root{--ink:#1c1611;--muted:#665c51;--line:#ece4d9;--amber:#edb265;--amber-d:#9b5d0e;--paper:#fff;--tint:#fdf6ec;--r:20px;
