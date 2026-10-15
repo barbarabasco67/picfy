@@ -632,3 +632,8 @@ fieldset.brand .check { margin-top: 4px; }
 .dlbtn { width: 24px; height: 24px; top: 7px; right: 7px; border-radius: 8px; }
 .dlbtn svg { width: 13px; height: 13px; }
 body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 24px); right: auto; }
+
+/* aviso de selección nueva */
+.chip.newsel { left: auto; right: 10px; background: #e0452f; color: #fff; font-weight: 700; }
+.newsel.dot, .selsend .newsel { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 99px; background: #e0452f; color: #fff; font-size: .72rem; font-weight: 700; line-height: 1.5; vertical-align: middle; }
+.btn .newsel.dot { margin-left: 6px; }

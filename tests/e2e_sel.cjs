@@ -39,9 +39,13 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await g.screenshot({ path: '/tmp/picfy_shots/sel_dlg.png' });
   await g.waitForTimeout(200); await g.screenshot({ path: '/tmp/picfy_shots/sel_dlg.png' }); await g.click('#selSendGo'); await g.waitForSelector('#selOk:not(.hidden)');
   // fotógrafo
+  await p.goto(B + '/galerias'); ok(await p.$('.gcard .chip.newsel'), 'aviso en la lista de galerías');
+  await p.screenshot({ path: '/tmp/picfy_shots/sel_list.png' });
   await p.goto(adminUrl); const btn = await p.$('[data-open=selDlg]'); ok(btn, 'botón Selecciones');
   ok((await btn.textContent()).includes('(1)'), 'contador 1');
-  await btn.click(); await p.waitForTimeout(300);
+  ok((await btn.textContent()).includes('nueva'), 'aviso nueva en el botón');
+  await btn.click(); await p.waitForTimeout(500);
+  await p.goto(B + '/galerias'); ok(!(await p.$('.gcard .chip.newsel')), 'aviso desaparece tras verla'); await p.goto(adminUrl); await p.click('[data-open=selDlg]'); await p.waitForTimeout(300);
   ok((await p.textContent('.selsend')).includes('Marta') && (await p.textContent('.selsend')).includes('Estas me encantan'), 'selección visible');
   await p.screenshot({ path: '/tmp/picfy_shots/sel_admin.png' });
   await p.click('[data-selfav]'); await p.waitForTimeout(600); await p.keyboard.press('Escape');

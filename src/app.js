@@ -8,7 +8,7 @@ import { orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, c
 import { galleryRoutes, validAccent } from './gallery.js';
 import { splitParts } from './zip.js';
 import { socialReady, loadStats, viewsReady } from './social.js';
-import { loadSelections } from './selection.js';
+import { loadSelections, selSeenReady, NEW_SEL_SQL } from './selection.js';
 
 const go = (to, headers = {}) => new Response(null, { status: 303, headers: { location: to, ...headers } });
 
@@ -281,9 +281,20 @@ export function appRoutes(app) {
          (SELECT p.id FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'approved'
             ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover
          , (SELECT COUNT(*) FROM events s WHERE s.parent_id = e.id) AS subs
+         , ${(await selSeenReady(c.env.DB)) ? NEW_SEL_SQL : '0'} AS new_sel
        FROM events e WHERE e.owner_id = ? AND e.parent_id IS NULL ${(await trashReady(c.env.DB)) ? 'AND e.deleted_at IS NULL' : ''} ORDER BY e.created_at DESC`,
     ).bind(user.id).all();
     return html(galleriesPage({ user, events: rows.results, origin: new URL(c.req.url).origin, defaults: await userDefaults(c.env.DB, user.id), ok: c.req.query('ok') || '' }));
+  });
+
+  // El organizador abre sus selecciones: se marcan como vistas.
+  app.post('/galerias/:id/selecciones/vistas', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return json({ error: 'auth' }, 403);
+    const event = await ownEvent(c, user);
+    if (!event) return json({ error: 'nf' }, 404);
+    try { await c.env.DB.prepare('UPDATE events SET sel_seen_at = ?1 WHERE id = ?2 OR parent_id = ?2').bind(Date.now(), event.id).run(); } catch { /* falta la migración 0018 */ }
+    return json({ ok: true });
   });
 
   app.post('/galerias', async (c) => {
@@ -356,7 +367,7 @@ export function appRoutes(app) {
     }
     const priv = await privacyReady(db);
     const subs = (await db.prepare(
-      `SELECT e.id, e.name, e.guest_token, e.thumb_v, ${priv ? 'e.is_private, (e.access_hash IS NOT NULL) AS has_pw,' : '0 AS is_private, 0 AS has_pw,'}
+      `SELECT e.id, e.name, e.guest_token, e.thumb_v, ${(await selSeenReady(db)) ? NEW_SEL_SQL : '0'} AS new_sel, ${priv ? 'e.is_private, (e.access_hash IS NOT NULL) AS has_pw,' : '0 AS is_private, 0 AS has_pw,'}
          (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'approved') AS approved,
          (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'pending') AS pending,
          (SELECT p.id FROM photos p WHERE p.event_id = e.id AND p.state = 'approved' ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover

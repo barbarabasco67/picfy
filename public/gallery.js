@@ -252,3 +252,13 @@
     }
   });
 })();
+
+// Al abrir las selecciones se marcan como vistas (desaparece el aviso).
+(() => {
+  const btn = document.querySelector('[data-open=selDlg]'), gid = document.body.dataset.gid;
+  if (!btn || !gid) return;
+  btn.addEventListener('click', () => {
+    if (!btn.querySelector('.newsel')) return;
+    fetch('/galerias/' + gid + '/selecciones/vistas', { method: 'POST' }).then(() => btn.querySelectorAll('.newsel').forEach((x) => x.remove())).catch(() => {});
+  });
+})();

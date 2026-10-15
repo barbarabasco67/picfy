@@ -10,6 +10,16 @@ export async function selReady(db) {
   catch { st = { v: false, t: Date.now() }; }
   return st.v;
 }
+let sst = { v: null, t: 0 };
+export async function selSeenReady(db) {
+  if (sst.v === true || (sst.v === false && Date.now() - sst.t < 30000)) return sst.v;
+  try { await db.prepare('SELECT sel_seen_at FROM events LIMIT 1').first(); sst = { v: (await selReady(db)), t: Date.now() }; }
+  catch { sst = { v: false, t: Date.now() }; }
+  return sst.v;
+}
+// Subconsulta: selecciones recibidas que el organizador aún no ha visto (alias `e` = galería principal).
+export const NEW_SEL_SQL = `(SELECT COUNT(*) FROM selection_sends q JOIN events qe ON qe.id = q.event_id WHERE (qe.id = e.id OR qe.parent_id = e.id) AND q.created_at > qe.sel_seen_at)`;
+
 const FAM = '(SELECT id FROM events WHERE id = ?1 OR parent_id = ?1)';
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -103,6 +113,7 @@ export function selectionRoutes(app, { accessOk }) {
 // Selecciones recibidas, para el panel del organizador.
 export async function loadSelections(db, event) {
   if (!(await selReady(db))) return { ready: false, sends: [] };
-  const rows = (await db.prepare(`SELECT s.id, s.name, s.email, s.note, s.ids, s.n, s.created_at, e.name AS ename FROM selection_sends s JOIN events e ON e.id = s.event_id WHERE s.event_id IN ${FAM} ORDER BY s.created_at DESC LIMIT 50`).bind(event.id).all()).results;
-  return { ready: true, sends: rows.map((r) => ({ ...r, ids: JSON.parse(r.ids || '[]') })) };
+  const seen = await selSeenReady(db);
+  const rows = (await db.prepare(`SELECT s.id, s.name, s.email, s.note, s.ids, s.n, s.created_at, e.name AS ename, ${seen ? '(s.created_at > e.sel_seen_at)' : '0'} AS isnew FROM selection_sends s JOIN events e ON e.id = s.event_id WHERE s.event_id IN ${FAM} ORDER BY s.created_at DESC LIMIT 50`).bind(event.id).all()).results;
+  return { ready: true, sends: rows.map((r) => ({ ...r, ids: JSON.parse(r.ids || '[]') })), newCount: rows.filter((r) => r.isnew).length };
 }
