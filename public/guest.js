@@ -30,6 +30,14 @@
 
   const items = [];
   let uploading = false;
+  try {
+    const t = sessionStorage.getItem('picfy_upok');
+    if (t) {
+      sessionStorage.removeItem('picfy_upok');
+      const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.append(el);
+      setTimeout(() => el.remove(), 5000);
+    }
+  } catch { /* sin almacenamiento */ }
 
   /* ---------- utilidades ---------- */
 
@@ -265,7 +273,11 @@
     uploading = false;
     const ok = items.filter((i) => i.state === 'ok').length;
     const bad = items.filter((i) => i.state === 'err').length;
-    if (ok) { }
+    if (!fatal && !bad && ok) {
+      // Todo subido: cerramos la ventana y recargamos para ver las fotos.
+      try { sessionStorage.setItem('picfy_upok', AUTO ? `¡Listo! ${ok} fotos subidas y publicadas.` : `¡Listo! ${ok} fotos subidas. Aparecerán cuando el organizador las apruebe.`); } catch { /* sin almacenamiento */ }
+      dlg.close(); location.reload(); return;
+    }
     if (fatal) showMsg(errText(fatal), 'err');
     else if (bad) showMsg(`${ok} subidas, ${bad} con error. Pulsa «Subir» para reintentar las que fallaron.`, 'err');
     else if (ok) showMsg(AUTO ? `¡Listo! ${ok} fotos subidas y publicadas.` : `¡Listo! ${ok} fotos subidas. Aparecerán en la galería cuando el organizador las apruebe.`, 'ok');

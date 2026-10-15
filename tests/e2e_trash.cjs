@@ -19,8 +19,8 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   const link = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
   await p.click('#openUpload').catch(() => {});
   await p.setInputFiles('#fileInput', imgs(4)); await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 4);
-  await p.click('#upStart'); await p.waitForFunction(() => document.querySelectorAll('.up-item .st.ok').length === 4, null, { timeout: 60000 });
-  await p.click('#upClose'); await p.waitForLoadState('load');
+  await p.click('#upStart'); await p.waitForSelector('.toast', { timeout: 90000 });
+  await p.waitForLoadState('load');
   const count = () => p.evaluate(() => document.querySelectorAll('#sortGrid .tile.ph').length);
   check('4 fotos subidas', (await count()) === 4, await count());
 

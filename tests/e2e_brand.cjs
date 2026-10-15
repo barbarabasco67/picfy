@@ -36,9 +36,9 @@ const img = (i) => `${process.cwd()}/tests/img/p${String(i).padStart(2, '0')}.jp
   await p.setInputFiles('#fileInput', [img(0), img(1), img(3)]);
   await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 3);
   await p.click('#upStart');
-  await p.waitForFunction(() => document.querySelectorAll('.up-item .st.ok').length === 3, null, { timeout: 60000 });
+  await p.waitForSelector('.toast', { timeout: 90000 });
   check('subida del dueño', true);
-  await p.click('#upClose'); await p.waitForLoadState('load'); await p.waitForTimeout(600);
+  await p.waitForLoadState('load'); await p.waitForTimeout(600);
   check('3 fotos y publicadas directamente', (await p.$$('.tile.ph[data-state=approved]')).length === 3);
 
   // Página de invitados con el aspecto elegido

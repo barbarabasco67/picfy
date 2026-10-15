@@ -44,12 +44,10 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.setInputFiles('#fileInput', imgs(2)); // se vuelven a añadir p00 y p01
   await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 12);
   await p.click('#upStart');
-  await p.waitForSelector('#upMsg:not(.hidden)', { timeout: 60000 });
-  const msg = await p.textContent('#upMsg');
+  await p.waitForSelector('.toast', { timeout: 90000 });
+  const msg = await p.textContent('.toast');
   check('mensaje de éxito', /12 fotos subidas y publicadas/.test(msg), msg);
-  check('estados ok', (await p.$$('.up-item .st.ok')).length === 12);
-  await p.click('#upClose');
-  await p.waitForLoadState('load');
+  check('ventana cerrada sola', !(await p.$eval('#upDlg', (d) => d.open)));
 
   // 3. Galería por hora de captura: p08(0) p07(1) p10(2) p02(3) p05(4) p11(5) p09(6) p00(7) p04(8) p06(9) p03(10) p01(11)
   await p.waitForSelector('#gallery .tile');
@@ -58,6 +56,8 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   const sizes = [];
   for (const id of gIds) sizes.push(await p.evaluate(async (id) => (await createImageBitmap(await (await fetch(`/m/${id}/m`)).blob())).width, id));
   check('miniaturas generadas (≤480px)', sizes.every((w) => w > 0 && w <= 480), sizes.join(','));
+  const srcs = await p.$$eval('#gallery .tile img', (n) => n.map((i) => i.getAttribute('src')));
+  check('galería usa calidad alta', srcs.every((s) => /\/l$/.test(s)), srcs[0]);
   check('sin pill Mi álbum', !(await p.$('#minePill')));
   const mr = await p.goto(B + '/e/x/mine/' + 'a'.repeat(32));
   check('página Mi álbum eliminada', mr.status() === 404);

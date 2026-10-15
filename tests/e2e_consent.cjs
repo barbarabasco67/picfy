@@ -26,7 +26,7 @@ const check = (n, c, e = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n, e); o
   check('sin marcar no se puede subir', await g.isDisabled('#upStart'));
   await g.check('#upConsent');
   check('marcado se puede subir', !(await g.isDisabled('#upStart')));
-  await g.click('#upStart'); await g.waitForSelector('.up-item .st.ok', { timeout: 30000 });
+  await g.click('#upStart'); await g.waitForSelector('.toast', { timeout: 30000 });
   check('subida con consentimiento', true);
   const key = await g.evaluate(() => Object.keys(localStorage).find((k) => k.startsWith('picfy_key_')) && localStorage.getItem(Object.keys(localStorage).find((k) => k.startsWith('picfy_key_'))));
   const tok = link.split('/e/')[1];

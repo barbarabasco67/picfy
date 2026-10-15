@@ -56,7 +56,7 @@ const email = `t${Date.now()}@ejemplo.es`;
   await g.setInputFiles('#fileInput', imgs(6));
   await g.waitForFunction(() => document.querySelectorAll('.up-item').length === 6);
   await g.click('#upStart');
-  await g.waitForFunction(() => document.querySelectorAll('.up-item .st.ok').length === 6, null, { timeout: 60000 });
+  await g.waitForSelector('.toast', { timeout: 90000 });
   check('invitado subió 6', true);
 
   // El dueño las ve

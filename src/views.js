@@ -63,7 +63,7 @@ export function tile(p, extra = '', dlToken = '') {
   const det = `<div class="det">${by ? `<strong>${by}</strong>` : ''}${when ? `<span>${esc(when)}</span>` : ''}${p.w && p.h ? `<span>${p.w} × ${p.h} px</span>` : ''}</div>`;
   const dlb = dlToken ? `<a class="dlbtn" href="/e/${dlToken}/dl/${p.id}" download aria-label="Descargar foto" title="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg></a><span class="pick" aria-hidden="true"></span>` : '';
   return `<figure class="gitem"${ar}><a class="tile" href="/m/${p.id}/l" data-id="${p.id}" data-full="/m/${p.id}/l">
-  <img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="" ${p.w && p.h ? `width="${p.w}" height="${p.h}"` : ''}>${extra}</a>${dlb}${by ? `<figcaption>${by}</figcaption>` : ''}${det}</figure>`;
+  <img src="/m/${p.id}/l" loading="lazy" decoding="async" alt="" ${p.w && p.h ? `width="${p.w}" height="${p.h}"` : ''}>${extra}</a>${dlb}${by ? `<figcaption>${by}</figcaption>` : ''}${det}</figure>`;
 }
 
 export function lightbox(social = false, mod = false, selection = false) {

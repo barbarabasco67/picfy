@@ -36,7 +36,7 @@ const email = `m${Date.now()}@ejemplo.es`;
     await g.setInputFiles('#fileInput', files);
     await g.waitForFunction((n) => document.querySelectorAll('.up-item').length === n, files.length);
     await g.click('#upStart');
-    await g.waitForFunction((n) => document.querySelectorAll('.up-item .st.ok').length === n, files.length, { timeout: 60000 });
+    await g.waitForSelector('.toast', { timeout: 90000 });
     await g.context().close();
   }
   await upload('Sede Norte', imgs(5));

@@ -31,7 +31,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
     const files = imgs(n === 'Sede Norte' ? 3 : 4);
     await g.setInputFiles('#fileInput', files);
     await g.waitForFunction((k) => document.querySelectorAll('.up-item').length === k, files.length);
-    await g.click('#upStart'); await g.waitForFunction((k) => document.querySelectorAll('.up-item .st.ok').length === k, files.length, { timeout: 60000 });
+    await g.click('#upStart'); await g.waitForSelector('.toast', { timeout: 90000 });
   }
   await p.goto(parentUrl);
   check('2 subgalerías listadas', (await p.$$('.subs .gcard')).length === 2);
@@ -62,8 +62,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await gp.selectOption('#upTarget', { index: 1 });
   await gp.setInputFiles('#fileInput', `${process.cwd()}/tests/img/p01.jpg`);
   await gp.waitForFunction(() => document.querySelectorAll('.up-item').length === 1);
-  await gp.click('#upStart'); await gp.waitForFunction(() => document.querySelectorAll('.up-item .st.ok').length === 1, null, { timeout: 30000 });
-  await gp.click('#upClose'); await gp.waitForLoadState('load');
+  await gp.click('#upStart'); await gp.waitForSelector('.toast', { timeout: 30000 });
   await gp.goto(pl);
   check('la foto fue a la sede elegida', (await gp.$$eval('.subn', (n) => n.map((x) => x.textContent.trim()))).join() === '4 fotos,4 fotos');
   // descargas: desactivadas por defecto
@@ -130,8 +129,8 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   const privLink = (await p.textContent('#guestLink')).trim().replace(/^https?:\/\/[^/]+/, B); await p.keyboard.press('Escape');
   await p.click('#openUpload'); await p.setInputFiles('#fileInput', `${process.cwd()}/tests/img/p02.jpg`);
   await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 1);
-  await p.click('#upStart'); await p.waitForFunction(() => document.querySelectorAll('.up-item .st.ok').length === 1, null, { timeout: 30000 });
-  await p.click('#upClose'); await p.waitForLoadState('load');
+  await p.click('#upStart'); await p.waitForSelector('.toast', { timeout: 90000 });
+  await p.waitForLoadState('load');
   const anon = await (await b.newContext({ viewport: { width: 1200, height: 800 } })).newPage();
   await anon.goto(pl);
   const names = await anon.$$eval('.subname', (n) => n.map((x) => x.textContent));

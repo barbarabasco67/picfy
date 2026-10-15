@@ -220,7 +220,7 @@ export function galleryPage({ sels = null, stats = null, user, event, photos, su
     .map((p) => `<div class="tile ph" data-id="${p.id}" data-full="/m/${p.id}/l" data-state="${p.state}" data-flag="${p.flag || ''}" data-fav="${p.fav ? 1 : 0}" data-name="${esc((p.filename || '').toLowerCase())}" data-guest="${p.guest_id}" data-day="${dayOf(p.ts)}" title="${esc(gname.get(p.guest_id) || '')}${p.event_id !== event.id && p.ename ? ' · ' + esc(p.ename) : ''}">
 ${p.event_id !== event.id && p.ename ? `<span class="sedechip">${esc(p.ename)}</span>` : ''}
 <input class="chk" type="checkbox" aria-label="Seleccionar foto">
-<img src="/m/${p.id}/m" loading="lazy" decoding="async" alt="">
+<img src="/m/${p.id}/l" loading="lazy" decoding="async" alt="">
 <button class="mk flagb" type="button" data-mk="flag" aria-label="Bandera">${ICON.flag}</button>
 <button class="mk favb ${p.fav ? 'on' : ''}" type="button" data-mk="fav" aria-label="Favorita">${ICON.heart}</button>
 ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' ? 'En revisión' : 'No publicada'}</span>` : ''}
