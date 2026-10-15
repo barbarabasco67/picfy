@@ -6,6 +6,7 @@ import { authPage, galleriesPage, galleryPage, accountPage, trashPage } from './
 import { notFoundPage } from './views.js';
 import { orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, cleanup, GALLERY_TRASH_DAYS } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
+import { collectionRoutes } from './collections.js';
 import { splitParts } from './zip.js';
 import { socialReady, loadStats, viewsReady } from './social.js';
 import { loadSelections, selSeenReady, NEW_SEL_SQL } from './selection.js';
@@ -19,6 +20,7 @@ async function userCount(db) {
 
 export function appRoutes(app) {
   galleryRoutes(app);
+  collectionRoutes(app);
 
   /* ----- Entrar ----- */
   app.get('/entrar', async (c) => (await currentUser(c)) ? go('/galerias') : html(authPage({ mode: 'login' })));

@@ -187,3 +187,12 @@ th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line
 .selmine .selx { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, .08); font-size: 18px; line-height: 1; cursor: pointer; color: inherit; }
 .selmine .selx:hover { background: rgba(0, 0, 0, .16); }
 .selmine { padding-left: 10px; }
+
+/* ---- Página pública de una colección ---- */
+.colgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; padding: 8px 0 30px; }
+.colcard { display: grid; gap: 4px; text-decoration: none; color: inherit; padding: 10px 10px 14px; border-radius: 22px; background: rgba(255, 255, 255, .75); border: 1px solid var(--line); box-shadow: 0 6px 22px rgba(190, 130, 40, .1); transition: transform .15s; }
+.colcard:hover { transform: translateY(-3px); }
+.colimg { display: block; aspect-ratio: 4 / 3; border-radius: 15px; background: #f6e7d0 center / cover no-repeat; margin-bottom: 8px; }
+.colname { font-weight: 800; font-size: 1.05rem; padding: 0 6px; }
+.coldesc { color: var(--muted); font-size: .9rem; padding: 0 6px; }
+.colmeta { color: var(--muted); font-size: .82rem; padding: 0 6px; }

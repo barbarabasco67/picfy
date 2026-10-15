@@ -14,6 +14,7 @@ import {
 import { manageRoutes } from './manage.js';
 import { socialRoutes, viewRoutes } from './social.js';
 import { selectionRoutes } from './selection.js';
+import { publicCollectionRoute } from './collections.js';
 import { appRoutes } from './app.js';
 import { currentUser, hashPassword } from './auth.js';
 import { buildZip, splitParts } from './zip.js';
@@ -190,6 +191,7 @@ app.get('/e/:token', async (c) => {
 socialRoutes(app, { accessOk, ownsEvent });
 viewRoutes(app, { accessOk, ownsEvent });
 selectionRoutes(app, { accessOk });
+publicCollectionRoute(app);
 
 async function guestFor(db, event, key) {
   if (!isHex(key, 32)) return null;

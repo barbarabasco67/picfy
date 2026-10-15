@@ -254,3 +254,16 @@ const TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 
 const BADGES = { pending: ['En revisión', 'warn'], rejected: ['No publicada', 'bad'] };
 
+
+
+export function collectionPublicPage({ col, items = [] }) {
+  const cards = items.map((g) => `<a class="colcard" href="/e/${g.guest_token}">
+<span class="colimg"${g.thumb_v ? ` style="background-image:url('/c/${g.guest_token}/thumb?v=${g.thumb_v}')"` : g.cover ? ` style="background-image:url('/m/${g.cover}/m')"` : ''}></span>
+<span class="colname">${esc(g.name)}</span>${g.lead ? `<span class="coldesc">${esc(g.lead)}</span>` : ''}<span class="colmeta">${g.n} ${g.n === 1 ? 'foto' : 'fotos'}${g.event_date ? ' · ' + esc(fmtDate(g.event_date)) : ''}</span></a>`).join('');
+  return layout({
+    title: `${col.name} · Picfy`,
+    body: `<header class="hero"><div class="hero-body"><h1>${esc(col.name)}</h1>${col.lead ? `<p class="lead">${esc(col.lead)}</p>` : ''}</div></header>
+<main class="wrap">${items.length ? `<div class="colgrid">${cards}</div>` : '<div class="empty">Aún no hay galerías disponibles.</div>'}</main>
+<p class="brand">Picfy</p>`,
+  });
+}

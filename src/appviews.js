@@ -18,6 +18,7 @@ const ICON = {
   cog: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>',
   brush: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.4 0 2-.9 2-1.8 0-1.2-1-1.6-1-2.7 0-1 .8-1.5 1.8-1.5H17a4 4 0 004-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/></svg>',
   pipette: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.7 3.3a2.4 2.4 0 00-3.4 0l-3 3-1-1-1.4 1.4 1 1L4 15.6V20h4.4l8.2-8.2 1 1 1.4-1.4-1-1 3-3a2.4 2.4 0 000-3.4z"/></svg>',
+  coll: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="14" height="14" rx="2"/><path d="M3 7v12a2 2 0 002 2h12"/></svg>',
   lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>',
 };
 export { ICON };
@@ -48,8 +49,7 @@ ${noside ? '' : `<aside class="side glass${collapsible ? ' collapsed' : ''}">
 ${collapsible ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}
 ${side || `<p class="side-h">Gestiona tus fotos</p>
 <a class="nav ${active === 'galerias' ? 'on' : ''}" href="/galerias">${ICON.gal}<span>Galerías</span></a>
-<p class="side-h">Próximamente</p>
-<span class="nav off">${ICON.lock}<span>Colecciones</span></span>
+<a class="nav ${active === 'colecciones' ? 'on' : ''}" href="/colecciones">${ICON.coll}<span>Colecciones</span></a>
 <a class="nav trashnav ${active === 'papelera' ? 'on' : ''}" href="/papelera">${ICON.trash}<span>Papelera</span></a>`}
 </aside>`}
 <main class="main">${main}</main>
@@ -453,6 +453,70 @@ ${photos.length ? `<h2 class="sec">Fotos</h2><div class="tgrid">${ph}</div>` : '
 <button class="btn danger" type="submit" formaction="/papelera/borrar" onclick="return confirm('Se borrará para siempre lo que has marcado. ¿Seguir?')">Borrar lo marcado para siempre</button>
 <span class="spacer"></span>
 <button class="btn" type="submit" formaction="/papelera/vaciar" onclick="return confirm('Se vaciará la papelera y no se podrá recuperar nada. ¿Seguir?')">Vaciar la papelera</button></div></form>`}`,
+    }),
+  });
+}
+
+
+/* ---------- Colecciones ---------- */
+
+const noTables = '<div class="alert">Colecciones aún no está activado en la base de datos. Hay que pegar un código una sola vez (te lo ha pasado Claude).</div>';
+
+export function collectionsPage({ user, collections = [], ready = true, ok = '' }) {
+  const cards = collections.map((c) => `<a class="gcard glass" href="/colecciones/${c.id}">
+<div class="cover">${c.cover ? `<img src="/m/${c.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.coll}</span>`}<span class="chip subc">${c.n} ${c.n === 1 ? 'galería' : 'galerías'}</span></div>
+<div class="gmeta"><strong>${esc(c.name)}</strong></div>${c.lead ? `<div class="gdate">${esc(c.lead)}</div>` : ''}</a>`).join('');
+  return appPage({
+    title: 'Colecciones',
+    scripts: ['/app.js', '/colecciones.js'],
+    body: shell({
+      user, active: 'colecciones', crumbs: '<b>Colecciones</b>',
+      main: `${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}${ready ? '' : noTables}<div class="head"><div><h1>Colecciones</h1><p class="muted">Agrupa varias galerías de un mismo cliente y compártelas con un único enlace.</p></div></div>
+${ready ? `<button class="btn primary" type="button" data-open="newCol">${ICON.plus} Crear una colección</button>` : ''}
+<h2 class="sec">Tus colecciones</h2>
+${collections.length ? `<div class="gcards">${cards}</div>` : '<div class="glass emptybox">Todavía no tienes colecciones. Crea una, por ejemplo con el nombre de un cliente, y añade sus galerías.</div>'}
+<dialog id="newCol" class="glassdlg"><form method="post" action="/colecciones" class="dlgbox">
+<header><h2>Crear una colección</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<label class="field"><span>Nombre</span><input class="txt" type="text" name="name" maxlength="120" placeholder="Por ejemplo: Boda de Marta y Luis" required></label>
+<label class="field"><span>Descripción (opcional)</span><input class="txt" type="text" name="lead" maxlength="400" placeholder="Una frase que verá tu cliente"></label>
+<footer><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Crear colección</button></footer>
+</form></dialog>`,
+    }),
+  });
+}
+
+export function collectionPage({ user, col, items = [], available = [], origin, ok = '' }) {
+  const url = `${origin}/col/${col.token}`;
+  const last = items.length - 1;
+  const cards = items.map((g, i) => `<div class="colitem glass">
+<a class="colcover" href="/galerias/${g.id}">${g.thumb_v ? `<img src="/c/${g.guest_token}/thumb?v=${g.thumb_v}" alt="" loading="lazy">` : g.cover ? `<img src="/m/${g.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}</a>
+<div class="colinfo"><a href="/galerias/${g.id}"><b>${esc(g.name)}</b></a><span class="muted small">${g.n} ${g.n === 1 ? 'foto' : 'fotos'}${g.event_date ? ' · ' + esc(fmtDate(g.event_date)) : ''}</span></div>
+<div class="colacts">
+<form method="post" action="/colecciones/${col.id}/mover"><input type="hidden" name="event_id" value="${g.id}"><button class="iconbtn" name="dir" value="up" aria-label="Subir" title="Subir" ${i === 0 ? 'disabled' : ''}>↑</button><button class="iconbtn" name="dir" value="down" aria-label="Bajar" title="Bajar" ${i === last ? 'disabled' : ''}>↓</button></form>
+<form method="post" action="/colecciones/${col.id}/quitar"><input type="hidden" name="event_id" value="${g.id}"><button class="iconbtn" aria-label="Quitar de la colección" title="Quitar de la colección">×</button></form>
+</div></div>`).join('');
+  const avail = available.length ? available.map((g) => `<label class="check colpick"><input type="checkbox" name="gal" value="${g.id}"> <span><b>${esc(g.name)}</b> <small class="muted">${g.n} ${g.n === 1 ? 'foto' : 'fotos'}</small></span></label>`).join('') : '<p class="muted">Todas tus galerías ya están en esta colección.</p>';
+  return appPage({
+    title: col.name,
+    scripts: ['/app.js', '/colecciones.js'],
+    body: shell({
+      user, active: 'colecciones', crumbs: `<a href="/colecciones">Colecciones</a><span>/</span><b>${esc(col.name)}</b>`,
+      main: `${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}<div class="head"><div><h1>${esc(col.name)}</h1>${col.lead ? `<p class="muted">${esc(col.lead)}</p>` : ''}</div></div>
+<div class="glass colshare"><span class="muted small">Enlace para tu cliente</span><div class="linkbox" id="colLink">${esc(url)}</div>
+<div class="colbtns"><button class="btn primary" type="button" id="copyCol">Copiar enlace</button><a class="btn" href="/col/${col.token}" target="_blank" rel="noopener">${ICON.eye} Vista previa</a><button class="btn" type="button" data-open="editCol">Editar nombre</button></div></div>
+<h2 class="sec">Galerías de la colección</h2>
+<button class="btn" type="button" data-open="addGal">${ICON.plus} Añadir galerías</button>
+${items.length ? `<div class="collist">${cards}</div>` : '<div class="glass emptybox">Esta colección está vacía. Añade galerías para que tu cliente las vea juntas.</div>'}
+<form method="post" action="/colecciones/${col.id}/borrar" class="coldel" onsubmit="return confirm('Se eliminará la colección y su enlace. Las galerías no se borran. ¿Seguir?')"><button class="btn danger" type="submit">Eliminar colección</button></form>
+<dialog id="addGal" class="glassdlg"><form method="post" action="/colecciones/${col.id}/galerias" class="dlgbox">
+<header><h2>Añadir galerías</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div class="colpicks">${avail}</div>
+<footer><button class="btn" type="button" data-close>Cancelar</button>${available.length ? '<button class="btn primary" type="submit">Añadir las marcadas</button>' : ''}</footer></form></dialog>
+<dialog id="editCol" class="glassdlg"><form method="post" action="/colecciones/${col.id}/ajustes" class="dlgbox">
+<header><h2>Editar la colección</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<label class="field"><span>Nombre</span><input class="txt" type="text" name="name" maxlength="120" value="${esc(col.name)}" required></label>
+<label class="field"><span>Descripción (opcional)</span><input class="txt" type="text" name="lead" maxlength="400" value="${esc(col.lead || '')}"></label>
+<footer><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer></form></dialog>`,
     }),
   });
 }
