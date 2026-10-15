@@ -6,7 +6,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   for (const [w, h] of [[1440, 900], [390, 844]]) {
     const p = await (await b.newContext({ viewport: { width: w, height: h } })).newPage(); const errs = []; p.on('pageerror', (e) => errs.push(e.message));
     const r = await p.goto(B + '/'); ok(r.status() === 200, 'status 200');
-    ok((await p.textContent('h1')).includes('cada sede en su sitio'), 'titular');
+    ok((await p.textContent('h1')).includes('en un solo enlace'), 'titular');
     ok(await p.$('a[href="/entrar"]') && await p.$('a[href="/registro"]'), 'enlaces a entrar y registro');
     await p.evaluate(async () => { for (const i of document.images) i.loading = 'eager'; await Promise.all([...document.images].map((i) => i.decode().catch(() => {}))); });
     const bad = await p.$$eval('img', (a) => a.filter((i) => !i.naturalWidth).map((i) => i.src)); ok(bad.length === 0, 'imágenes rotas: ' + bad.join(','));
