@@ -200,7 +200,7 @@ export function appRoutes(app) {
     const f = await c.req.formData().catch(() => null);
     const typed = f ? String(f.get('name') || '').trim().slice(0, 120) : '';
     const name = typed && typed !== event.name ? typed : `${event.name} (copia)`.slice(0, 120);
-    const SKIP = new Set(['id', 'guest_token', 'manage_hash', 'created_at', 'owner_id', 'expires_at', 'deleted_at', 'parent_id', 'name']);
+    const SKIP = new Set(['id', 'guest_token', 'manage_hash', 'created_at', 'owner_id', 'expires_at', 'deleted_at', 'parent_id', 'name', 'slug']);
     async function clone(src, parentId, newName) {
       const nid = randomHex(8);
       const vals = { id: nid, name: newName, guest_token: randomHex(16), manage_hash: await sha256Hex(randomHex(32)), created_at: Date.now(), owner_id: user.id, parent_id: parentId };

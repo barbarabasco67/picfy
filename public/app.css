@@ -663,3 +663,6 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 24px); r
 .upl li { display: flex; justify-content: space-between; gap: 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.6); padding: 8px 14px; }
 .upl b { font-weight: 800; }
 @media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+.slugrow{display:flex;align-items:center;gap:0;border:1px solid var(--line,rgba(0,0,0,.14));border-radius:12px;background:rgba(255,255,255,.7);overflow:hidden}
+.slugrow i{font-style:normal;color:var(--muted,#6b6b6b);padding:0 2px 0 12px;white-space:nowrap;font-size:.92rem}
+.slugrow input{border:0!important;background:transparent!important;box-shadow:none!important;min-width:0;flex:1;padding-left:2px!important}

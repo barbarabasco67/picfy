@@ -71,6 +71,25 @@ export async function getEventByGuestToken(db, token) {
   return inheritFromParent(db, e);
 }
 
+export async function getEventBySlug(db, slug) {
+  if (!/^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/.test(String(slug))) return null;
+  let e = null;
+  try { e = await db.prepare('SELECT * FROM events WHERE slug = ?').bind(slug).first(); } catch { return null; } // falta la migración 0021
+  if (e && e.deleted_at) return null;
+  return inheritFromParent(db, e);
+}
+
+let slugState = { v: null, t: 0 };
+export async function slugReady(db) {
+  if (slugState.v === true || (slugState.v === false && Date.now() - slugState.t < 30000)) return slugState.v;
+  try { await db.prepare('SELECT slug FROM events LIMIT 1').first(); slugState = { v: true, t: Date.now() }; }
+  catch { slugState = { v: false, t: Date.now() }; }
+  return slugState.v;
+}
+
+// "Torneo Las Rozas 2026!" -> "torneo-las-rozas-2026"
+export const slugify = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
+
 export async function getEventById(db, id) {
   if (!isHex(id, 16)) return null;
   const e = await db.prepare('SELECT * FROM events WHERE id = ?').bind(id).first();

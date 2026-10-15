@@ -4,7 +4,7 @@ import {
   makeSession, checkSession, getCookie,
 } from './util.js';
 import {
-  getEventByGuestToken, getEventById, isExpired, cleanup, deleteFamily, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
+  getEventByGuestToken, getEventBySlug, getEventById, isExpired, cleanup, deleteFamily, listApproved, countApproved, privacyReady, famPublic, GUEST_ORDERS,
   applyOrder, nextSortOrder, deletePhotos, orderSql,
 } from './photos.js';
 import {
@@ -155,15 +155,17 @@ app.post('/e/:token/acceso', async (c) => {
   const given = salt ? await hashPassword(String(f.get('password') || ''), salt) : '';
   if (!event.access_hash || (hash && timingSafeEqual(given, hash))) {
     const val = await sha256Hex((event.access_hash || '') + event.guest_token);
-    return new Response(null, { status: 303, headers: { location: `/e/${event.guest_token}`, 'set-cookie': `${accessCookie(event)}=${val}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${30 * 86400}` } });
+    return new Response(null, { status: 303, headers: { location: event.slug ? `/g/${event.slug}` : `/e/${event.guest_token}`, 'set-cookie': `${accessCookie(event)}=${val}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${30 * 86400}` } });
   }
   return html(accessPage(event, 'Contraseña incorrecta. Inténtalo de nuevo.'), 401);
 });
 
 /* ---------- Invitados ---------- */
 
-app.get('/e/:token', async (c) => {
-  const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
+app.get('/e/:token', async (c) => guestView(c, await getEventByGuestToken(c.env.DB, c.req.param('token'))));
+app.get('/g/:slug', async (c) => guestView(c, await getEventBySlug(c.env.DB, c.req.param('slug'))));
+
+async function guestView(c, event) {
   if (!event) return html(notFoundPage('Este enlace no existe o ya no está activo.'), 404);
   if (isExpired(event) && event.expire_delete && !(await ownsEvent(c, event))) {
     // caducada y marcada para borrarse: se borra al primer acceso pasada la fecha
@@ -189,7 +191,7 @@ app.get('/e/:token', async (c) => {
   if (event.parent_id) parent = await c.env.DB.prepare('SELECT name, guest_token FROM events WHERE id = ?').bind(event.parent_id).first();
   const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
   return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(total / partSize)), partSize, total } : null }));
-});
+}
 
 socialRoutes(app, { accessOk, ownsEvent });
 viewRoutes(app, { accessOk, ownsEvent });

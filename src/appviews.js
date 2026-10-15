@@ -214,7 +214,7 @@ const dayOf = (ms) => (ms ? new Date(Number(ms)).toLocaleDateString('sv-SE', { t
 const dayLabel = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 
 export function galleryPage({ sels = null, stats = null, user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
-  const guestUrl = `${origin}/e/${event.guest_token}`;
+  const guestUrl = event.slug ? `${origin}/g/${event.slug}` : `${origin}/e/${event.guest_token}`;
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
     .map((p) => `<div class="tile ph" data-id="${p.id}" data-full="/m/${p.id}/l" data-state="${p.state}" data-flag="${p.flag || ''}" data-fav="${p.fav ? 1 : 0}" data-name="${esc((p.filename || '').toLowerCase())}" data-guest="${p.guest_id}" data-day="${dayOf(p.ts)}" title="${esc(gname.get(p.guest_id) || '')}${p.event_id !== event.id && p.ename ? ' · ' + esc(p.ename) : ''}">
@@ -252,7 +252,7 @@ ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(even
 <div class="trio">
 <button class="tool" type="button" data-open="setDlg">${ICON.cog}<span>Ajustes</span></button>
 <button class="tool" type="button" data-open="brandDlg">${ICON.brush}<span>Personalizar</span></button>
-<a class="tool" href="/e/${event.guest_token}" target="_blank" rel="noopener">${ICON.eye}<span>Vista previa</span></a>
+<a class="tool" href="${event.slug ? '/g/' + event.slug : '/e/' + event.guest_token}" target="_blank" rel="noopener">${ICON.eye}<span>Vista previa</span></a>
 <button class="tool" type="button" id="openShare">${ICON.share}<span>Compartir</span></button>
 </div>
 <div class="sidebtns">
@@ -335,6 +335,8 @@ ${uploadDialog(event.parent_id ? null : event, subs.map((s) => ({ ...s, upload_o
 <label class="field"><span>Máx. fotos por persona (0 = sin límite)</span><input type="number" name="photo_limit" min="0" max="2000" value="${event.photo_limit}"></label>
 </div>
 <label class="field"><span>${event.parent_id ? 'Descripción de la subgalería' : 'Mensaje de bienvenida'}</span><textarea name="lead" maxlength="400">${esc(event.lead)}</textarea></label>
+<label class="field"><span>Terminación del enlace (opcional)</span><span class="slugrow"><i>${esc(new URL(guestUrl).host)}/g/</i><input type="text" name="slug" maxlength="40" autocomplete="off" spellcheck="false" value="${esc(event.slug || '')}" placeholder="torneo-las-rozas"></span></label>
+<p class="muted small" style="margin:-4px 0 6px">Solo letras, números y guiones. El enlace largo de siempre sigue funcionando. Déjalo vacío para quitar el personalizado.</p>
 <label class="check"><input type="checkbox" name="auto_approve" value="1" ${event.auto_approve ? 'checked' : ''}> Publicar las fotos al subirlas</label>
 <label class="check"><input type="checkbox" name="upload_open" value="1" ${event.upload_open ? 'checked' : ''}> Subida de fotos abierta</label>
 <label class="check"><input type="checkbox" name="gallery_open" value="1" ${event.gallery_open ? 'checked' : ''}> Galería visible para los invitados</label>

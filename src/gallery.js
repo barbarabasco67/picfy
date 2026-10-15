@@ -2,7 +2,7 @@
 
 import { isHex, json, html, randomHex } from './util.js';
 import { currentUser, hashPassword } from './auth.js';
-import { applyOrder, deletePhotos, trashPhotos, orderSql, setSortMode, SORTS } from './photos.js';
+import { slugify, slugReady, applyOrder, deletePhotos, trashPhotos, orderSql, setSortMode, SORTS } from './photos.js';
 import { buildZip, splitParts } from './zip.js';
 import { notFoundPage } from './views.js';
 
@@ -189,6 +189,21 @@ export function galleryRoutes(app) {
       else await c.env.DB.prepare('UPDATE events SET selection = ? WHERE id = ?').bind(se, event.id).run();
     } catch { /* falta la migración 0017 */ }
     let msg = 'Ajustes guardados.';
+    if (f.has('slug')) {
+      const raw = String(f.get('slug') || '').trim();
+      const sl = slugify(raw);
+      if (!(await slugReady(c.env.DB))) { if (raw) msg = 'Ajustes guardados, pero falta la actualización de la base de datos (migración 0021) para el enlace personalizado.'; }
+      else if (!raw) await c.env.DB.prepare('UPDATE events SET slug = NULL WHERE id = ?').bind(event.id).run();
+      else if (sl.length < 3) msg = 'Ajustes guardados, pero la terminación del enlace necesita al menos 3 letras o números.';
+      else if (sl !== event.slug) {
+        const used = await c.env.DB.prepare('SELECT id FROM events WHERE slug = ? AND id != ?').bind(sl, event.id).first();
+        if (used) msg = `Ajustes guardados, pero «${sl}» ya está en uso. Elige otra terminación para el enlace.`;
+        else {
+          try { await c.env.DB.prepare('UPDATE events SET slug = ? WHERE id = ?').bind(sl, event.id).run(); }
+          catch { msg = `Ajustes guardados, pero «${sl}» ya está en uso. Elige otra terminación para el enlace.`; }
+        }
+      }
+    }
     if (!event.parent_id) {
       const ex = String(f.get('expires') || '');
       const exMs = /^\d{4}-\d{2}-\d{2}$/.test(ex) ? Date.parse(ex + 'T23:59:59') : null;
