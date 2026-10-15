@@ -88,18 +88,6 @@ function selectionUi(event, dl) {
 ${dialog}`;
 }
 
-export function landingPage() {
-  return layout({
-    title: 'Picfy',
-    body: `<main class="wrap narrow" style="padding:90px 16px;text-align:center"><div class="glass emptybox" style="padding:44px 24px">
-<h1 style="font-size:3rem">Picfy</h1>
-<p class="muted">Las fotos de todos, en un solo sitio.</p>
-<p><a class="btn primary" href="/entrar">Entrar</a></p>
-<p class="small muted">Si tienes un enlace de evento, ábrelo directamente.</p>
-</div></main>`,
-  });
-}
-
 export function notFoundPage(msg = 'No hemos encontrado esta página.') {
   return layout({
     title: 'No encontrado · Picfy',

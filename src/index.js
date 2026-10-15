@@ -8,10 +8,11 @@ import {
   applyOrder, nextSortOrder, deletePhotos, orderSql,
 } from './photos.js';
 import {
-  PER_PAGE, landingPage, notFoundPage, adminLoginPage, adminDashboard, adminCreated,
+  PER_PAGE, notFoundPage, adminLoginPage, adminDashboard, adminCreated,
   guestPage, accessPage,
 } from './views.js';
 import { manageRoutes } from './manage.js';
+import { landingPage } from './landing.js';
 import { socialRoutes, viewRoutes, countDownload } from './social.js';
 import { selectionRoutes } from './selection.js';
 import { publicCollectionRoute } from './collections.js';
