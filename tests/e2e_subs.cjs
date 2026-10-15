@@ -35,7 +35,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   }
   await p.goto(parentUrl);
   check('2 subgalerías listadas', (await p.$$('.subs .gcard')).length === 2);
-  check('contadores 3 y 4', (await p.$$eval('.subs .gmeta span', (n) => n.map((x) => x.textContent))).join() === '3,4');
+  check('contadores 3 y 4', (await p.$$eval('.subs .gmeta span', (n) => n.map((x) => x.textContent))).map((t) => t.split(' · ')[0]).join() === '3,4');
   // mostrar subgalerías a los invitados
   await p.click('#openShare'); await p.waitForSelector('#shareDlg .qr svg');
   const pl = B + '/e/' + await p.$eval('body', (b) => b.dataset.token); await p.keyboard.press('Escape');

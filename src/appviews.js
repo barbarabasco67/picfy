@@ -117,14 +117,36 @@ ${cover ? '<label class="check"><input type="checkbox" data-brand-remove="cover"
 
 /* ---------- Galerías ---------- */
 
-export function galleriesPage({ user, events, origin, defaults = {}, ok = '' }) {
+// Espacio: originales (exacto) + miniaturas (estimado, ~380 KB por foto: la de 480px y la de 1600px).
+const THUMB_EST = 380 * 1024;
+const FREE_BYTES = 10 * 1024 ** 3; // Cloudflare R2: 10 GB gratis al mes
+const sizeOf = (bytes, n) => (Number(bytes) || 0) + (Number(n) || 0) * THUMB_EST;
+export function fmtSize(b) {
+  const u = b >= 1024 ** 3 ? [1024 ** 3, 'GB'] : b >= 1024 ** 2 ? [1024 ** 2, 'MB'] : [1024, 'KB'];
+  const v = b / u[0];
+  return `${v >= 100 || u[1] === 'KB' ? Math.round(v) : v.toFixed(1).replace('.', ',')} ${u[1]}`;
+}
+function storageBox(st) {
+  if (!st) return '';
+  const used = sizeOf(st.bytes, st.n);
+  const pct = Math.min(100, (used / FREE_BYTES) * 100);
+  const over = Math.max(0, used - FREE_BYTES);
+  const cost = (over / 1024 ** 3) * 0.015;
+  const state = over ? `Has pasado el espacio gratuito. Pagarías unos <b>${cost.toFixed(2).replace('.', ',')} $ al mes</b> por el exceso.`
+    : pct >= 80 ? `Te acercas al límite gratuito: quedan ${fmtSize(FREE_BYTES - used)}.`
+    : `Quedan ${fmtSize(FREE_BYTES - used)} dentro del espacio gratuito.`;
+  return `<div class="glass storage"><div class="strow"><div><span class="stl">Espacio ocupado</span><strong class="stv">${fmtSize(used)}</strong><span class="muted small"> de ${fmtSize(FREE_BYTES)} gratis · ${st.n} fotos</span></div></div>
+<div class="stbar${over ? ' over' : pct >= 80 ? ' warn' : ''}"><i style="width:${Math.max(pct, used ? 1.5 : 0).toFixed(1)}%"></i></div>
+<p class="muted small" style="margin:8px 0 0">${state} Cloudflare cobra unos 0,015 $ por GB al mes pasados los 10 GB. Incluye los originales y una estimación de las miniaturas, y también lo que está en la papelera.</p></div>`;
+}
+export function galleriesPage({ user, events, origin, defaults = {}, ok = '', storage = null }) {
   const cards = events
     .map(
       (e) => `<a class="gcard glass" href="/galerias/${e.id}" data-name="${esc(e.name.toLowerCase())}">
 <div class="cover">${e.cover ? `<img src="/m/${e.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}
 ${e.new_sel ? `<span class="chip newsel">${e.new_sel === 1 ? 'Selección nueva' : e.new_sel + ' selecciones nuevas'}</span>` : ''}${e.pending ? `<span class="chip warn">${e.pending} por revisar</span>` : ''}${e.subs ? `<span class="chip subc">${e.subs} subgalería${e.subs === 1 ? '' : 's'}</span>` : ''}</div>
 <div class="gmeta"><strong>${esc(e.name)}</strong><span>${e.approved}</span></div>
-${e.event_date ? `<div class="gdate">${esc(fmtDate(e.event_date))}</div>` : ''}
+<div class="gdate">${e.event_date ? esc(fmtDate(e.event_date)) + ' · ' : ''}${fmtSize(sizeOf(e.bytes, e.nph))}</div>
 </a>`,
     )
     .join('');
@@ -137,6 +159,7 @@ ${e.event_date ? `<div class="gdate">${esc(fmtDate(e.event_date))}</div>` : ''}
       main: `${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}<div class="head"><div><h1>Galerías</h1><p class="muted">Aquí ves tus galerías o creas otras nuevas.</p></div>
 <input class="search glass" type="search" id="filter" placeholder="Filtrar" aria-label="Filtrar galerías"></div>
 <button class="btn primary" id="newGal" type="button">${ICON.plus} Crear una nueva galería</button>
+${storageBox(storage)}
 <h2 class="sec">Tus galerías</h2>
 ${events.length ? `<div class="gcards" id="gcards">${cards}</div><p class="muted hidden" id="noMatch">Ninguna galería coincide.</p>` : `<div class="glass emptybox">Todavía no tienes galerías. Crea la primera y comparte el enlace con tus invitados.</div>`}
 <dialog id="newDlg" class="glassdlg wide"><form method="post" action="/galerias" class="dlgbox" data-brand-form="create">
@@ -279,7 +302,7 @@ ${days.length > 1 ? `<select id="fDay" aria-label="Día"><option value="">Todos 
 <section class="gmain">
 ${event.parent_id ? '' : `<div class="subs"><div class="bar"><h2 class="sec" style="margin:0">Subgalerías</h2><span class="spacer"></span><button class="btn sm" type="button" data-open="subDlg">${ICON.plus} Crear subgalería</button></div>
 <form method="post" action="/galerias/${event.id}/mostrar-subs" class="subtog"><label class="check"><input type="checkbox" name="show_subs" value="1" ${event.show_subs ? 'checked' : ''} onchange="this.form.submit()"> Mostrarlas en la página de invitados</label></form>
-${subs.length ? `<div class="gcards small">${subs.map((s) => `<div class="gcard-wrap"><a class="gcard glass" href="/galerias/${s.id}"><div class="cover">${s.thumb_v ? `<img src="/c/${s.guest_token}/thumb?v=${s.thumb_v}" alt="" loading="lazy">` : s.cover ? `<img src="/m/${s.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}${s.new_sel ? `<span class="chip newsel">${s.new_sel === 1 ? 'Selección nueva' : s.new_sel + ' selecciones nuevas'}</span>` : ''}${s.pending ? `<span class="chip warn">${s.pending} por revisar</span>` : ''}</div><div class="gmeta"><strong>${esc(s.name)}</strong><span>${s.approved}</span></div></a>
+${subs.length ? `<div class="gcards small">${subs.map((s) => `<div class="gcard-wrap"><a class="gcard glass" href="/galerias/${s.id}"><div class="cover">${s.thumb_v ? `<img src="/c/${s.guest_token}/thumb?v=${s.thumb_v}" alt="" loading="lazy">` : s.cover ? `<img src="/m/${s.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}${s.new_sel ? `<span class="chip newsel">${s.new_sel === 1 ? 'Selección nueva' : s.new_sel + ' selecciones nuevas'}</span>` : ''}${s.pending ? `<span class="chip warn">${s.pending} por revisar</span>` : ''}</div><div class="gmeta"><strong>${esc(s.name)}</strong><span>${s.approved} · ${fmtSize(sizeOf(s.bytes, s.nph))}</span></div></a>
 ${s.is_private ? `<span class="privchip" title="Privada: no sale en la galería general">${ICON.lock} Privada${s.has_pw ? ' · con contraseña' : ''}</span>` : ''}
 <div class="cardtools"><button type="button" class="cardbtn" data-sharelink="${glink(s)}" data-sharename="${esc(s.name)}" title="Compartir enlace" aria-label="Compartir ${esc(s.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button><label class="cardbtn wide" title="Elegir la imagen del cuadro" aria-label="Elegir portada de ${esc(s.name)}">${ICON.up}<span>Portada</span><input type="file" accept="image/jpeg,image/png,image/webp" hidden data-thumb="${s.id}"></label>${s.thumb_v ? `<button type="button" class="cardbtn" data-thumbdel="${s.id}" title="Quitar portada" aria-label="Quitar portada">${ICON.trash}</button>` : ''}</div></div>`).join('')}</div>` : `<p class="muted small" style="margin:8px 0 0">Una subgalería tiene su propio enlace, moderación y descarga. Úsala, por ejemplo, para cada sede de un torneo.</p>`}</div>`}
 <div class="gtools"><span class="muted small" id="shown">${photos.length} fotos</span><span class="spacer"></span><button class="btn sm" type="button" id="pickAll">Seleccionar todo</button></div>

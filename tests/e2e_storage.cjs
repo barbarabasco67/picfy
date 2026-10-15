@@ -1,0 +1,23 @@
+const { chromium } = require('/opt/npm-tools/node_modules/playwright');
+const B = 'http://127.0.0.1:8787';
+let ok = true; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n, c ? '' : x); if (!c) ok = false; };
+(async () => {
+  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const p = await (await b.newContext({ viewport: { width: 1360, height: 900 } })).newPage();
+  p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; });
+  await p.goto(B + '/registro'); await p.fill('input[name=name]', 'Esp'); await p.fill('input[name=email]', `e${Date.now()}@t.es`); await p.fill('input[name=password]', 'clave-larga-123');
+  if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
+  await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
+  check('vacía: 0 KB', /Espacio ocupado/.test(await p.textContent('.storage')) && /0 fotos/.test(await p.textContent('.storage')), await p.textContent('.storage'));
+  await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Pesada'); await p.click('#newDlg button[type=submit]');
+  await p.waitForURL(/galerias\/[0-9a-f]{16}/);
+  await p.click('#openUpload'); await p.setInputFiles('#fileInput', [0, 1, 2].map((i) => `${process.cwd()}/tests/img/p0${i}.jpg`));
+  await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 3); await p.click('#upStart'); await p.waitForSelector('.toast', { timeout: 60000 });
+  await p.goto(B + '/galerias');
+  const box = await p.textContent('.storage');
+  check('total con 3 fotos', /3 fotos/.test(box) && /de 10,0 GB gratis|de 10 GB gratis/.test(box) && !/\b0 KB\b/.test(box), box);
+  const card = await p.textContent('.gcard .gdate');
+  check('tamaño en la tarjeta', /(KB|MB)/.test(card), card);
+  await p.screenshot({ path: '/tmp/picfy_shots/storage.png' });
+  await b.close(); console.log(ok ? 'ALL OK' : 'SOME FAILED'); process.exit(ok ? 0 : 1);
+})().catch((e) => { console.error(e); process.exit(2); });

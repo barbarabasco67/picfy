@@ -283,10 +283,13 @@ export function appRoutes(app) {
          (SELECT p.id FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'approved'
             ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover
          , (SELECT COUNT(*) FROM events s WHERE s.parent_id = e.id) AS subs
+         , (SELECT COALESCE(SUM(p.size), 0) FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id)) AS bytes
+         , (SELECT COUNT(*) FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id)) AS nph
          , ${(await selSeenReady(c.env.DB)) ? NEW_SEL_SQL : '0'} AS new_sel
        FROM events e WHERE e.owner_id = ? AND e.parent_id IS NULL ${(await trashReady(c.env.DB)) ? 'AND e.deleted_at IS NULL' : ''} ORDER BY e.created_at DESC`,
     ).bind(user.id).all();
-    return html(galleriesPage({ user, events: rows.results, origin: new URL(c.req.url).origin, defaults: await userDefaults(c.env.DB, user.id), ok: c.req.query('ok') || '' }));
+    const tot = await c.env.DB.prepare('SELECT COALESCE(SUM(p.size), 0) AS bytes, COUNT(*) AS n FROM photos p JOIN events e ON e.id = p.event_id WHERE e.owner_id = ?').bind(user.id).first();
+    return html(galleriesPage({ user, events: rows.results, storage: tot, origin: new URL(c.req.url).origin, defaults: await userDefaults(c.env.DB, user.id), ok: c.req.query('ok') || '' }));
   });
 
   // El organizador abre sus selecciones: se marcan como vistas.
@@ -371,6 +374,8 @@ export function appRoutes(app) {
     const subs = (await db.prepare(
       `SELECT e.id, e.name, e.guest_token, e.thumb_v, ${(await selSeenReady(db)) ? NEW_SEL_SQL : '0'} AS new_sel, ${priv ? 'e.is_private, (e.access_hash IS NOT NULL) AS has_pw,' : '0 AS is_private, 0 AS has_pw,'}
          (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'approved') AS approved,
+         (SELECT COALESCE(SUM(p.size), 0) FROM photos p WHERE p.event_id = e.id) AS bytes,
+         (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id) AS nph,
          (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id AND p.state = 'pending') AS pending,
          (SELECT p.id FROM photos p WHERE p.event_id = e.id AND p.state = 'approved' ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1) AS cover
        FROM events e WHERE e.parent_id = ? ORDER BY e.created_at ASC`,

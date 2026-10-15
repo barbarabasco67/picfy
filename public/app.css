@@ -666,3 +666,11 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 24px); r
 .slugrow{display:flex;align-items:center;gap:0;border:1px solid var(--line,rgba(0,0,0,.14));border-radius:12px;background:rgba(255,255,255,.7);overflow:hidden}
 .slugrow i{font-style:normal;color:var(--muted,#6b6b6b);padding:0 2px 0 12px;white-space:nowrap;font-size:.92rem}
 .slugrow input{border:0!important;background:transparent!important;box-shadow:none!important;min-width:0;flex:1;padding-left:2px!important}
+
+.storage{padding:16px 18px;margin:18px 0 6px;border-radius:18px}
+.storage .stl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#6b6b6b);margin-bottom:2px}
+.storage .stv{font-size:1.7rem;letter-spacing:-.02em}
+.stbar{height:10px;border-radius:99px;background:rgba(0,0,0,.07);overflow:hidden;margin-top:10px}
+.stbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#f3c98c,#edb265)}
+.stbar.warn i{background:linear-gradient(90deg,#edb265,#e5964c)}
+.stbar.over i{background:linear-gradient(90deg,#e5964c,#d9534f)}
