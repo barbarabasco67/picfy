@@ -74,7 +74,7 @@ export function lightbox(social = false, mod = false, selection = false) {
 function selectionUi(event, dl) {
   const sel = Boolean(event.selection);
   const hint = sel ? '<b>¿Cuáles te gustan más?</b> Toca el círculo de las fotos para elegirlas' + (dl ? ' y después descárgalas o envíaselas al fotógrafo.' : ' y, cuando termines, envía la lista al fotógrafo.')
-    : '<b>¿Quieres descargar solo algunas?</b> Toca el círculo de las fotos para elegirlas y después pulsa «Descargar».';
+    : '';
   const dialog = sel ? `<dialog id="selSendDlg"><form class="dlg" id="selSendForm" method="dialog"><header><h2>Enviar mis favoritas</h2><button class="btn sm" type="button" data-close>Cerrar</button></header>
 <div class="body"><p class="selinfo" id="selSendInfo"></p>
 <label class="field"><span>Tu nombre</span><input class="txt" id="selName" maxlength="60" required autocomplete="name"></label>
@@ -83,7 +83,7 @@ function selectionUi(event, dl) {
 <p class="notice err hidden" id="selErr"></p>
 <p class="notice hidden" id="selOk">¡Enviado! El fotógrafo ya tiene tu lista. Puedes seguir eligiendo y volver a enviarla.</p></div>
 <footer><button type="button" class="btn" data-close>Cancelar</button><button type="submit" class="btn primary" id="selSendGo">Enviar lista</button></footer></form></dialog>` : '';
-  return `<p class="selhint" id="selHint">${hint}</p>
+  return `${hint ? `<p class="selhint" id="selHint">${hint}</p>` : ''}
 <div class="glass selmine hidden" id="selMine"><button type="button" class="selx" id="selClear" aria-label="Quitar la selección" title="Quitar la selección">×</button><span id="selMineN"></span>${dl ? '<button type="button" class="btn sm" id="selDl">Descargar</button>' : ''}${sel ? '<button type="button" class="btn sm primary" id="selSendOpen">Enviar al fotógrafo</button>' : ''}</div>
 ${dialog}`;
 }
