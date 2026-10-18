@@ -6,6 +6,7 @@ import { authPage, galleriesPage, galleryPage, accountPage, trashPage } from './
 import { notFoundPage } from './views.js';
 import { attachSlugs, orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, cleanup, GALLERY_TRASH_DAYS } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
+import { wmRoutes, getWm, wmAttr } from './watermark.js';
 import { collectionRoutes } from './collections.js';
 import { splitParts } from './zip.js';
 import { socialReady, loadStats, viewsReady } from './social.js';
@@ -20,6 +21,7 @@ async function userCount(db) {
 
 export function appRoutes(app) {
   galleryRoutes(app);
+  wmRoutes(app);
   collectionRoutes(app);
 
   /* ----- Entrar ----- */
@@ -395,8 +397,9 @@ export function appRoutes(app) {
     try { sels = await loadSelections(db, event); } catch { /* sin selecciones */ }
     let stats = null;
     try { stats = await loadStats(db, event); } catch { /* sin estadísticas */ }
+    const wm = await getWm(db, event);
     return html(galleryPage({
-      sels, stats, user, event, photos, subs, parent, folders, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
+      wm, sels, stats, user, event, photos, subs, parent, folders, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
       counts: { approved: approved.length, pending: photos.filter((p) => p.state === 'pending').length },
       note: c.req.query('ok') || '',
     }));

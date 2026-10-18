@@ -30,6 +30,7 @@
 
   const items = [];
   let uploading = false;
+  let wmLogo = null;
   try {
     const t = sessionStorage.getItem('picfy_upok');
     if (t) {
@@ -233,7 +234,13 @@
     const [taken, buf] = await Promise.all([readTaken(f), f.arrayBuffer()]);
     const bmp = await decode(f);
     const w = bmp.width, h = bmp.height;
-    const [m, l] = [await thumb(bmp, 480, 0.8), await thumb(bmp, 1600, 0.85)];
+    const WM = window.PicfyWm ? PicfyWm.pageCfg() : null;
+    let logo = null;
+    if (WM && WM.logoUrl) { wmLogo = wmLogo || PicfyWm.loadImg(WM.logoUrl); logo = await wmLogo; }
+    // con marca de agua activa, la miniatura y la foto grande se suben ya con la marca pintada
+    const [m, l] = WM
+      ? [await PicfyWm.render(bmp, 480, 0.8, WM, logo), await PicfyWm.render(bmp, 1600, 0.85, WM, logo)]
+      : [await thumb(bmp, 480, 0.8), await thumb(bmp, 1600, 0.85)];
     if (bmp.close) bmp.close();
     const crc = crc32(buf);
     const base = `/api/e/${UP}`;
@@ -247,7 +254,7 @@
     await retry(() => put(`${base}/upload/${id}/l`, l));
     await retry(() => put(`${base}/upload/${id}/o`, f, (p) => { it.bar.style.width = Math.round(p * 100) + '%'; }));
     const done = await retry(() => api(`${base}/upload/${id}/commit`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key: myKey() }),
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key: myKey(), wm: WM ? WM.rev : 0 }),
     }), 5);
     it.state = 'ok'; it.bar.style.width = '100%';
     setStatus(it, done.state === 'pending' ? 'En revisión' : 'Subida', 'ok');

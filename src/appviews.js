@@ -236,7 +236,7 @@ ${top}
 const dayOf = (ms) => (ms ? new Date(Number(ms)).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }) : '');
 const dayLabel = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 
-export function galleryPage({ sels = null, stats = null, user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
+export function galleryPage({ wm = null, sels = null, stats = null, user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
   const guestUrl = origin + glink(event);
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
@@ -261,8 +261,8 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
     : '<p class="muted">Todavía no hay fotos publicadas.</p>';
   return appPage({
     title: event.name,
-    bodyAttrs: `data-gapi="/api/g/${event.id}" data-gid="${event.id}" data-part="${partSize}" data-token="${event.guest_token}" data-limit="0" data-auto="1" data-owner="1" data-owner-name="${esc(user.name || 'Organizador')}"`,
-    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/reorder.js', '/app.js', '/guest.js', '/brand.js', '/filepick.js', '/gallery.js'],
+    bodyAttrs: `data-gapi="/api/g/${event.id}" data-gid="${event.id}" data-part="${partSize}" data-token="${event.guest_token}" data-limit="0" data-auto="1" data-owner="1" data-owner-name="${esc(user.name || 'Organizador')}"${wm && wm.on ? ` data-wm="${esc(JSON.stringify({ on: 1, text: wm.text || wm.name || '', pos: wm.pos, op: wm.op, logoUrl: wm.logoUrl, rev: wm.rev }))}"` : ''}`,
+    scripts: ['/vendor/qrcode.js', '/qr.js', '/lightbox.js', '/reorder.js', '/app.js', '/wm.js', '/guest.js', '/brand.js', '/filepick.js', '/gallery.js'],
     body: shell({
       user,
       collapsible: true,
@@ -372,12 +372,25 @@ ${event.parent_id ? `<fieldset class="privbox"><legend>Privacidad</legend>
 <label class="field"><span>Contraseña de acceso (opcional)${event.access_hash ? ' · ya hay una puesta; escribe otra para cambiarla' : ''}</span><input type="text" name="access_password" maxlength="60" autocomplete="off" placeholder="${event.access_hash ? 'Nueva contraseña' : 'Sin contraseña'}"></label>
 ${event.access_hash ? '<label class="check"><input type="checkbox" name="access_clear" value="1"> Quitar la contraseña</label>' : ''}
 <p class="muted small" style="margin:0">Ideal para fotos de menores: manda el enlace (y la contraseña) solo a sus familias, y activa «Permitir que los invitados descarguen fotos» si quieres que se las bajen.</p></fieldset>` : ''}
-${!event.parent_id ? `<fieldset class="privbox"><legend>Consentimiento y caducidad</legend>
+${!event.parent_id ? `<fieldset class="privbox wmbox" id="wmBox"><legend>Marca de agua</legend>
+<input type="hidden" name="wm_form" value="1">
+<label class="check"><input type="checkbox" name="wm" value="1" ${wm && wm.on ? 'checked' : ''}> Poner marca de agua en las fotos que ven los invitados</label>
+<div class="wmopts">
+<label class="field"><span>Texto (si lo dejas vacío, el nombre de la galería)</span><input type="text" name="wm_text" maxlength="60" value="${esc(wm ? wm.text : '')}" placeholder="${esc(event.name)}"></label>
+<div class="row2">
+<label class="field"><span>Posición</span><select name="wm_pos">${[['diag', 'Repetida en diagonal'], ['center', 'Centrada'], ['corner', 'En una esquina']].map(([k, t]) => `<option value="${k}" ${wm && wm.pos === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+<label class="field"><span>Intensidad</span><input type="range" name="wm_op" min="10" max="80" step="5" value="${wm ? wm.op : 35}"></label>
+</div>
+${event.avatar_v ? `<label class="check"><input type="checkbox" name="wm_logo" value="1" ${wm && wm.logo ? 'checked' : ''}> Incluir el logo de la galería (la foto de perfil)</label>` : ''}
+<canvas class="wmprev" width="640" height="400" data-wmprev data-logo="${event.avatar_v ? `/c/${event.guest_token}/avatar?v=${event.avatar_v}` : ''}" aria-label="Vista previa de la marca de agua"></canvas>
+</div>
+<p class="muted small" style="margin:0">La marca se pinta en la miniatura y en la foto grande. El original limpio solo se descarga si activas «Permitir que los invitados descarguen fotos». Al guardar, las fotos que ya tienes se rehacen solas desde tu navegador (verás el avance abajo; no cierres la pestaña hasta que termine).</p></fieldset>
+<fieldset class="privbox"><legend>Consentimiento y caducidad</legend>
 <label class="check"><input type="checkbox" name="consent" value="1" ${event.consent ? 'checked' : ''}> Pedir consentimiento antes de subir fotos (los invitados marcan una casilla)</label>
 <label class="field"><span>Texto del aviso (si lo dejas vacío se usa el estándar)</span><textarea name="consent_text" maxlength="600" placeholder="${esc(DEFAULT_CONSENT)}">${esc(event.consent_text || '')}</textarea></label>
 <label class="field"><span>La galería caduca el (opcional)</span><input type="date" name="expires" value="${event.expires_at ? new Date(event.expires_at).toISOString().slice(0, 10) : ''}"></label>
 <label class="check"><input type="checkbox" name="expire_delete" value="1" ${event.expire_delete ? 'checked' : ''}> Al caducar, borrar la galería y todas sus fotos (si no, solo deja de verse y de aceptar fotos)</label>
-<p class="muted small" style="margin:0">Se aplica también a las subgalerías. Tras la fecha, los invitados ya no pueden ver, subir ni descargar. Tú sigues viéndola hasta que se borre.</p></fieldset>` : '<p class="muted small">El consentimiento y la caducidad se heredan de la galería principal.</p>'}
+<p class="muted small" style="margin:0">Se aplica también a las subgalerías. Tras la fecha, los invitados ya no pueden ver, subir ni descargar. Tú sigues viéndola hasta que se borre.</p></fieldset>` : '<p class="muted small">El consentimiento, la caducidad y la marca de agua se heredan de la galería principal.</p>'}
 
 <div class="notice err hidden" data-brand-msg></div>
 <footer>

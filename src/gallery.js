@@ -4,6 +4,7 @@ import { isHex, json, html, randomHex } from './util.js';
 import { currentUser, hashPassword } from './auth.js';
 import { slugify, slugReady, applyOrder, deletePhotos, trashPhotos, orderSql, setSortMode, SORTS } from './photos.js';
 import { buildZip, splitParts } from './zip.js';
+import { saveWm } from './watermark.js';
 import { notFoundPage } from './views.js';
 
 const FLAGS = new Set(['red', 'orange', 'green', 'black']);
@@ -211,6 +212,9 @@ export function galleryRoutes(app) {
         await c.env.DB.prepare('UPDATE events SET consent = ?, consent_text = ?, expires_at = ?, expire_delete = ? WHERE id = ?')
           .bind(f.get('consent') ? 1 : 0, String(f.get('consent_text') || '').trim().slice(0, 600), Number.isFinite(exMs) ? exMs : null, f.get('expire_delete') && exMs ? 1 : 0, event.id).run();
       } catch { msg = 'Ajustes guardados, pero falta la actualización de la base de datos (migración 0013) para el consentimiento y la caducidad.'; }
+    }
+    if (!event.parent_id) {
+      try { const w = await saveWm(c.env.DB, event, f); if (w) msg = w; } catch { msg = 'Ajustes guardados, pero no se pudo guardar la marca de agua.'; }
     }
     if (event.parent_id) {
       try {

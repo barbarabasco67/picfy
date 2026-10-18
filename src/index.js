@@ -18,6 +18,7 @@ import { selectionRoutes } from './selection.js';
 import { publicCollectionRoute } from './collections.js';
 import { appRoutes } from './app.js';
 import { currentUser, hashPassword } from './auth.js';
+import { getWm, wmAttr } from './watermark.js';
 import { buildZip, splitParts } from './zip.js';
 
 const app = new Hono();
@@ -62,6 +63,12 @@ app.get('/robots.txt', (c) => new Response('User-agent: *\nDisallow: /\n', { hea
 app.get('/m/:id/:size', async (c) => {
   const { id, size } = c.req.param();
   if (!isHex(id, 32) || !['o', 'm', 'l'].includes(size)) return c.notFound();
+  if (size === 'o') {
+    // el original limpio solo lo ve su dueño; los invitados lo reciben por /e/:token/dl cuando se permiten las descargas
+    const me = await currentUser(c);
+    const own = me ? await c.env.DB.prepare('SELECT 1 AS ok FROM photos p JOIN events e ON e.id = p.event_id WHERE p.id = ? AND e.owner_id = ?').bind(id, me.id).first() : null;
+    if (!own) return c.notFound();
+  }
   const obj = await c.env.PHOTOS.get(`p/${id}/${size}`);
   if (!obj) return c.notFound();
   const etag = obj.httpEtag;
@@ -69,7 +76,8 @@ app.get('/m/:id/:size', async (c) => {
   const headers = new Headers({
     'content-type': obj.httpMetadata?.contentType || 'image/jpeg',
     'content-length': String(obj.size),
-    'cache-control': 'public, max-age=31536000, immutable',
+    // miniatura y foto grande se revisan cada poco: pueden cambiar si se activa o quita la marca de agua
+    'cache-control': size === 'o' ? 'private, max-age=3600' : 'public, max-age=600, stale-while-revalidate=86400',
     etag,
   });
   if (size === 'o' && c.req.query('dl')) {
@@ -200,7 +208,7 @@ async function guestView(c, event) {
   let parent = null;
   if (event.parent_id) { parent = await c.env.DB.prepare('SELECT id, name, guest_token FROM events WHERE id = ?').bind(event.parent_id).first(); await attachSlugs(c.env.DB, [parent]); }
   const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
-  return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(total / partSize)), partSize, total } : null }));
+  return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(total / partSize)), partSize, total } : null, wm: wmAttr(await getWm(c.env.DB, event)) }));
 }
 
 socialRoutes(app, { accessOk, ownsEvent });
@@ -299,6 +307,12 @@ app.post('/api/e/:token/upload/:id/commit', async (c) => {
   const state = event.auto_approve || isOwner ? 'approved' : 'pending';
   const order = await nextSortOrder(c.env.DB, event.id);
   await c.env.DB.prepare(`UPDATE photos SET state = ?, sort_order = ? WHERE id = ? AND state = 'uploading'`).bind(state, order, id).run();
+  try { // la foto subió ya con la marca de agua vigente: no hace falta rehacerla
+    if (Number(b.wm) > 0) {
+      const w = await getWm(c.env.DB, event);
+      if (w.on && w.rev === Number(b.wm)) await c.env.DB.prepare('INSERT INTO photo_wm (photo_id, rev) VALUES (?1, ?2) ON CONFLICT(photo_id) DO UPDATE SET rev = ?2').bind(id, w.rev).run();
+    }
+  } catch { /* sin marca de agua */ }
   return json({ ok: true, state });
 });
 
