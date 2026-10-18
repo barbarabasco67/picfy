@@ -139,23 +139,23 @@ export const famPublic = (col, p, ready) => `${col} IN (SELECT id FROM events WH
 
 export const GUEST_ORDERS = { recientes: 'time_desc', antiguas: 'time', nombre: 'name', autor: 'author' };
 
-export async function listApproved(db, event, limit, offset, order = '') {
+export async function listApproved(db, event, limit, offset, order = '', opt = {}) {
   const ready = await privacyReady(db);
   const rows = await db
     .prepare(
       `SELECT p.id, p.w, p.h, p.taken_at, p.uploaded_at, g.name AS gname FROM photos p
        JOIN guests g ON g.id = p.guest_id
-       WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'
-       ORDER BY ${order === 'autor' ? "g.name COLLATE NOCASE ASC, COALESCE(p.taken_at, p.uploaded_at) ASC, p.id ASC" : orderSql(GUEST_ORDERS[order] || event.sort_mode, 'p')} LIMIT ?2 OFFSET ?3`,
+       WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'${opt.onlyBest ? ' AND p.fav = 1' : ''}
+       ORDER BY ${opt.bestFirst ? 'p.fav DESC, ' : ''}${order === 'autor' ? "g.name COLLATE NOCASE ASC, COALESCE(p.taken_at, p.uploaded_at) ASC, p.id ASC" : orderSql(GUEST_ORDERS[order] || event.sort_mode, 'p')} LIMIT ?2 OFFSET ?3`,
     )
     .bind(event.id, limit, offset)
     .all();
   return rows.results;
 }
 
-export async function countApproved(db, eventId) {
+export async function countApproved(db, eventId, opt = {}) {
   const ready = await privacyReady(db);
-  const r = await db.prepare(`SELECT COUNT(*) AS n FROM photos p WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'`).bind(eventId).first();
+  const r = await db.prepare(`SELECT COUNT(*) AS n FROM photos p WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'${opt.onlyBest ? ' AND p.fav = 1' : ''}`).bind(eventId).first();
   return r ? r.n : 0;
 }
 

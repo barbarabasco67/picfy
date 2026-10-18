@@ -35,6 +35,7 @@ export function fmtDate(d) {
 }
 
 // 1 2 3 … 8 9, con flechas
+const STAR = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>';
 const DLSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>';
 
 export function pagination(base, page, pages) {
@@ -209,11 +210,14 @@ function subCards(subs) {
 <span class="subname">${esc(s.name)}</span>${s.lead ? `<span class="subdesc">${esc(s.lead)}</span>` : ''}<span class="subn">${s.n} ${s.n === 1 ? 'foto' : 'fotos'}</span></a><button type="button" class="cardbtn subshare" data-sharelink="${glink(s)}" aria-label="Compartir ${esc(s.name)}" title="Compartir enlace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button></div>`).join('')}</div></section>`;
 }
 
-export function guestPage({ event, photos, total, page, pages, subs = [], parent = null, dl = null, orden = '', wm = '' }) {
+export function guestPage({ event, photos, total, page, pages, subs = [], parent = null, dl = null, orden = '', wm = '', best = null }) {
   const grid = photos.length
     ? `<div class="gbar"><span class="gsub">${total} ${total === 1 ? 'foto' : 'fotos'}</span>${dl || event.selection ? `<button type="button" class="gbtn" id="selToggle">Elegir todas</button>` : ''}${dl ? `<button type="button" class="gbtn" id="dlOpen">${DLSVG} Descargar</button>` : ''}<div class="gorder dd" id="gorder" data-value="${orden}"><button type="button" class="ddbtn" id="gorderBtn" aria-haspopup="listbox" aria-expanded="false"><span id="gorderLbl">${orden ? 'Ordenar por: ' + ({ recientes: 'Más recientes', antiguas: 'Más antiguas', nombre: 'Nombre', autor: 'Quién la compartió' })[orden] : 'Ordenar por'}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><ul class="ddmenu hidden" role="listbox" aria-label="Ordenar por">${[['', 'Por defecto'], ['recientes', 'Más recientes primero'], ['antiguas', 'Más antiguas primero'], ['nombre', 'Por nombre de archivo'], ['autor', 'Por quién las compartió']].map(([k, t]) => `<li role="option" tabindex="-1" data-v="${k}" aria-selected="${orden === k}">${t}</li>`).join('')}</ul></div><label class="sizer" title="Tamaño de las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/></svg><input type="range" id="gsize" min="0" max="100" value="50" aria-label="Tamaño de las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></label><div class="vtog" role="group" aria-label="Vista"><button type="button" class="on" data-view="grid" aria-label="Cuadrícula"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></button><button type="button" data-view="list" aria-label="Lineal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="7" rx="1"/><rect x="4" y="13" width="16" height="7" rx="1"/></svg></button></div></div><div class="grid gguest" id="gallery">${photos.map((p) => tile(p, '', dl ? event.guest_token : '')).join('')}</div>`
     : (subs && subs.length ? '' : `<div class="empty">Aún no hay fotos. ¡Sé el primero en subir una!</div>`);
-  const base = `${glink(event)}${orden ? `?orden=${orden}` : ''}`;
+  const qs = [orden ? `orden=${orden}` : '', best && best.on ? 'mejor=1' : ''].filter(Boolean).join('&');
+  const base = `${glink(event)}${qs ? `?${qs}` : ''}`;
+  const tabHref = (on) => `${glink(event)}${[orden ? `orden=${orden}` : '', on ? 'mejor=1' : ''].filter(Boolean).map((x, i) => (i ? '&' : '?') + x).join('')}`;
+  const tabs = best ? `<div class="btabs" role="tablist"><a class="gbtn ${best.on ? '' : 'on'}" role="tab" aria-selected="${!best.on}" href="${tabHref(false)}">Todas · ${best.all}</a><a class="gbtn ${best.on ? 'on' : ''}" role="tab" aria-selected="${best.on}" href="${tabHref(true)}">${STAR} ${esc(best.title)} · ${best.n}</a></div>` : '';
   return layout({
     title: `${event.name} · Picfy`,
     bodyAttrs: `data-token="${event.guest_token}" data-limit="${event.photo_limit}" data-auto="${event.auto_approve}" data-social="${event.social === 0 ? 0 : 1}" data-selection="${event.selection ? 1 : 0}" data-dl="${dl ? 1 : 0}"${wm ? ` data-wm="${esc(wm)}"` : ''} style="${themeStyle(event.accent)}"`,
@@ -228,7 +232,7 @@ ${event.event_date ? `<p class="when">${esc(fmtDate(event.event_date))}</p>` : '
 ${event.lead ? `<p class="lead">${esc(event.lead)}</p>` : ''}
 ${event.upload_open ? `<button class="btn primary" id="openUpload" type="button">Subir fotos</button>` : '<p class="muted">La subida de fotos está cerrada.</p>'}
 </div></header>
-<main class="wrap">${subCards(subs)}${event.gallery_open ? grid + pagination(base, page, pages) : '<div class="empty">La galería no está disponible por ahora.</div>'}</main>
+<main class="wrap">${subCards(subs)}${event.gallery_open ? tabs + grid + pagination(base, page, pages) : '<div class="empty">La galería no está disponible por ahora.</div>'}</main>
 <p class="brand">Picfy</p>
 ${lightbox(event.social !== 0, false, Boolean(event.selection || dl))}
 ${event.selection || dl ? selectionUi(event, dl) : ''}

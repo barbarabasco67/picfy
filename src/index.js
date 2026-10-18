@@ -19,6 +19,7 @@ import { publicCollectionRoute } from './collections.js';
 import { appRoutes } from './app.js';
 import { currentUser, hashPassword } from './auth.js';
 import { getWm, wmAttr } from './watermark.js';
+import { getBest } from './best.js';
 import { buildZip, splitParts } from './zip.js';
 
 const app = new Hono();
@@ -191,10 +192,14 @@ async function guestView(c, event) {
   if (isExpired(event) && !(await ownsEvent(c, event))) return html(notFoundPage('Esta galería ha caducado y ya no está disponible.'), 410);
   if (!(await accessOk(c, event))) return html(accessPage(event), 401);
   const orden = Object.keys(GUEST_ORDERS).includes(c.req.query('orden')) ? c.req.query('orden') : '';
-  const total = await countApproved(c.env.DB, event.id);
+  const best = await getBest(c.env.DB, event);
+  const favN = best.tab ? await countApproved(c.env.DB, event.id, { onlyBest: true }) : 0;
+  const onlyBest = favN > 0 && c.req.query('mejor') === '1';
+  const totalAll = await countApproved(c.env.DB, event.id);
+  const total = onlyBest ? favN : totalAll;
   const pages = Math.max(1, Math.ceil(total / PER_PAGE));
   const page = Math.min(pages, Math.max(1, parseInt(c.req.query('page') || '1', 10) || 1));
-  const photos = event.gallery_open ? await listApproved(c.env.DB, event, PER_PAGE, (page - 1) * PER_PAGE, orden) : [];
+  const photos = event.gallery_open ? await listApproved(c.env.DB, event, PER_PAGE, (page - 1) * PER_PAGE, orden, { bestFirst: Boolean(best.first) && !onlyBest, onlyBest }) : [];
   let subs = [];
   if (event.show_subs && !event.parent_id) {
     subs = (await c.env.DB.prepare(
@@ -208,7 +213,7 @@ async function guestView(c, event) {
   let parent = null;
   if (event.parent_id) { parent = await c.env.DB.prepare('SELECT id, name, guest_token FROM events WHERE id = ?').bind(event.parent_id).first(); await attachSlugs(c.env.DB, [parent]); }
   const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
-  return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(total / partSize)), partSize, total } : null, wm: wmAttr(await getWm(c.env.DB, event)) }));
+  return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(totalAll / partSize)), partSize, total: totalAll } : null, best: favN ? { title: best.title, n: favN, all: totalAll, on: onlyBest } : null, wm: wmAttr(await getWm(c.env.DB, event)) }));
 }
 
 socialRoutes(app, { accessOk, ownsEvent });

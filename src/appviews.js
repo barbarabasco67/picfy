@@ -236,7 +236,7 @@ ${top}
 const dayOf = (ms) => (ms ? new Date(Number(ms)).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }) : '');
 const dayLabel = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 
-export function galleryPage({ wm = null, sels = null, stats = null, user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
+export function galleryPage({ wm = null, best = null, sels = null, stats = null, user, event, photos, subs = [], parent = null, guests, counts, origin, partSize, zipParts, folders = [], note = '' }) {
   const guestUrl = origin + glink(event);
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
@@ -245,7 +245,7 @@ ${p.event_id !== event.id && p.ename ? `<span class="sedechip">${esc(p.ename)}</
 <input class="chk" type="checkbox" aria-label="Seleccionar foto">
 <img src="/m/${p.id}/l" loading="lazy" decoding="async" alt="">
 <button class="mk flagb" type="button" data-mk="flag" aria-label="Bandera">${ICON.flag}</button>
-<button class="mk favb ${p.fav ? 'on' : ''}" type="button" data-mk="fav" aria-label="Favorita">${ICON.heart}</button>
+<button class="mk favb ${p.fav ? 'on' : ''}" type="button" data-mk="fav" aria-label="Destacada" title="Destacada (mejor foto)">${ICON.heart}</button>
 ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' ? 'En revisión' : 'No publicada'}</span>` : ''}
 <span class="soc"><i class="eye">${ICON.eye}${p.views || 0}</i>${p.likes ? `<i>♥ ${p.likes}</i>` : ''}${p.coms ? `<i>💬 ${p.coms}</i>` : ''}</span><span class="cap">${esc(p.filename || '')}</span></div>`)
     .join('');
@@ -289,7 +289,7 @@ ${counts.pending ? `<button class="btn" type="button" id="approveAll" title="Apr
 <dl class="stats"><div><dt>Publicadas</dt><dd>${counts.approved}</dd></div><div><dt>Por revisar</dt><dd>${counts.pending}</dd></div></dl>
 <h3 class="gh">Filtro</h3>
 <input class="search2" type="search" id="fName" placeholder="Nombre del archivo" aria-label="Filtrar por nombre">
-<div class="fbar" id="fFlags">${flagBtns}<button type="button" class="ftoggle" id="fFav" title="Favoritas" aria-label="Solo favoritas">${ICON.heart}</button></div>
+<div class="fbar" id="fFlags">${flagBtns}<button type="button" class="ftoggle" id="fFav" title="Solo destacadas" aria-label="Solo destacadas">${ICON.heart}</button></div>
 ${gname.size > 1 ? `<select id="fGuest" aria-label="Autor"><option value="">Todos los autores</option>${guests.map((g) => `<option value="${g.id}">${esc(g.name || `Invitado ${g.id.slice(0, 4)}`)} (${g.n})</option>`).join('')}</select>` : ''}
 ${days.length > 1 ? `<select id="fDay" aria-label="Día"><option value="">Todos los días</option>${days.map(([d, n]) => `<option value="${d}">${esc(dayLabel(d))} (${n})</option>`).join('')}</select>` : ''}
 <select id="fState" aria-label="Estado"><option value="">Todas las fotos</option><option value="approved">Publicadas</option><option value="pending">En revisión</option><option value="rejected">No publicadas</option></select>
@@ -317,7 +317,7 @@ ${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid">${tiles}</di
 <button class="sb" type="button" data-act="reject" title="Quitar de la galería">Rechazar</button>
 <span class="sepv"></span>
 <span class="menuwrap"><button class="sb ic" type="button" id="flagMenuBtn" title="Bandera" aria-label="Bandera">${ICON.flag}</button><div class="menu glass hidden" id="flagMenu">${flagMenu}</div></span>
-<button class="sb ic" type="button" data-act="fav" title="Favorita" aria-label="Favorita">${ICON.heart}</button>
+<button class="sb ic" type="button" data-act="fav" title="Destacar" aria-label="Destacar">${ICON.heart}</button>
 ${folders.length > 1 ? `<select id="folderTo" aria-label="Mover a carpeta"><option value="">Mover a…</option>${folders.map((f) => `<option value="${f.id}">${f.parent_id ? esc(f.name) : esc(f.name) + ' (principal)'}</option>`).join('')}</select>` : ''}
 ${event.parent_id ? `<button class="sb" type="button" id="asCover" title="Usar la foto seleccionada como portada del cuadro de esta subgalería">Usar de portada</button>` : ''}
 ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><option value="">Pasar al álbum de…</option>${opts}</select>` : ''}
@@ -385,6 +385,13 @@ ${event.avatar_v ? `<label class="check"><input type="checkbox" name="wm_logo" v
 <canvas class="wmprev" width="640" height="400" data-wmprev data-logo="${event.avatar_v ? `/c/${event.guest_token}/avatar?v=${event.avatar_v}` : ''}" aria-label="Vista previa de la marca de agua"></canvas>
 </div>
 <p class="muted small" style="margin:0">La marca se pinta en la miniatura y en la foto grande. El original limpio solo se descarga si activas «Permitir que los invitados descarguen fotos». Al guardar, las fotos que ya tienes se rehacen solas desde tu navegador (verás el avance abajo; no cierres la pestaña hasta que termine).</p></fieldset>
+<fieldset class="privbox"><legend>Fotos destacadas</legend>
+<input type="hidden" name="best_form" value="1">
+<p class="muted small" style="margin:0">Marca con el corazón ${ICON.heart} las mejores fotos desde el panel. Aquí eliges qué ven los invitados.</p>
+<label class="check"><input type="checkbox" name="best_first" value="1" ${best && best.first ? 'checked' : ''}> Mostrar primero las destacadas</label>
+<label class="check"><input type="checkbox" name="best_tab" value="1" ${best && best.tab ? 'checked' : ''}> Crear una pestaña con solo las destacadas (por ejemplo, «Lo mejor del torneo»)</label>
+<label class="field"><span>Nombre de la pestaña</span><input type="text" name="best_title" maxlength="40" value="${esc(best ? best.raw : '')}" placeholder="Lo mejor"></label>
+</fieldset>
 <fieldset class="privbox"><legend>Consentimiento y caducidad</legend>
 <label class="check"><input type="checkbox" name="consent" value="1" ${event.consent ? 'checked' : ''}> Pedir consentimiento antes de subir fotos (los invitados marcan una casilla)</label>
 <label class="field"><span>Texto del aviso (si lo dejas vacío se usa el estándar)</span><textarea name="consent_text" maxlength="600" placeholder="${esc(DEFAULT_CONSENT)}">${esc(event.consent_text || '')}</textarea></label>

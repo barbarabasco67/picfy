@@ -5,6 +5,7 @@ import { currentUser, hashPassword } from './auth.js';
 import { slugify, slugReady, applyOrder, deletePhotos, trashPhotos, orderSql, setSortMode, SORTS } from './photos.js';
 import { buildZip, splitParts } from './zip.js';
 import { saveWm } from './watermark.js';
+import { saveBest } from './best.js';
 import { notFoundPage } from './views.js';
 
 const FLAGS = new Set(['red', 'orange', 'green', 'black']);
@@ -215,6 +216,7 @@ export function galleryRoutes(app) {
     }
     if (!event.parent_id) {
       try { const w = await saveWm(c.env.DB, event, f); if (w) msg = w; } catch { msg = 'Ajustes guardados, pero no se pudo guardar la marca de agua.'; }
+      try { const w = await saveBest(c.env.DB, event, f); if (w) msg = w; } catch { msg = 'Ajustes guardados, pero no se pudieron guardar las destacadas.'; }
     }
     if (event.parent_id) {
       try {

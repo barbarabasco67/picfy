@@ -1,0 +1,43 @@
+const { chromium } = require('/opt/npm-tools/node_modules/playwright');
+const B = 'http://127.0.0.1:8787';
+let ok = true; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n, c ? '' : x); if (!c) ok = false; };
+const img = (i) => `${process.cwd()}/tests/img/p0${i}.jpg`;
+(async () => {
+  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const p = await (await b.newContext({ viewport: { width: 1360, height: 900 } })).newPage();
+  p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; });
+  await p.goto(B + '/registro'); await p.fill('input[name=name]', 'Best'); await p.fill('input[name=email]', `b${Date.now()}@t.es`); await p.fill('input[name=password]', 'clave-larga-123');
+  if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
+  await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
+  await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Con destacadas'); await p.click('#newDlg button[type=submit]');
+  await p.waitForURL(/galerias\/[0-9a-f]{16}/); const gid = p.url().split('?')[0].split('/').pop();
+  await p.click('#openUpload'); await p.setInputFiles('#fileInput', [0, 1, 2, 3].map(img));
+  await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 4); await p.click('#upStart'); await p.waitForSelector('.toast', { timeout: 60000 });
+  const ids = await p.$$eval('.tile', (n) => n.map((t) => t.dataset.id).filter(Boolean));
+  const fav = [ids[2], ids[3]];
+  await p.evaluate(async ([g, f]) => { await fetch(`/api/g/${g}/mark`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ids: f, fav: 1 }) }); }, [gid, fav]);
+  const tok = await p.$eval('body', (b) => b.dataset.token);
+  const g = await (await b.newContext()).newPage();
+  const order = async (qs = '') => { await g.goto(`${B}/e/${tok}${qs}`); return g.$$eval('#gallery .tile', (n) => n.map((t) => t.dataset.id)); };
+  const base = await order();
+  check('por defecto: sin pestaña', !(await g.$('.btabs')));
+  check('por defecto: orden normal', fav.every((f) => base.indexOf(f) >= 0) && base.join() !== [...fav, ...base.filter((i) => !fav.includes(i))].join() || base.slice(0, 2).every((x) => fav.includes(x)) === false);
+
+  await p.click('[data-open=setDlg]');
+  await p.check('#setDlg input[name=best_first]'); await p.check('#setDlg input[name=best_tab]'); await p.fill('#setDlg input[name=best_title]', 'Lo mejor del torneo');
+  await p.click('#setDlg button[type=submit]:not([formaction])'); await p.waitForURL(/ok=/);
+  const first = await order();
+  check('destacadas primero', first.slice(0, 2).every((x) => fav.includes(x)) && first.length === 4, first.join());
+  const tabs = await g.$$eval('.btabs .gbtn', (n) => n.map((x) => x.textContent.trim().replace(/\s+/g, ' ')));
+  check('pestañas Todas y Lo mejor del torneo', tabs.length === 2 && /Todas · 4/.test(tabs[0]) && /Lo mejor del torneo · 2/.test(tabs[1]), tabs.join('|'));
+  const only = await order('?mejor=1');
+  check('pestaña: solo destacadas', only.length === 2 && only.every((x) => fav.includes(x)), only.join());
+  check('pestaña activa marcada', (await g.$$eval('.btabs .gbtn.on', (n) => n.length)) === 1 && /mejor/i.test(await g.textContent('.btabs .gbtn.on')));
+  await g.screenshot({ path: '/tmp/picfy_shots/best_tabs.png' });
+
+  await p.goto(p.url()); await p.click('[data-open=setDlg]'); await p.uncheck('#setDlg input[name=best_first]'); await p.uncheck('#setDlg input[name=best_tab]');
+  await p.click('#setDlg button[type=submit]:not([formaction])'); await p.waitForURL(/ok=/);
+  await order('?mejor=1');
+  check('desactivado: sin pestaña ni filtro', !(await g.$('.btabs')) && (await g.$$('#gallery .tile')).length === 4);
+  await b.close(); console.log(ok ? 'ALL OK' : 'SOME FAILED'); process.exit(ok ? 0 : 1);
+})().catch((e) => { console.error(e); process.exit(2); });

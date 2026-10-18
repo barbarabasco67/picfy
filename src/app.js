@@ -7,6 +7,7 @@ import { notFoundPage } from './views.js';
 import { attachSlugs, orderSql, privacyReady, deleteFamily, trashReady, purgeTrashedPhotos, cleanup, GALLERY_TRASH_DAYS } from './photos.js';
 import { galleryRoutes, validAccent } from './gallery.js';
 import { wmRoutes, getWm, wmAttr } from './watermark.js';
+import { getBest } from './best.js';
 import { collectionRoutes } from './collections.js';
 import { splitParts } from './zip.js';
 import { socialReady, loadStats, viewsReady } from './social.js';
@@ -398,8 +399,9 @@ export function appRoutes(app) {
     let stats = null;
     try { stats = await loadStats(db, event); } catch { /* sin estadísticas */ }
     const wm = await getWm(db, event);
+    const best = await getBest(db, event);
     return html(galleryPage({
-      wm, sels, stats, user, event, photos, subs, parent, folders, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
+      wm, best, sels, stats, user, event, photos, subs, parent, folders, guests: gs.results, origin: new URL(c.req.url).origin, partSize, zipParts,
       counts: { approved: approved.length, pending: photos.filter((p) => p.state === 'pending').length },
       note: c.req.query('ok') || '',
     }));
