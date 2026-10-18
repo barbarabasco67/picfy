@@ -387,7 +387,7 @@ ${event.avatar_v ? `<label class="check"><input type="checkbox" name="wm_logo" v
 <p class="muted small" style="margin:0">La marca se pinta en la miniatura y en la foto grande. El original limpio solo se descarga si activas «Permitir que los invitados descarguen fotos». Al guardar, las fotos que ya tienes se rehacen solas desde tu navegador (verás el avance abajo; no cierres la pestaña hasta que termine).</p></fieldset>
 <fieldset class="privbox"><legend>Fotos destacadas</legend>
 <input type="hidden" name="best_form" value="1">
-<p class="muted small" style="margin:0">Marca con el corazón ${ICON.heart} las mejores fotos desde el panel. Aquí eliges qué ven los invitados.</p>
+<p class="muted small" style="margin:0">Marca con el corazón las mejores fotos desde el panel. Aquí eliges qué ven los invitados.</p>
 <label class="check"><input type="checkbox" name="best_first" value="1" ${best && best.first ? 'checked' : ''}> Mostrar primero las destacadas</label>
 <label class="check"><input type="checkbox" name="best_tab" value="1" ${best && best.tab ? 'checked' : ''}> Crear una pestaña con solo las destacadas (por ejemplo, «Lo mejor del torneo»)</label>
 <label class="field"><span>Nombre de la pestaña</span><input type="text" name="best_title" maxlength="40" value="${esc(best ? best.raw : '')}" placeholder="Lo mejor"></label>

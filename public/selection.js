@@ -28,7 +28,7 @@
     $('selMineN').textContent = total + (total === 1 ? ' foto elegida' : ' fotos elegidas');
     figs().forEach((fig) => { const b = fig.querySelector('.selpick'), on = sel.has(idOf(fig)); b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); b.title = on ? 'Quitar de mi selección' : 'Elegir esta foto'; });
     const all = figs().length && figs().every((f) => sel.has(idOf(f)));
-    const t = $('selToggle'); if (t) t.textContent = all ? 'Quitar selección' : 'Elegir todas';
+    const t = $('selToggle'); if (t) t.textContent = all ? 'Quitar selección' : 'Seleccionar';
     const lbb = $('lbSel');
     if (lbb) { lbb.classList.toggle('hidden', !curId); lbb.classList.toggle('on', sel.has(curId)); lbb.innerHTML = CHECK + '<span>' + (sel.has(curId) ? 'Elegida' : 'Elegir esta foto') + '</span>'; }
     const dl = $('selDl'); if (dl) dl.disabled = false;
