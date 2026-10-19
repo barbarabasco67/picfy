@@ -1,9 +1,9 @@
-// Agenda personal: eventos y tareas de cualquier tipo. Vista de semana y de mes, categorías propias,
-// tareas con casilla, «Por hacer» sin fecha y «Hechas».
+// Agenda personal: tareas y eventos de varios tipos. Vista de semana y de mes, importantes siempre visibles,
+// tareas con fecha de inicio y fin, «Por hacer» sin fecha y «Hechas».
 (function () {
   const $ = (id) => document.getElementById(id);
-  let COLORS;
-  try { COLORS = JSON.parse(document.body.dataset.agenda || ''); } catch { return; }
+  let KINDS;
+  try { KINDS = JSON.parse(document.body.dataset.agenda || ''); } catch { return; }
   if (!$('agWeek')) return;
 
   const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -17,11 +17,10 @@
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
   const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch { /* sin almacenamiento */ } };
-  const GREY = '#6b7280';
 
   let items = [];
   let view = lsGet('picfy_agenda_view') === 'month' ? 'month' : 'week';
-  let fCat = '';
+  let fKind = '';
   const now = new Date();
   let cy = now.getFullYear(), cm = now.getMonth();
   let wStart = addDays(now, -((now.getDay() + 6) % 7));
@@ -29,8 +28,10 @@
 
   const endOf = (it) => it.end_date || it.date;
   const hasDate = (it) => !!it.date;
-  const colorOf = (it) => it.color || GREY;
-  const visible = () => items.filter((it) => !fCat || it.category === fCat);
+  const K = (it) => KINDS[it.kind] || KINDS.tarea;
+  const colorOf = (it) => K(it).color;
+  const iconOf = (it) => it.icon || K(it).icon;
+  const visible = () => items.filter((it) => !fKind || it.kind === fKind);
   const onDay = (it, day) => hasDate(it) && it.date <= day && endOf(it) >= day;
   const sortDay = (a, b) => (a.time || '99:99').localeCompare(b.time || '99:99') || a.title.localeCompare(b.title);
 
@@ -49,10 +50,10 @@
   const rangeTxt = (it) => (it.end_date ? ` · hasta ${parse(it.end_date).getDate()} ${MONTHS[parse(it.end_date).getMonth()].slice(0, 3)}` : '');
 
   function entry(it) {
-    const task = it.kind === 'tarea';
+    const meta = [timeTxt(it), K(it).label, it.category ? esc(it.category) : ''].filter(Boolean).join(' · ');
     return `<div class="agent${it.done ? ' done' : ''}" data-id="${it.id}" style="--c:${colorOf(it)}">
-${task ? `<button type="button" class="agck${it.done ? ' on' : ''}" data-check="${it.id}" aria-label="${it.done ? 'Marcar como pendiente' : 'Marcar como hecha'}"></button>` : '<i class="agdot"></i>'}
-<div class="agmain"><strong>${it.icon ? esc(it.icon) + ' ' : ''}${esc(it.title)}</strong><span class="muted small">${[timeTxt(it), it.category ? esc(it.category) : '', task ? '' : 'evento'].filter(Boolean).join(' · ')}${rangeTxt(it)}</span></div></div>`;
+<button type="button" class="agck${it.done ? ' on' : ''}" data-check="${it.id}" aria-label="${it.done ? 'Marcar como pendiente' : 'Marcar como hecho'}"></button>
+<div class="agmain"><strong>${iconOf(it)} ${esc(it.title)}${it.important ? ' <span class="agstar">⭐</span>' : ''}</strong><span class="muted small">${meta}${rangeTxt(it)}</span></div></div>`;
   }
 
   function renderWeek() {
@@ -69,7 +70,7 @@ ${task ? `<button type="button" class="agck${it.done ? ' on' : ''}" data-check="
     $('agTitle').textContent = wStart.getMonth() === e.getMonth() ? `${wStart.getDate()}–${e.getDate()} ${MONTHS[e.getMonth()]} ${e.getFullYear()}` : `${wStart.getDate()} ${MONTHS[wStart.getMonth()].slice(0, 3)} – ${e.getDate()} ${MONTHS[e.getMonth()].slice(0, 3)} ${e.getFullYear()}`;
   }
 
-  const chip = (it) => `<button type="button" class="agchip${it.done ? ' done' : ''}" data-id="${it.id}" style="--c:${colorOf(it)}" title="${esc(it.title)}">${it.time ? `<b>${esc(it.time)}</b> ` : ''}${it.icon ? esc(it.icon) + ' ' : ''}${esc(it.title)}</button>`;
+  const chip = (it) => `<button type="button" class="agchip${it.done ? ' done' : ''}" data-id="${it.id}" style="--c:${colorOf(it)}" title="${esc(it.title)}">${it.time ? `<b>${esc(it.time)}</b> ` : ''}${iconOf(it)} ${esc(it.title)}</button>`;
 
   function renderMonth() {
     const first = new Date(cy, cm, 1);
@@ -92,32 +93,38 @@ ${task ? `<button type="button" class="agck${it.done ? ' on' : ''}" data-check="
   }
 
   function side() {
-    const all = visible(), today = todayIso();
+    const all = items, today = todayIso();
     const limit = iso(addDays(new Date(), 30));
-    const late = all.filter((it) => it.kind === 'tarea' && !it.done && hasDate(it) && endOf(it) < today).sort((a, b) => a.date.localeCompare(b.date));
-    const next = all.filter((it) => hasDate(it) && !it.done && endOf(it) >= today && it.date <= limit).sort((a, b) => (a.date < today ? today : a.date).localeCompare(b.date < today ? today : b.date) || sortDay(a, b)).slice(0, 8);
-    const todo = all.filter((it) => it.kind === 'tarea' && !it.done && !hasDate(it));
+    const live = (it) => !it.done && (!hasDate(it) || endOf(it) >= today);
+    const imp = all.filter((it) => it.important && live(it)).sort((a, b) => (a.date || '9').localeCompare(b.date || '9') || sortDay(a, b));
+    const impIds = new Set(imp.map((it) => it.id));
+    const late = all.filter((it) => !it.done && hasDate(it) && endOf(it) < today).sort((a, b) => a.date.localeCompare(b.date));
+    const next = all.filter((it) => hasDate(it) && live(it) && !impIds.has(it.id) && it.date <= limit).sort((a, b) => (a.date < today ? today : a.date).localeCompare(b.date < today ? today : b.date) || sortDay(a, b)).slice(0, 8);
+    const todo = all.filter((it) => it.kind === 'tarea' && !it.done && !hasDate(it) && !it.important);
     const done = all.filter((it) => it.done).sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 10);
-    const nextRow = (it) => { const d = parse(it.date < today ? today : it.date); return `<div class="agnx" data-id="${it.id}" style="--c:${colorOf(it)}"><div class="agdate"><b>${d.getDate()}</b><span>${MONTHS[d.getMonth()].slice(0, 3)}</span></div><div class="agmain"><strong>${it.icon ? esc(it.icon) + ' ' : ''}${esc(it.title)}</strong><span class="muted small">${[timeTxt(it), it.category ? esc(it.category) : ''].filter(Boolean).join(' · ') || (it.kind === 'tarea' ? 'tarea' : 'evento')}</span></div></div>`; };
+    const nextRow = (it) => {
+      if (!hasDate(it)) return entry(it);
+      const d = parse(it.date < today ? today : it.date), y = d.getFullYear() !== now.getFullYear() ? ' ' + d.getFullYear() : '';
+      return `<div class="agnx" data-id="${it.id}" style="--c:${colorOf(it)}"><div class="agdate"><b>${d.getDate()}</b><span>${MONTHS[d.getMonth()].slice(0, 3)}${y}</span></div><div class="agmain"><strong>${iconOf(it)} ${esc(it.title)}</strong><span class="muted small">${[timeTxt(it), K(it).label, it.category ? esc(it.category) : ''].filter(Boolean).join(' · ')}</span></div></div>`;
+    };
     const box = (t, n, body, cls) => `<section class="glass agbox ${cls || ''}"><h3>${t}${n ? ` <em>${n}</em>` : ''}</h3>${body}</section>`;
-    let out = box('Próximos', '', next.length ? next.map(nextRow).join('') : '<p class="muted small">Nada en los próximos 30 días.</p>');
+    let out = '';
+    if (imp.length) out += box('⭐ Importantes', imp.length, imp.map(nextRow).join(''), 'imp');
+    out += box('Próximos', '', next.length ? next.map(nextRow).join('') : '<p class="muted small">Nada en los próximos 30 días.</p>');
     if (late.length) out += box('Atrasadas', late.length, late.map(entry).join(''), 'bad');
     out += box('Por hacer', todo.length || '', todo.length ? todo.map(entry).join('') : '<p class="muted small">Nada pendiente sin fecha.</p>');
     out += box('Hechas', '', done.length ? done.map(entry).join('') : '<p class="muted small">Aún no has completado ninguna.</p>');
     $('agSide').innerHTML = out;
   }
 
-  function cats() {
-    const m = new Map();
-    for (const it of items) if (it.category && !m.has(it.category)) m.set(it.category, it.color || GREY);
-    if (fCat && !m.has(fCat)) fCat = '';
-    $('agCats').innerHTML = m.size ? `<button type="button" class="chipf${fCat ? '' : ' on'}" data-cat="">Todo</button>` + [...m].map(([n, c]) => `<button type="button" class="chipf${fCat === n ? ' on' : ''}" data-cat="${esc(n)}" style="--c:${c}"><i></i>${esc(n)}</button>`).join('') : '';
-    $('agCatList').innerHTML = [...m.keys()].map((n) => `<option value="${esc(n)}">`).join('');
-    cats.map = m;
+  function chips() {
+    const used = new Set(items.map((it) => it.kind));
+    if (fKind && !used.has(fKind)) fKind = '';
+    $('agCats').innerHTML = used.size > 1 ? `<button type="button" class="chipf${fKind ? '' : ' on'}" data-cat="">Todo</button>` + Object.entries(KINDS).filter(([k]) => used.has(k)).map(([k, v]) => `<button type="button" class="chipf${fKind === k ? ' on' : ''}" data-cat="${k}" style="--c:${v.color}"><i></i>${esc(v.plural)}</button>`).join('') : '';
   }
 
   function render() {
-    cats();
+    chips();
     $('agWeek').hidden = view !== 'week'; $('agMonth').hidden = view !== 'month';
     document.querySelectorAll('[data-view]').forEach((b) => b.classList.toggle('on', b.dataset.view === view));
     if (view === 'week') renderWeek(); else renderMonth();
@@ -130,20 +137,11 @@ ${task ? `<button type="button" class="agck${it.done ? ' on' : ''}" data-check="
 
   const dlg = $('agDlg'), form = $('agForm');
   const kindOf = () => (form.querySelector('input[name=kind]:checked') || {}).value || 'tarea';
-  function syncKind() { $('agDateL').textContent = kindOf() === 'evento' ? 'Fecha' : 'Fecha (opcional)'; form.date.required = kindOf() === 'evento'; }
+  function syncKind() { const t = kindOf() === 'tarea'; $('agDateL').textContent = t ? 'Fecha de inicio (opcional)' : 'Fecha de inicio'; form.date.required = !t; }
   form.querySelectorAll('input[name=kind]').forEach((r) => r.addEventListener('change', syncKind));
-  const setColor = (c) => { const r = form.querySelector(`input[name=color][value="${c}"]`); (r || form.querySelector('input[name=color]')).checked = true; };
-  form.category.addEventListener('input', () => {
-    const m = cats.map || new Map(), v = form.category.value.trim();
-    if (m.has(v)) setColor(m.get(v));
-    else if (v && !colorTouched) { const used = new Set(m.values()); setColor(COLORS.find((c) => !used.has(c)) || COLORS[0]); }
-  });
-  let colorTouched = false;
-  form.querySelectorAll('input[name=color]').forEach((r) => r.addEventListener('change', () => { colorTouched = true; }));
-  form.querySelectorAll('.emo').forEach((b) => b.addEventListener('click', () => { form.icon.value = form.icon.value === b.dataset.emo ? '' : b.dataset.emo; }));
 
   function openForm(it, day, kind) {
-    editing = it || null; colorTouched = !!it;
+    editing = it || null;
     form.reset();
     form.querySelector(`input[name=kind][value="${it ? it.kind : (kind || 'tarea')}"]`).checked = true;
     $('agDlgT').textContent = it ? 'Editar' : 'Nuevo';
@@ -152,11 +150,10 @@ ${task ? `<button type="button" class="agck${it.done ? ' on' : ''}" data-check="
     form.end_date.value = it && it.end_date ? it.end_date : '';
     form.time.value = it && it.time ? it.time : '';
     form.end_time.value = it && it.end_time ? it.end_time : '';
-    form.category.value = it && it.category ? it.category : (fCat || '');
-    form.icon.value = it && it.icon ? it.icon : '';
+    form.category.value = it && it.category ? it.category : '';
+    form.important.checked = !!(it && it.important);
     form.url.value = it && it.url ? it.url : '';
     form.notes.value = it && it.notes ? it.notes : '';
-    setColor(it && it.color ? it.color : ((cats.map || new Map()).get(fCat) || COLORS[0]));
     syncKind();
     $('agDel').hidden = !it;
     dlg.showModal();
@@ -166,10 +163,10 @@ ${task ? `<button type="button" class="agck${it.done ? ' on' : ''}" data-check="
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const f = new FormData(form);
-    const body = { kind: f.get('kind'), title: f.get('title'), date: f.get('date'), end_date: f.get('end_date'), time: f.get('time'), end_time: f.get('end_time'), category: f.get('category'), color: f.get('color'), icon: f.get('icon'), url: f.get('url'), notes: f.get('notes') };
-    if (body.kind === 'evento' && !body.date) { toast('Un evento necesita fecha.'); return; }
+    const body = { kind: f.get('kind'), title: f.get('title'), date: f.get('date'), end_date: f.get('end_date'), time: f.get('time'), end_time: f.get('end_time'), category: f.get('category'), important: f.get('important') ? 1 : 0, url: f.get('url'), notes: f.get('notes') };
+    if (body.kind !== 'tarea' && !body.date) { toast('Pon la fecha de inicio.'); return; }
     try {
-      if (editing) { const r = await send('PUT', `/api/agenda/${editing.id}`, { ...body, done: editing.kind === body.kind ? editing.done : 0 }); items = items.map((x) => (x.id === editing.id ? { ...x, ...r.item } : x)); }
+      if (editing) { const r = await send('PUT', `/api/agenda/${editing.id}`, { ...body, done: editing.done }); items = items.map((x) => (x.id === editing.id ? { ...x, ...r.item } : x)); }
       else { const r = await send('POST', '/api/agenda', body); items.push(r.item); }
       dlg.close(); render();
     } catch (err) { toast('No se ha podido guardar.'); }
@@ -184,7 +181,7 @@ ${task ? `<button type="button" class="agck${it.done ? ' on' : ''}" data-check="
   $('agQuick').addEventListener('submit', async (e) => {
     e.preventDefault();
     const t = $('agQuickT').value.trim(); if (!t) return;
-    try { const r = await send('POST', '/api/agenda', { kind: 'tarea', title: t, category: fCat, color: (cats.map || new Map()).get(fCat) || '' }); items.push(r.item); $('agQuickT').value = ''; render(); }
+    try { const r = await send('POST', '/api/agenda', { kind: 'tarea', title: t }); items.push(r.item); $('agQuickT').value = ''; render(); }
     catch { toast('No se ha podido añadir.'); }
   });
 
@@ -218,7 +215,7 @@ ${task ? `<button type="button" class="agck${it.done ? ' on' : ''}" data-check="
     const t = e.target;
     if (t.closest('dialog [data-close]')) { t.closest('dialog').close(); return; }
     const v = t.closest('[data-view]'); if (v) { setView(v.dataset.view); return; }
-    const cat = t.closest('[data-cat]'); if (cat) { fCat = cat.dataset.cat; render(); return; }
+    const cat = t.closest('[data-cat]'); if (cat) { fKind = cat.dataset.cat; render(); return; }
     const ck = t.closest('[data-check]'); if (ck) { toggle(ck.dataset.check); return; }
     const add = t.closest('[data-add]'); if (add) { openForm(null, add.dataset.add, 'evento'); return; }
     const ent = t.closest('.agent[data-id], .agchip[data-id], .agnx[data-id]');

@@ -15,12 +15,12 @@ async function reg(b, name) {
 async function add(p, kind, title, date, x = {}) {
   await p.click('#agAdd'); await p.waitForSelector('#agDlg[open]');
   await p.click(`#agForm .kradio:has(input[value=${kind}]) span`);
+  if (x.imp) await p.check('#agForm input[name=important]');
   await p.fill('#agForm input[name=title]', title);
   await p.fill('#agForm input[name=date]', date || '');
   if (x.time) await p.fill('#agForm input[name=time]', x.time);
   if (x.end) await p.fill('#agForm input[name=end_date]', x.end);
   if (x.cat) await p.fill('#agForm input[name=category]', x.cat);
-  if (x.icon) await p.fill('#agForm input[name=icon]', x.icon);
   await p.click('#agForm button[type=submit]'); await p.waitForFunction(() => !document.querySelector('#agDlg[open]'));
 }
 const api = (p, path, o) => p.evaluate(async ([path, o]) => { const r = await fetch(path, o); return { s: r.status, j: await r.json().catch(() => null) }; }, [path, o]);
@@ -33,18 +33,20 @@ const api = (p, path, o) => p.evaluate(async ([path, o]) => { const r = await fe
   await p.fill('#agQuickT', 'Preparar convocatoria'); await p.press('#agQuickT', 'Enter');
   await p.waitForSelector('#agSide .agbox:has-text("Por hacer") .agent');
   check('tarea rápida en Por hacer', /Preparar convocatoria/.test(await p.textContent('#agSide')));
-  // evento hoy con hora, categoría e icono; evento de varios días; tarea atrasada; tarea con fecha
-  await add(p, 'evento', 'Game Canoe', iso(new Date()), { time: '10:30', cat: 'Partidos', icon: '🏀' });
-  await add(p, 'evento', 'Torneo fin de semana', iso(off(1)), { end: iso(off(3)), cat: 'Torneos' });
-  await add(p, 'tarea', 'Entregar fotos', iso(off(-2)), { cat: 'Fotos' });
-  await add(p, 'tarea', 'Llamar al cliente', iso(off(2)));
+  await add(p, 'evento', 'Game Canoe', iso(new Date()), { time: '10:30', cat: 'Las Rozas 3x3' });
+  await add(p, 'torneo', 'Torneo fin de semana', iso(off(1)), { end: iso(off(3)) });
+  await add(p, 'tarea', 'Entregar fotos', iso(off(-2)), { cat: 'Behind the Bench' });
+  await add(p, 'grabacion', 'Grabación spot', iso(off(2)));
+  await add(p, 'reunion', 'Reunión patrocinador', iso(off(200)), { imp: true });
   check('evento en la semana', /Game Canoe/.test(await p.textContent('#agWeek')) && /10:30/.test(await p.textContent('#agWeek')));
-  check('icono visible', /🏀/.test(await p.textContent('#agWeek')));
-  check('atrasadas en el lateral', /Atrasadas/.test(await p.textContent('#agSide')) && /Entregar fotos/.test(await p.textContent('#agSide .agbox.bad')));
-  check('próximos en el lateral', /Game Canoe/.test(await p.textContent('#agSide .agbox:first-child')));
-  check('categorías como filtros', (await p.$$eval('#agCats .chipf', (n) => n.map((x) => x.textContent.trim()))).join('|').includes('Partidos'));
-  await p.click('#agCats .chipf:has-text("Partidos")');
-  check('filtro por categoría', !/Torneo fin/.test(await p.textContent('#agWeek')) && /Game Canoe/.test(await p.textContent('#agWeek')));
+  check('todos los tipos en el formulario', (await (async () => { await p.click('#agAdd'); const n = await p.$$eval('#agForm .kradio', (x) => x.map((e) => e.textContent.trim())); await p.click('#agDlg [data-close]'); return n; })()).length === 8);
+  check('importante lejano en el lateral', /Reunión patrocinador/.test(await p.textContent('#agSide .agbox.imp')));
+  check('atrasadas en el lateral', /Entregar fotos/.test(await p.textContent('#agSide .agbox.bad')));
+  check('próximos en el lateral', /Game Canoe/.test(await p.textContent('#agSide .agbox:has-text("Próximos")')));
+  check('tarea de varios días', await (async () => { await add(p, 'tarea', 'Informe largo', iso(off(0)), { end: iso(off(2)) }); return (await p.$$eval('#agWeek .agent', (n) => n.filter((x) => /Informe largo/.test(x.textContent)).length)) === 3; })());
+  check('filtros por tipo', (await p.$$eval('#agCats .chipf', (n) => n.map((x) => x.textContent.trim()))).join('|').includes('Torneos'));
+  await p.click('#agCats .chipf:has-text("Torneos")');
+  check('filtro por tipo', !/Game Canoe/.test(await p.textContent('#agWeek')) && /Torneo fin/.test(await p.textContent('#agWeek')));
   await p.click('#agCats .chipf:has-text("Todo")');
   // casilla: marcar hecha
   await p.click('#agSide .agbox.bad .agck'); await p.waitForTimeout(300);
@@ -62,7 +64,15 @@ const api = (p, path, o) => p.evaluate(async ([path, o]) => { const r = await fe
   await p.waitForFunction(() => !document.querySelector('#agDlg[open]'));
   check('borrado', !/Convocatoria enviada/.test(await p.textContent('#agSide')));
   // validación: evento sin fecha → 400
-  check('evento sin fecha: 400', (await api(p, '/api/agenda', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'evento', title: 'x' }) })).s === 400);
+  check('evento sin fecha: 400', (await api(p, '/api/agenda', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'torneo', title: 'x' }) })).s === 400);
+  // menú de la izquierda plegable
+  const w0 = await p.evaluate(() => document.querySelector('.frame > .side').getBoundingClientRect().width);
+  await p.click('#navToggle'); await p.waitForTimeout(250);
+  const w1 = await p.evaluate(() => document.querySelector('.frame > .side').getBoundingClientRect().width);
+  check('menú se pliega', w1 < w0 - 60, w0 + ' ' + w1);
+  await p.reload(); await p.waitForSelector('#agWeek .agday');
+  check('recuerda el menú plegado', (await p.evaluate(() => document.querySelector('.frame > .side').getBoundingClientRect().width)) < w0 - 60);
+  await p.click('#navToggle');
   // semana siguiente y mes
   await p.click('#agNext'); await p.click('#agToday');
   await p.click('[data-view=month]'); await p.waitForSelector('.aggrid');
@@ -83,7 +93,7 @@ const api = (p, path, o) => p.evaluate(async ([path, o]) => { const r = await fe
   const q = await reg(b, 'Otra');
   check('otra cuenta no ve nada', (await api(q, '/api/agenda')).j.items.length === 0);
   check('otra cuenta no edita (404)', (await api(q, '/api/agenda/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title: 'x' }) })).s === 404);
-  check('otra cuenta no borra', ((await api(q, '/api/agenda/' + id, { method: 'DELETE' })), (await api(p, '/api/agenda')).j.items.length === 4));
+  check('otra cuenta no borra', ((await api(q, '/api/agenda/' + id, { method: 'DELETE' })), (await api(p, '/api/agenda')).j.items.length === 6));
   const anon = await (await b.newContext()).newPage();
   check('API sin sesión: 401', (await anon.request.get(B + '/api/agenda')).status() === 401);
   await anon.goto(B + '/agenda'); check('página sin sesión pide entrar', /entrar/.test(anon.url()));

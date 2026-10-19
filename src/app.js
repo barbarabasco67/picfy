@@ -10,6 +10,7 @@ import { wmRoutes, getWm, wmAttr } from './watermark.js';
 import { getBest } from './best.js';
 import { collectionRoutes } from './collections.js';
 import { agendaRoutes } from './agenda.js';
+import { habitsRoutes } from './habits.js';
 import { splitParts } from './zip.js';
 import { socialReady, loadStats, viewsReady } from './social.js';
 import { loadSelections, selSeenReady, NEW_SEL_SQL } from './selection.js';
@@ -26,6 +27,7 @@ export function appRoutes(app) {
   wmRoutes(app);
   collectionRoutes(app);
   agendaRoutes(app);
+  habitsRoutes(app);
 
   /* ----- Entrar ----- */
   app.get('/entrar', async (c) => (await currentUser(c)) ? go('/galerias') : html(authPage({ mode: 'login' })));
