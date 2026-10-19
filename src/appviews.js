@@ -579,38 +579,36 @@ ${items.length ? `<div class="collist">${cards}</div>` : '<div class="glass empt
 
 /* ---------- Agenda ---------- */
 
-export function agendaPage({ user, ready, kinds }) {
-  const kindBtns = Object.entries(kinds).map(([k, v]) => `<button type="button" class="chipf" data-kind="${k}" style="--c:${v.color}"><i></i>${esc(v.plural)}</button>`).join('');
-  const radios = Object.entries(kinds).map(([k, v]) => `<label class="kradio" style="--c:${v.color}"><input type="radio" name="kind" value="${k}"><span><i></i>${esc(v.label)}</span></label>`).join('');
+export function agendaPage({ user, ready, colors }) {
+  const sw = colors.map((c, i) => `<label class="swatch" style="--c:${c}"><input type="radio" name="color" value="${c}"${i === 0 ? ' checked' : ''}><span></span></label>`).join('');
+  const emojis = ['🏀', '🏆', '📸', '🎬', '📌', '📞', '✈️', '🎂', '💼', '🏋️', '📝', '⭐'].map((e) => `<button type="button" class="emo" data-emo="${e}">${e}</button>`).join('');
   return appPage({
     title: 'Agenda',
     scripts: ['/app.js', '/agenda.js'],
-    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}"`,
+    bodyAttrs: `data-agenda="${esc(JSON.stringify(colors))}"`,
     body: shell({
       user, active: 'agenda', crumbs: '<span>Agenda</span>',
-      main: !ready ? `<div class="head"><div><h1>Agenda</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0024) para activar la agenda.</div>` : `<div class="head"><div><h1>Agenda</h1><p class="muted">Torneos, partidos, publicaciones y entregas en un solo sitio.</p></div>
+      main: !ready ? `<div class="head"><div><h1>Agenda</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0025) para activar la agenda.</div>` : `<div class="head"><div><h1>Agenda</h1></div>
 <button class="btn primary" type="button" id="agAdd">${ICON.plus} Añadir</button></div>
-<div class="agsum" id="agSum"></div>
-<div class="glass agbar">
-<div class="agnav"><button class="iconbtn" type="button" id="agPrev" aria-label="Mes anterior">‹</button><button class="btn sm" type="button" id="agToday">Hoy</button><button class="iconbtn" type="button" id="agNext" aria-label="Mes siguiente">›</button><h2 id="agTitle"></h2></div>
-<div class="agtools"><select id="agClient" aria-label="Filtrar por cliente"><option value="">Todos los clientes</option></select>
-<div class="vtog" role="group" aria-label="Vista"><button type="button" data-view="month" class="on">Mes</button><button type="button" data-view="list">Lista</button></div></div>
-</div>
-<div class="agchips" id="agKinds"><button type="button" class="chipf on" data-kind="">Todo</button>${kindBtns}</div>
-<div id="agMonth" class="agmonth"></div><div id="agList" class="aglist" hidden></div>
+<form class="glass agquick" id="agQuick" autocomplete="off"><input type="text" id="agQuickT" maxlength="160" placeholder="Nueva tarea… (escribe y pulsa Intro)" aria-label="Nueva tarea"><button class="btn primary" type="submit">Añadir tarea</button></form>
+<div class="aglayout"><div class="agmainc">
+<div class="glass agbar"><div class="agnav"><button class="iconbtn" type="button" id="agPrev" aria-label="Anterior">‹</button><h2 id="agTitle"></h2><button class="iconbtn" type="button" id="agNext" aria-label="Siguiente">›</button><button class="btn sm" type="button" id="agToday">Hoy</button></div>
+<div class="vtog" role="group" aria-label="Vista"><button type="button" data-view="week" class="on">Semana</button><button type="button" data-view="month">Mes</button></div></div>
+<div class="agchips" id="agCats"></div>
+<div id="agWeek" class="agweekv"></div><div id="agMonth" class="agmonth" hidden></div>
+</div><aside class="agside" id="agSide"></aside></div>
 
 <dialog id="agDlg" class="glassdlg"><form class="dlgbox" id="agForm" autocomplete="off">
 <header><h2 id="agDlgT">Nuevo</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
-<div class="kradios" id="agKindRadios">${radios}</div>
-<label class="field"><span>Título</span><input type="text" name="title" maxlength="160" required placeholder="Ej.: Torneo Las Rozas 3x3"></label>
-<div class="row2"><label class="field"><span>Fecha</span><input type="date" name="date" required></label>
-<label class="field"><span>Hasta (si dura varios días)</span><input type="date" name="end_date"></label></div>
-<div class="row2"><label class="field"><span>Hora (opcional)</span><input type="time" name="time"></label>
-<label class="field"><span>Estado</span><select name="status" id="agStatus"></select></label></div>
-<div class="row2"><label class="field"><span>Cliente o proyecto</span><input type="text" name="client" maxlength="80" list="agClients" placeholder="Ej.: Las Rozas 3x3"><datalist id="agClients"></datalist></label>
-<label class="field"><span id="agDetailL">Detalle</span><input type="text" name="detail" maxlength="120"></label></div>
+<div class="kradios"><label class="kradio"><input type="radio" name="kind" value="tarea" checked><span>Tarea</span></label><label class="kradio"><input type="radio" name="kind" value="evento"><span>Evento</span></label></div>
+<label class="field"><span>Título</span><input type="text" name="title" maxlength="160" required placeholder="Ej.: Preparar convocatoria del sábado"></label>
+<div class="row2"><label class="field"><span id="agDateL">Fecha</span><input type="date" name="date"></label><label class="field"><span>Hasta (si dura varios días)</span><input type="date" name="end_date"></label></div>
+<div class="row2"><label class="field"><span>Hora (opcional)</span><input type="time" name="time"></label><label class="field"><span>Hora fin (opcional)</span><input type="time" name="end_time"></label></div>
+<div class="row2"><label class="field"><span>Categoría (opcional)</span><input type="text" name="category" maxlength="40" list="agCatList" placeholder="Ej.: Fotos, Cliente, Personal"><datalist id="agCatList"></datalist></label>
+<div class="field"><span>Color</span><div class="swatches" id="agSw">${sw}</div></div></div>
+<div class="field"><span>Icono (opcional)</span><div class="emorow"><input type="text" name="icon" maxlength="8" class="emoin" placeholder="🙂">${emojis}</div></div>
 <label class="field"><span>Enlace (opcional)</span><input type="text" name="url" maxlength="400" placeholder="https://"></label>
-<label class="field"><span>Notas</span><textarea name="notes" maxlength="2000" rows="3"></textarea></label>
+<label class="field"><span>Notas</span><textarea name="notes" maxlength="2000" rows="3" placeholder="Lugar, rival, lo que necesites…"></textarea></label>
 <footer><button class="btn danger" type="button" id="agDel" hidden>${ICON.trash} Borrar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>
 <dialog id="agDay" class="glassdlg"><div class="dlgbox"><header><h2 id="agDayT"></h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header><div id="agDayList"></div><footer><span class="spacer"></span><button class="btn primary" type="button" id="agDayAdd">${ICON.plus} Añadir aquí</button></footer></div></dialog>`,
