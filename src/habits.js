@@ -1,7 +1,6 @@
 // Hábitos (picfy.es/habitos): objetivos diarios con progreso por día, solo para la cuenta que los crea.
-import { randomHex, isHex, html, json } from './util.js';
+import { randomHex, isHex, json } from './util.js';
 import { currentUser } from './auth.js';
-import { habitsPage } from './appviews.js';
 
 export const HABIT_COLORS = ['#e5604f', '#2f9e6f', '#e5964c', '#1f9fb3', '#4a63d6', '#8e5bd6', '#c9376e', '#6b7280'];
 
@@ -25,11 +24,7 @@ function clean(b) {
 
 export function habitsRoutes(app) {
   const go = (to) => new Response(null, { status: 303, headers: { location: to } });
-  app.get('/habitos', async (c) => {
-    const user = await currentUser(c);
-    if (!user) return go('/entrar');
-    return html(habitsPage({ user, ready: await habitsReady(c.env.DB), colors: HABIT_COLORS }));
-  });
+  app.get('/habitos', () => go('/agenda#habitos'));
 
   async function auth(c) {
     const user = await currentUser(c);

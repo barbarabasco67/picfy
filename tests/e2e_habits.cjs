@@ -21,7 +21,7 @@ async function add(p, name, o = {}) {
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
   const p = await reg(b, 'Habitos');
-  await p.click('a.nav[href="/habitos"]'); await p.waitForURL('**/habitos'); await p.waitForSelector('#hbDays .hbday');
+  await p.goto(B + '/habitos'); check('/habitos lleva a la agenda', /\/agenda/.test(p.url())); await p.waitForSelector('#hbDays .hbday');
   check('semana con 7 días', (await p.$$('#hbDays .hbday')).length === 7);
   await add(p, 'Beber agua', { icon: '💧', goal: 2000, step: 250, unit: 'ml' });
   await add(p, 'Gimnasio', { icon: '💪' });
@@ -51,7 +51,7 @@ async function add(p, name, o = {}) {
   check('borrado', (await p.$$('.hbcard')).length === 1);
   await p.screenshot({ path: '/tmp/picfy_shots/habitos.png' });
   const m = await (await b.newContext({ viewport: { width: 390, height: 800 }, storageState: await p.context().storageState() })).newPage();
-  await m.goto(B + '/habitos'); await m.waitForSelector('.hbcard');
+  await m.goto(B + '/agenda'); await m.waitForSelector('.hbcard');
   check('móvil sin scroll horizontal', await m.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await m.screenshot({ path: '/tmp/picfy_shots/habitos_movil.png' });
   // seguridad
@@ -62,6 +62,6 @@ async function add(p, name, o = {}) {
   check('otra cuenta no puede borrar', (await api(q, `/api/habits/${hid}`, { method: 'DELETE' })).s === 404);
   const anon = await (await b.newContext()).newPage();
   check('API sin sesión: 401', (await anon.request.get(B + '/api/habits')).status() === 401);
-  await anon.goto(B + '/habitos'); check('página sin sesión pide entrar', /entrar/.test(anon.url()));
+  await anon.goto(B + '/agenda'); check('página sin sesión pide entrar', /entrar/.test(anon.url()));
   await b.close(); console.log(ok ? 'ALL OK' : 'SOME FAILED'); process.exit(ok ? 0 : 1);
 })().catch((e) => { console.error(e); process.exit(2); });

@@ -775,3 +775,5 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 24px); r
 .hbcard.done .hbplus{background:var(--c);color:#fff}
 .hbcard.done .hbmain strong{opacity:.75}
 @media (max-width:560px){.hbday i{width:34px;height:34px}.hbcard{padding:12px}}
+
+.hbsec{margin-top:34px;scroll-margin-top:90px}.hbhead h2{margin:0;font-size:1.5rem;letter-spacing:-.02em}

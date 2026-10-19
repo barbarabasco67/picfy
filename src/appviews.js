@@ -54,7 +54,6 @@ ${side || `<p class="side-h">Gestiona tus fotos</p>
 <a class="nav ${active === 'colecciones' ? 'on' : ''}" href="/colecciones">${ICON.coll}<span>Colecciones</span></a>
 <p class="side-h" style="margin-top:14px">Tu trabajo</p>
 <a class="nav ${active === 'agenda' ? 'on' : ''}" href="/agenda">${ICON.cal}<span>Agenda</span></a>
-<a class="nav ${active === 'habitos' ? 'on' : ''}" href="/habitos">${ICON.habit}<span>Hábitos</span></a>
 <a class="nav trashnav ${active === 'papelera' ? 'on' : ''}" href="/papelera">${ICON.trash}<span>Papelera</span></a>`}
 </aside>`}
 <main class="main">${main}</main>
@@ -581,12 +580,12 @@ ${items.length ? `<div class="collist">${cards}</div>` : '<div class="glass empt
 
 /* ---------- Agenda ---------- */
 
-export function agendaPage({ user, ready, kinds }) {
+export function agendaPage({ user, ready, kinds, colors, habitsOk }) {
   const radios = Object.entries(kinds).map(([k, v]) => `<label class="kradio" style="--c:${v.color}"><input type="radio" name="kind" value="${k}"${k === 'tarea' ? ' checked' : ''}><span>${v.icon} ${esc(v.label)}</span></label>`).join('');
   return appPage({
     title: 'Agenda',
-    scripts: ['/app.js', '/navtoggle.js', '/agenda.js'],
-    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}"`,
+    scripts: ['/app.js', '/navtoggle.js', '/agenda.js', '/habitos.js'],
+    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}" data-colors="${esc(JSON.stringify(colors))}"`,
     body: shell({
       user, active: 'agenda', crumbs: '<span>Agenda</span>', collapsible: true,
       main: !ready ? `<div class="head"><div><h1>Agenda</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar la agenda.</div>` : `<div class="head"><div><h1>Agenda</h1></div>
@@ -598,6 +597,7 @@ export function agendaPage({ user, ready, kinds }) {
 <div class="agchips" id="agCats"></div>
 <div id="agWeek" class="agweekv"></div><div id="agMonth" class="agmonth" hidden></div>
 </div><aside class="agside" id="agSide"></aside></div>
+${habitsSection(colors, habitsOk)}
 
 <dialog id="agDlg" class="glassdlg"><form class="dlgbox" id="agForm" autocomplete="off">
 <header><h2 id="agDlgT">Nuevo</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
@@ -618,16 +618,11 @@ export function agendaPage({ user, ready, kinds }) {
 
 /* ---------- Hábitos ---------- */
 
-export function habitsPage({ user, ready, colors }) {
+function habitsSection(colors, ready) {
   const sw = colors.map((c, i) => `<label class="swatch" style="--c:${c}"><input type="radio" name="color" value="${c}"${i === 0 ? ' checked' : ''}><span></span></label>`).join('');
   const emojis = ['🔥', '💪', '🧍', '💧', '🚶', '📖', '😴', '🥗', '🧘', '🏀', '💊', '✅'].map((e) => `<button type="button" class="emo" data-emo="${e}">${e}</button>`).join('');
-  return appPage({
-    title: 'Hábitos',
-    scripts: ['/app.js', '/navtoggle.js', '/habitos.js'],
-    bodyAttrs: `data-colors="${esc(JSON.stringify(colors))}"`,
-    body: shell({
-      user, active: 'habitos', crumbs: '<span>Hábitos</span>', collapsible: true,
-      main: !ready ? `<div class="head"><div><h1>Hábitos</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar los hábitos.</div>` : `<div class="head"><div><h1>Hábitos</h1><p class="muted" id="hbSub"></p></div>
+  if (!ready) return '<section class="hbsec" id="hbSection"><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar los hábitos.</div></section>';
+  return `<section class="hbsec" id="hbSection"><div class="head hbhead"><div><h2>Hábitos</h2><p class="muted" id="hbSub"></p></div>
 <button class="btn primary" type="button" id="hbAdd">${ICON.plus} Nuevo hábito</button></div>
 <div class="glass hbweek"><button class="iconbtn" type="button" id="hbPrev" aria-label="Semana anterior">‹</button><div class="hbdays" id="hbDays"></div><button class="iconbtn" type="button" id="hbNext" aria-label="Semana siguiente">›</button></div>
 <div id="hbList" class="hblist"></div>
@@ -641,7 +636,5 @@ export function habitsPage({ user, ready, colors }) {
 <label class="field"><span>Lo que suma cada vez que pulsas «+»</span><input type="number" name="step" min="1" max="1000000" value="1" required></label>
 <div class="field" id="hbValBox" hidden><span>Valor de <b id="hbValD"></b></span><input type="number" name="value" min="0" max="1000000"></div>
 <footer><button class="btn danger" type="button" id="hbDel" hidden>${ICON.trash} Borrar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
-</form></dialog>`,
-    }),
-  });
+</form></dialog></section>`;
 }

@@ -4,6 +4,7 @@
   let COLORS;
   try { COLORS = JSON.parse(document.body.dataset.colors || ''); } catch { return; }
   if (!$('hbList')) return;
+  const HB = $('hbSection');
 
   const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   const DOW = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
@@ -120,8 +121,8 @@
 
   document.addEventListener('click', (e) => {
     const t = e.target;
-    if (t.closest('dialog [data-close]')) { t.closest('dialog').close(); return; }
-    const dy = t.closest('[data-day]'); if (dy) { sel = dy.dataset.day; render(); return; }
+    if (!t.closest('#hbSection') && !t.closest('#hbDlg')) return;
+    const dy = t.closest('#hbDays [data-day]'); if (dy) { sel = dy.dataset.day; render(); return; }
     const pl = t.closest('[data-plus]');
     if (pl) {
       const h = habits.find((x) => x.id === pl.dataset.plus); if (!h) return;
