@@ -33,7 +33,6 @@ function clean(b) {
   const title = clip(b.title, 160);
   if (!title) return { error: 'title' };
   const date = reDate.test(String(b.date || '')) ? String(b.date) : '';
-  if (kind !== 'tarea' && !date) return { error: 'date' };
   let end = reDate.test(String(b.end_date || '')) ? String(b.end_date) : null;
   if (!date || (end && end <= date)) end = null;
   const time = date && reTime.test(String(b.time || '')) ? String(b.time) : null;

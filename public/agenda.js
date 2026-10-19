@@ -52,7 +52,7 @@
 
   function entry(it, bare) {
     const meta = bare ? '' : [timeTxt(it), K(it).label, it.category ? esc(it.category) : ''].filter(Boolean).join(' · ');
-    return `<div class="agent${it.done ? ' done' : ''}" data-id="${it.id}" style="--c:${colorOf(it)}">
+    return `<div class="agent${it.done ? ' done' : ''}" draggable="true" data-id="${it.id}" style="--c:${colorOf(it)}">
 <button type="button" class="agck${it.done ? ' on' : ''}" data-check="${it.id}" aria-label="${it.done ? 'Marcar como pendiente' : 'Marcar como hecho'}"></button>
 <div class="agmain"><strong>${iconOf(it)}${esc(it.title)}${it.important ? STAR() : ''}</strong>${bare ? '' : `<span class="muted small">${meta}${rangeTxt(it)}</span>`}</div></div>`;
   }
@@ -71,7 +71,7 @@
     $('agTitle').textContent = wStart.getMonth() === e.getMonth() ? `${wStart.getDate()}–${e.getDate()} ${MONTHS[e.getMonth()]} ${e.getFullYear()}` : `${wStart.getDate()} ${MONTHS[wStart.getMonth()].slice(0, 3)} – ${e.getDate()} ${MONTHS[e.getMonth()].slice(0, 3)} ${e.getFullYear()}`;
   }
 
-  const chip = (it) => `<button type="button" class="agchip${it.done ? ' done' : ''}" data-id="${it.id}" style="--c:${colorOf(it)}" title="${esc(it.title)}">${it.time ? `<b>${esc(it.time)}</b> ` : ''}${iconOf(it)}${esc(it.title)}</button>`;
+  const chip = (it) => `<button type="button" class="agchip${it.done ? ' done' : ''}" draggable="true" data-id="${it.id}" style="--c:${colorOf(it)}" title="${esc(it.title)}">${it.time ? `<b>${esc(it.time)}</b> ` : ''}${iconOf(it)}${esc(it.title)}</button>`;
 
   function renderMonth() {
     const first = new Date(cy, cm, 1);
@@ -101,19 +101,19 @@
     const impIds = new Set(imp.map((it) => it.id));
     const late = all.filter((it) => !it.done && hasDate(it) && endOf(it) < today).sort((a, b) => a.date.localeCompare(b.date));
     const next = all.filter((it) => hasDate(it) && live(it) && !impIds.has(it.id) && it.date <= limit).sort((a, b) => (a.date < today ? today : a.date).localeCompare(b.date < today ? today : b.date) || sortDay(a, b)).slice(0, 8);
-    const todo = all.filter((it) => it.kind === 'tarea' && !it.done && !hasDate(it) && !it.important);
+    const todo = all.filter((it) => !it.done && !hasDate(it) && !it.important);
     const done = all.filter((it) => it.done).sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 10);
     const nextRow = (it) => {
       if (!hasDate(it)) return entry(it);
       const d = parse(it.date < today ? today : it.date), y = d.getFullYear() !== now.getFullYear() ? ' ' + d.getFullYear() : '';
-      return `<div class="agnx" data-id="${it.id}" style="--c:${colorOf(it)}"><div class="agdate"><b>${d.getDate()}</b><span>${MONTHS[d.getMonth()].slice(0, 3)}${y}</span></div><div class="agmain"><strong>${iconOf(it)}${esc(it.title)}</strong><span class="muted small">${[timeTxt(it), K(it).label, it.category ? esc(it.category) : ''].filter(Boolean).join(' · ')}</span></div></div>`;
+      return `<div class="agnx" draggable="true" data-id="${it.id}" style="--c:${colorOf(it)}"><div class="agdate"><b>${d.getDate()}</b><span>${MONTHS[d.getMonth()].slice(0, 3)}${y}</span></div><div class="agmain"><strong>${iconOf(it)}${esc(it.title)}</strong><span class="muted small">${[timeTxt(it), K(it).label, it.category ? esc(it.category) : ''].filter(Boolean).join(' · ')}</span></div></div>`;
     };
     const box = (t, n, body, cls) => `<section class="glass agbox ${cls || ''}"><h3>${t}${n ? ` <em>${n}</em>` : ''}</h3>${body}</section>`;
     let out = '';
     if (imp.length) out += box(STAR() + 'Importantes', imp.length, imp.map(nextRow).join(''), 'imp');
     out += box('Próximos', '', next.length ? next.map(nextRow).join('') : '<p class="muted small">Nada en los próximos 30 días.</p>');
     if (late.length) out += box('Atrasadas', late.length, late.map(entry).join(''), 'bad');
-    out += box('Por hacer', todo.length || '', todo.length ? todo.map((it) => entry(it, true)).join('') : '<p class="muted small">Nada pendiente sin fecha.</p>');
+    out += box('Por hacer', todo.length || '', todo.length ? todo.map((it) => entry(it, true)).join('') : '<p class="muted small">Nada pendiente sin fecha.</p>', 'todo');
     out += box('Hechas', '', done.length ? done.map(entry).join('') : '<p class="muted small">Aún no has completado ninguna.</p>');
     $('agSide').innerHTML = out;
   }
@@ -139,7 +139,7 @@
   const dlg = $('agDlg'), form = $('agForm');
   const markIcons = PicfyIcons.picker($('agIcons'), form.icon);
   const kindOf = () => (form.querySelector('input[name=kind]:checked') || {}).value || 'tarea';
-  function syncKind() { const t = kindOf() === 'tarea'; $('agDateL').textContent = t ? 'Fecha de inicio (opcional)' : 'Fecha de inicio'; form.date.required = !t; }
+  function syncKind() { /* la fecha nunca es obligatoria: sin fecha va a «Por hacer» */ }
   form.querySelectorAll('input[name=kind]').forEach((r) => r.addEventListener('change', syncKind));
 
   function openForm(it, day, kind) {
@@ -167,7 +167,6 @@
     e.preventDefault();
     const f = new FormData(form);
     const body = { kind: f.get('kind'), title: f.get('title'), date: f.get('date'), end_date: f.get('end_date'), time: f.get('time'), end_time: f.get('end_time'), category: f.get('category'), icon: f.get('icon'), important: f.get('important') ? 1 : 0, url: f.get('url'), notes: f.get('notes') };
-    if (body.kind !== 'tarea' && !body.date) { toast('Pon la fecha de inicio.'); return; }
     try {
       if (editing) { const r = await send('PUT', `/api/agenda/${editing.id}`, { ...body, done: editing.done }); items = items.map((x) => (x.id === editing.id ? { ...x, ...r.item } : x)); }
       else { const r = await send('POST', '/api/agenda', body); items.push(r.item); }
@@ -206,6 +205,44 @@
   function openDay(day) { dayOpen = day; renderDay(); $('agDay').showModal(); }
   $('agDay').addEventListener('close', () => { dayOpen = null; });
   $('agDayAdd').addEventListener('click', () => { const day = dayOpen; $('agDay').close(); openForm(null, day, 'evento'); });
+
+
+  /* ---------- arrastrar y soltar: mover entre días y a «Por hacer» ---------- */
+
+  let dragId = null, dragFrom = null;
+  const dropOf = (t) => t.closest('.agday[data-day], .agcell[data-day], .agbox.todo');
+  const clearDrop = () => document.querySelectorAll('.dropping').forEach((n) => n.classList.remove('dropping'));
+  const dayDiff = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
+  document.addEventListener('dragstart', (e) => {
+    const el = e.target.closest && e.target.closest('[data-id][draggable]'); if (!el) return;
+    dragId = el.dataset.id; const d = el.closest('[data-day]'); dragFrom = d ? d.dataset.day : null;
+    e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch { /* sin datos */ }
+    setTimeout(() => el.classList.add('dragging'), 0);
+  });
+  document.addEventListener('dragend', () => { dragId = null; clearDrop(); document.querySelectorAll('.dragging').forEach((n) => n.classList.remove('dragging')); });
+  document.addEventListener('dragover', (e) => {
+    if (!dragId) return; const z = dropOf(e.target); if (!z) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+    if (!z.classList.contains('dropping')) { clearDrop(); z.classList.add('dropping'); }
+  });
+  document.addEventListener('drop', async (e) => {
+    if (!dragId) return; const z = dropOf(e.target); if (!z) return;
+    e.preventDefault(); clearDrop();
+    const it = items.find((x) => x.id === dragId); if (!it) return;
+    const toTodo = z.classList.contains('todo'), day = z.dataset.day;
+    let patch;
+    if (toTodo) { if (!hasDate(it)) return; patch = { date: '', end_date: '', time: '', end_time: '' }; }
+    else if (hasDate(it)) {
+      const from = dragFrom && dragFrom >= it.date && dragFrom <= endOf(it) ? dragFrom : it.date;
+      const delta = dayDiff(from, day); if (!delta) return;
+      patch = { date: iso(addDays(parse(it.date), delta)), end_date: it.end_date ? iso(addDays(parse(it.end_date), delta)) : '' };
+    } else patch = { date: day, end_date: '' };
+    const prev = { date: it.date, end_date: it.end_date, time: it.time, end_time: it.end_time };
+    it.date = patch.date; it.end_date = patch.end_date || null; if (toTodo) { it.time = null; it.end_time = null; }
+    render();
+    try { await send('PUT', `/api/agenda/${it.id}`, patch); }
+    catch { Object.assign(it, prev); render(); toast('No se ha podido mover.'); }
+  });
 
   /* ---------- eventos ---------- */
 

@@ -66,7 +66,22 @@ const api = (p, path, o) => p.evaluate(async ([path, o]) => { const r = await fe
   await p.waitForFunction(() => !document.querySelector('#agDlg[open]'));
   check('borrado', !/Convocatoria enviada/.test(await p.textContent('#agSide')));
   // validación: evento sin fecha → 400
-  check('evento sin fecha: 400', (await api(p, '/api/agenda', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'torneo', title: 'x' }) })).s === 400);
+  check('torneo sin fecha: permitido', (await api(p, '/api/agenda', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'torneo', title: 'Sin fecha aún' }) })).s === 200);
+  await p.reload(); await p.waitForSelector('#agWeek .agday');
+  check('sin fecha va a Por hacer', /Sin fecha aún/.test(await p.textContent('#agSide .agbox.todo')));
+  check('Por hacer sin etiqueta de tipo', !/Torneo/.test(await p.textContent('#agSide .agbox.todo')));
+  // arrastrar de Por hacer a un día y de vuelta
+  await p.dragAndDrop('#agSide .agbox.todo .agent:has-text("Sin fecha aún")', '#agWeek .agday:nth-child(1)');
+  await p.waitForTimeout(500);
+  check('arrastrar a un día', /Sin fecha aún/.test(await p.textContent('#agWeek .agday:nth-child(1)')) && !/Sin fecha aún/.test(await p.textContent('#agSide .agbox.todo')));
+  await p.dragAndDrop('#agWeek .agday:nth-child(1) .agent:has-text("Sin fecha aún")', '#agWeek .agday:nth-child(2)');
+  await p.waitForTimeout(500);
+  check('mover entre días', /Sin fecha aún/.test(await p.textContent('#agWeek .agday:nth-child(2)')));
+  await p.reload(); await p.waitForSelector('#agWeek .agday');
+  check('el cambio de día persiste', /Sin fecha aún/.test(await p.textContent('#agWeek .agday:nth-child(2)')));
+  await p.dragAndDrop('#agWeek .agday:nth-child(2) .agent:has-text("Sin fecha aún")', '#agSide .agbox.todo');
+  await p.waitForTimeout(500);
+  check('volver a Por hacer', /Sin fecha aún/.test(await p.textContent('#agSide .agbox.todo')));
   // menú de la izquierda plegable
   const w0 = await p.evaluate(() => document.querySelector('.frame > .side').getBoundingClientRect().width);
   await p.click('#navToggle'); await p.waitForTimeout(250);
@@ -77,6 +92,16 @@ const api = (p, path, o) => p.evaluate(async ([path, o]) => { const r = await fe
   await p.click('#navToggle');
   // semana siguiente y mes
   await p.click('#agNext'); await p.click('#agToday');
+  // torneo de varios días arrastrado en el mes: conserva su duración
+  await p.click('[data-view=month]'); await p.waitForSelector('.aggrid');
+  const before = await p.evaluate(async () => (await (await fetch('/api/agenda')).json()).items.find((i) => i.title === 'Torneo fin de semana'));
+  const span0 = (new Date(before.end_date) - new Date(before.date)) / 864e5;
+  const cells = await p.$$eval('.agcell', (n) => n.map((c) => c.dataset.day));
+  const to = cells[cells.indexOf(before.date) + 1];
+  await p.dragAndDrop(`.agcell[data-day="${before.date}"] .agchip:has-text("Torneo fin")`, `.agcell[data-day="${to}"]`); await p.waitForTimeout(500);
+  const after = await p.evaluate(async () => (await (await fetch('/api/agenda')).json()).items.find((i) => i.title === 'Torneo fin de semana'));
+  check('mes: arrastrar mueve el torneo y conserva su duración', after.date === to && (new Date(after.end_date) - new Date(after.date)) / 864e5 === span0, JSON.stringify(after));
+  await p.click('[data-view=week]');
   await p.click('[data-view=month]'); await p.waitForSelector('.aggrid');
   check('mes con chips', (await p.$$eval('.agchip', (n) => n.length)) >= 2);
   await p.click('.agcell.today .agnum'); await p.waitForSelector('#agDay[open]');
@@ -95,7 +120,7 @@ const api = (p, path, o) => p.evaluate(async ([path, o]) => { const r = await fe
   const q = await reg(b, 'Otra');
   check('otra cuenta no ve nada', (await api(q, '/api/agenda')).j.items.length === 0);
   check('otra cuenta no edita (404)', (await api(q, '/api/agenda/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title: 'x' }) })).s === 404);
-  check('otra cuenta no borra', ((await api(q, '/api/agenda/' + id, { method: 'DELETE' })), (await api(p, '/api/agenda')).j.items.length === 6));
+  check('otra cuenta no borra', ((await api(q, '/api/agenda/' + id, { method: 'DELETE' })), (await api(p, '/api/agenda')).j.items.length === 7));
   const anon = await (await b.newContext()).newPage();
   check('API sin sesión: 401', (await anon.request.get(B + '/api/agenda')).status() === 401);
   await anon.goto(B + '/agenda'); check('página sin sesión pide entrar', /entrar/.test(anon.url()));
