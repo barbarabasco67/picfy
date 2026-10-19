@@ -6,14 +6,14 @@ import { habitsReady, HABIT_COLORS } from './habits.js';
 
 // Tipos de elemento de la agenda (el navegador los usa para pintar; el servidor, para validar).
 export const AGENDA_KINDS = {
-  tarea: { label: 'Tarea', plural: 'Tareas', color: '#6b7280', icon: '✅' },
-  evento: { label: 'Evento', plural: 'Eventos', color: '#1f9fb3', icon: '📅' },
-  torneo: { label: 'Torneo', plural: 'Torneos', color: '#e5964c', icon: '🏆' },
-  reunion: { label: 'Reunión', plural: 'Reuniones', color: '#2f6fed', icon: '🤝' },
-  publicacion: { label: 'Publicación', plural: 'Publicaciones', color: '#c9376e', icon: '📣' },
-  storie: { label: 'Storie', plural: 'Stories', color: '#8e5bd6', icon: '📱' },
-  entrega: { label: 'Entrega', plural: 'Entregas', color: '#2f9e5f', icon: '📦' },
-  grabacion: { label: 'Grabación', plural: 'Grabaciones', color: '#d6483b', icon: '🎬' },
+  tarea: { label: 'Tarea', plural: 'Tareas', color: '#6b7280' },
+  evento: { label: 'Evento', plural: 'Eventos', color: '#1f9fb3' },
+  torneo: { label: 'Torneo', plural: 'Torneos', color: '#e5964c' },
+  reunion: { label: 'Reunión', plural: 'Reuniones', color: '#2f6fed' },
+  publicacion: { label: 'Publicación', plural: 'Publicaciones', color: '#c9376e' },
+  storie: { label: 'Storie', plural: 'Stories', color: '#8e5bd6' },
+  entrega: { label: 'Entrega', plural: 'Entregas', color: '#2f9e5f' },
+  grabacion: { label: 'Grabación', plural: 'Grabaciones', color: '#d6483b' },
 };
 
 let st = { v: null, t: 0 };
@@ -40,7 +40,7 @@ function clean(b) {
   const end_time = time && reTime.test(String(b.end_time || '')) ? String(b.end_time) : null;
   let url = clip(b.url, 400);
   if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-  return { v: { kind, title, icon: clip(b.icon, 8) || null, category: clip(b.category, 80) || null, date, end_date: end, time, end_time, done: Number(b.done) ? 1 : 0, important: Number(b.important) ? 1 : 0, url: url || null, notes: clip(b.notes, 2000) || null } };
+  return { v: { kind, title, icon: /^[a-z]{2,20}$/.test(String(b.icon || '')) ? String(b.icon) : null, category: clip(b.category, 80) || null, date, end_date: end, time, end_time, done: Number(b.done) ? 1 : 0, important: Number(b.important) ? 1 : 0, url: url || null, notes: clip(b.notes, 2000) || null } };
 }
 
 export function agendaRoutes(app) {

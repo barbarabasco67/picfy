@@ -56,7 +56,7 @@
     if (!habits.length) { $('hbList').innerHTML = '<div class="glass emptybox">Aún no tienes hábitos. Pulsa «Nuevo hábito» para crear el primero: beber agua, caminar, entrenar…</div>'; return; }
     $('hbList').innerHTML = habits.map((h) => {
       const v = val(h, sel), done = v >= h.goal, single = h.goal === 1;
-      return `<div class="hbcard${done ? ' done' : ''}" data-id="${h.id}" style="--c:${h.color}"><span class="hbico">${esc(h.icon || '✅')}</span>
+      return `<div class="hbcard${done ? ' done' : ''}" data-id="${h.id}" style="--c:${h.color}"><span class="hbico">${h.icon ? PicfyIcons.svg(h.icon, 'ic') : '<i></i>'}</span>
 <div class="hbmain"><strong>${esc(h.name)}</strong><span class="hbchip">${chipTxt(h, v)}</span></div>
 <button type="button" class="hbplus" data-plus="${h.id}" aria-label="${single ? (done ? 'Quitar' : 'Marcar') : 'Sumar'}">${single ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : (done ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>')}</button></div>`;
     }).join('');
@@ -79,7 +79,7 @@
 
   /* ---------- alta y edición ---------- */
   const dlg = $('hbDlg'), form = $('hbForm');
-  form.querySelectorAll('.emo').forEach((b) => b.addEventListener('click', () => { form.icon.value = form.icon.value === b.dataset.emo ? '' : b.dataset.emo; }));
+  const markIcons = PicfyIcons.picker($('hbIcons'), form.icon);
   const setColor = (c) => { const r = form.querySelector(`input[name=color][value="${c}"]`); (r || form.querySelector('input[name=color]')).checked = true; };
 
   function openForm(h) {
@@ -87,7 +87,7 @@
     form.reset();
     $('hbDlgT').textContent = h ? 'Editar hábito' : 'Nuevo hábito';
     form.name.value = h ? h.name : '';
-    form.icon.value = h ? h.icon || '' : '';
+    form.icon.value = h ? h.icon || '' : ''; markIcons();
     form.goal.value = h ? h.goal : 1; form.step.value = h ? h.step : 1; form.unit.value = h ? h.unit || '' : '';
     setColor(h ? h.color : COLORS[habits.length % COLORS.length]);
     $('hbValBox').hidden = !h; $('hbDel').hidden = !h;

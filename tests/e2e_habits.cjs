@@ -13,7 +13,7 @@ const api = (p, path, o) => p.evaluate(async ([path, o]) => { const r = await fe
 async function add(p, name, o = {}) {
   await p.click('#hbAdd'); await p.waitForSelector('#hbDlg[open]');
   await p.fill('#hbForm input[name=name]', name);
-  if (o.icon) await p.fill('#hbForm input[name=icon]', o.icon);
+  if (o.icon) await p.click(`#hbIcons .icopt[data-ic=${o.icon}]`);
   await p.fill('#hbForm input[name=goal]', String(o.goal || 1)); await p.fill('#hbForm input[name=step]', String(o.step || 1));
   if (o.unit) await p.fill('#hbForm input[name=unit]', o.unit);
   await p.click('#hbForm button[type=submit]'); await p.waitForFunction(() => !document.querySelector('#hbDlg[open]'));
@@ -23,8 +23,8 @@ async function add(p, name, o = {}) {
   const p = await reg(b, 'Habitos');
   await p.goto(B + '/habitos'); check('/habitos lleva a la agenda', /\/agenda/.test(p.url())); await p.waitForSelector('#hbDays .hbday');
   check('semana con 7 días', (await p.$$('#hbDays .hbday')).length === 7);
-  await add(p, 'Beber agua', { icon: '💧', goal: 2000, step: 250, unit: 'ml' });
-  await add(p, 'Gimnasio', { icon: '💪' });
+  await add(p, 'Beber agua', { icon: 'gota', goal: 2000, step: 250, unit: 'ml' });
+  await add(p, 'Gimnasio', { icon: 'pesas' });
   check('tarjetas creadas', (await p.$$('.hbcard')).length === 2);
   check('chip 0/2000 ml', /0\/2000 ml/.test(await p.textContent('.hbcard:has-text("Beber agua")')));
   await p.click('.hbcard:has-text("Beber agua") .hbplus'); await p.click('.hbcard:has-text("Beber agua") .hbplus');

@@ -581,10 +581,10 @@ ${items.length ? `<div class="collist">${cards}</div>` : '<div class="glass empt
 /* ---------- Agenda ---------- */
 
 export function agendaPage({ user, ready, kinds, colors, habitsOk }) {
-  const radios = Object.entries(kinds).map(([k, v]) => `<label class="kradio" style="--c:${v.color}"><input type="radio" name="kind" value="${k}"${k === 'tarea' ? ' checked' : ''}><span>${v.icon} ${esc(v.label)}</span></label>`).join('');
+  const radios = Object.entries(kinds).map(([k, v]) => `<label class="kradio" style="--c:${v.color}"><input type="radio" name="kind" value="${k}"${k === 'tarea' ? ' checked' : ''}><span><i></i>${esc(v.label)}</span></label>`).join('');
   return appPage({
     title: 'Agenda',
-    scripts: ['/app.js', '/navtoggle.js', '/agenda.js', '/habitos.js'],
+    scripts: ['/app.js', '/navtoggle.js', '/icons.js', '/agenda.js', '/habitos.js'],
     bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}" data-colors="${esc(JSON.stringify(colors))}"`,
     body: shell({
       user, active: 'agenda', crumbs: '<span>Agenda</span>', collapsible: true,
@@ -606,7 +606,8 @@ ${habitsSection(colors, habitsOk)}
 <div class="row2"><label class="field"><span id="agDateL">Fecha de inicio</span><input type="date" name="date"></label><label class="field"><span>Fecha de fin (opcional)</span><input type="date" name="end_date"></label></div>
 <div class="row2"><label class="field"><span>Hora (opcional)</span><input type="time" name="time"></label><label class="field"><span>Hora fin (opcional)</span><input type="time" name="end_time"></label></div>
 <label class="field"><span>Cliente o proyecto (opcional)</span><input type="text" name="category" maxlength="80" placeholder="Ej.: Las Rozas 3x3"></label>
-<label class="agimp"><input type="checkbox" name="important"><span>⭐ Importante: que salga siempre en el lateral, aunque falten meses</span></label>
+<label class="agimp"><input type="checkbox" name="important"><span>Importante</span></label>
+<div class="field"><span>Icono (opcional)</span><input type="hidden" name="icon"><div class="icopick" id="agIcons"></div></div>
 <label class="field"><span>Enlace (opcional)</span><input type="text" name="url" maxlength="400" placeholder="https://"></label>
 <label class="field"><span>Notas</span><textarea name="notes" maxlength="2000" rows="3" placeholder="Lugar, rival, lo que necesites…"></textarea></label>
 <footer><button class="btn danger" type="button" id="agDel" hidden>${ICON.trash} Borrar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
@@ -620,7 +621,6 @@ ${habitsSection(colors, habitsOk)}
 
 function habitsSection(colors, ready) {
   const sw = colors.map((c, i) => `<label class="swatch" style="--c:${c}"><input type="radio" name="color" value="${c}"${i === 0 ? ' checked' : ''}><span></span></label>`).join('');
-  const emojis = ['🔥', '💪', '🧍', '💧', '🚶', '📖', '😴', '🥗', '🧘', '🏀', '💊', '✅'].map((e) => `<button type="button" class="emo" data-emo="${e}">${e}</button>`).join('');
   if (!ready) return '<section class="hbsec" id="hbSection"><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar los hábitos.</div></section>';
   return `<section class="hbsec" id="hbSection"><div class="head hbhead"><div><h2>Hábitos</h2><p class="muted" id="hbSub"></p></div>
 <button class="btn primary" type="button" id="hbAdd">${ICON.plus} Nuevo hábito</button></div>
@@ -629,11 +629,11 @@ function habitsSection(colors, ready) {
 <dialog id="hbDlg" class="glassdlg"><form class="dlgbox" id="hbForm" autocomplete="off">
 <header><h2 id="hbDlgT">Nuevo hábito</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <label class="field"><span>Nombre</span><input type="text" name="name" maxlength="60" required placeholder="Ej.: Beber agua"></label>
-<div class="field"><span>Icono</span><div class="emorow"><input type="text" name="icon" maxlength="8" class="emoin" placeholder="🙂">${emojis}</div></div>
+<div class="field"><span>Icono (opcional)</span><input type="hidden" name="icon"><div class="icopick" id="hbIcons"></div></div>
 <div class="field"><span>Color</span><div class="swatches">${sw}</div></div>
 <div class="row2"><label class="field"><span>Objetivo al día</span><input type="number" name="goal" min="1" max="1000000" value="1" required></label>
 <label class="field"><span>Unidad (opcional)</span><input type="text" name="unit" maxlength="12" placeholder="ml, hr, pasos…"></label></div>
-<label class="field"><span>Lo que suma cada vez que pulsas «+»</span><input type="number" name="step" min="1" max="1000000" value="1" required></label>
+<label class="field"><span>Suma por pulsación</span><input type="number" name="step" min="1" max="1000000" value="1" required></label>
 <div class="field" id="hbValBox" hidden><span>Valor de <b id="hbValD"></b></span><input type="number" name="value" min="0" max="1000000"></div>
 <footer><button class="btn danger" type="button" id="hbDel" hidden>${ICON.trash} Borrar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog></section>`;

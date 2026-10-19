@@ -30,7 +30,8 @@
   const hasDate = (it) => !!it.date;
   const K = (it) => KINDS[it.kind] || KINDS.tarea;
   const colorOf = (it) => K(it).color;
-  const iconOf = (it) => it.icon || K(it).icon;
+  const iconOf = (it) => (it.icon && window.PicfyIcons ? PicfyIcons.svg(it.icon, 'ic agic') : '');
+  const STAR = () => PicfyIcons.svg('estrella', 'ic agstar');
   const visible = () => items.filter((it) => !fKind || it.kind === fKind);
   const onDay = (it, day) => hasDate(it) && it.date <= day && endOf(it) >= day;
   const sortDay = (a, b) => (a.time || '99:99').localeCompare(b.time || '99:99') || a.title.localeCompare(b.title);
@@ -53,7 +54,7 @@
     const meta = [timeTxt(it), K(it).label, it.category ? esc(it.category) : ''].filter(Boolean).join(' · ');
     return `<div class="agent${it.done ? ' done' : ''}" data-id="${it.id}" style="--c:${colorOf(it)}">
 <button type="button" class="agck${it.done ? ' on' : ''}" data-check="${it.id}" aria-label="${it.done ? 'Marcar como pendiente' : 'Marcar como hecho'}"></button>
-<div class="agmain"><strong>${iconOf(it)} ${esc(it.title)}${it.important ? ' <span class="agstar">⭐</span>' : ''}</strong><span class="muted small">${meta}${rangeTxt(it)}</span></div></div>`;
+<div class="agmain"><strong>${iconOf(it)}${esc(it.title)}${it.important ? STAR() : ''}</strong><span class="muted small">${meta}${rangeTxt(it)}</span></div></div>`;
   }
 
   function renderWeek() {
@@ -70,7 +71,7 @@
     $('agTitle').textContent = wStart.getMonth() === e.getMonth() ? `${wStart.getDate()}–${e.getDate()} ${MONTHS[e.getMonth()]} ${e.getFullYear()}` : `${wStart.getDate()} ${MONTHS[wStart.getMonth()].slice(0, 3)} – ${e.getDate()} ${MONTHS[e.getMonth()].slice(0, 3)} ${e.getFullYear()}`;
   }
 
-  const chip = (it) => `<button type="button" class="agchip${it.done ? ' done' : ''}" data-id="${it.id}" style="--c:${colorOf(it)}" title="${esc(it.title)}">${it.time ? `<b>${esc(it.time)}</b> ` : ''}${iconOf(it)} ${esc(it.title)}</button>`;
+  const chip = (it) => `<button type="button" class="agchip${it.done ? ' done' : ''}" data-id="${it.id}" style="--c:${colorOf(it)}" title="${esc(it.title)}">${it.time ? `<b>${esc(it.time)}</b> ` : ''}${iconOf(it)}${esc(it.title)}</button>`;
 
   function renderMonth() {
     const first = new Date(cy, cm, 1);
@@ -105,11 +106,11 @@
     const nextRow = (it) => {
       if (!hasDate(it)) return entry(it);
       const d = parse(it.date < today ? today : it.date), y = d.getFullYear() !== now.getFullYear() ? ' ' + d.getFullYear() : '';
-      return `<div class="agnx" data-id="${it.id}" style="--c:${colorOf(it)}"><div class="agdate"><b>${d.getDate()}</b><span>${MONTHS[d.getMonth()].slice(0, 3)}${y}</span></div><div class="agmain"><strong>${iconOf(it)} ${esc(it.title)}</strong><span class="muted small">${[timeTxt(it), K(it).label, it.category ? esc(it.category) : ''].filter(Boolean).join(' · ')}</span></div></div>`;
+      return `<div class="agnx" data-id="${it.id}" style="--c:${colorOf(it)}"><div class="agdate"><b>${d.getDate()}</b><span>${MONTHS[d.getMonth()].slice(0, 3)}${y}</span></div><div class="agmain"><strong>${iconOf(it)}${esc(it.title)}</strong><span class="muted small">${[timeTxt(it), K(it).label, it.category ? esc(it.category) : ''].filter(Boolean).join(' · ')}</span></div></div>`;
     };
     const box = (t, n, body, cls) => `<section class="glass agbox ${cls || ''}"><h3>${t}${n ? ` <em>${n}</em>` : ''}</h3>${body}</section>`;
     let out = '';
-    if (imp.length) out += box('⭐ Importantes', imp.length, imp.map(nextRow).join(''), 'imp');
+    if (imp.length) out += box(STAR() + 'Importantes', imp.length, imp.map(nextRow).join(''), 'imp');
     out += box('Próximos', '', next.length ? next.map(nextRow).join('') : '<p class="muted small">Nada en los próximos 30 días.</p>');
     if (late.length) out += box('Atrasadas', late.length, late.map(entry).join(''), 'bad');
     out += box('Por hacer', todo.length || '', todo.length ? todo.map(entry).join('') : '<p class="muted small">Nada pendiente sin fecha.</p>');
@@ -136,6 +137,7 @@
   /* ---------- alta y edición ---------- */
 
   const dlg = $('agDlg'), form = $('agForm');
+  const markIcons = PicfyIcons.picker($('agIcons'), form.icon);
   const kindOf = () => (form.querySelector('input[name=kind]:checked') || {}).value || 'tarea';
   function syncKind() { const t = kindOf() === 'tarea'; $('agDateL').textContent = t ? 'Fecha de inicio (opcional)' : 'Fecha de inicio'; form.date.required = !t; }
   form.querySelectorAll('input[name=kind]').forEach((r) => r.addEventListener('change', syncKind));
@@ -152,6 +154,7 @@
     form.end_time.value = it && it.end_time ? it.end_time : '';
     form.category.value = it && it.category ? it.category : '';
     form.important.checked = !!(it && it.important);
+    form.icon.value = it && it.icon ? it.icon : ''; markIcons();
     form.url.value = it && it.url ? it.url : '';
     form.notes.value = it && it.notes ? it.notes : '';
     syncKind();
@@ -163,7 +166,7 @@
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const f = new FormData(form);
-    const body = { kind: f.get('kind'), title: f.get('title'), date: f.get('date'), end_date: f.get('end_date'), time: f.get('time'), end_time: f.get('end_time'), category: f.get('category'), important: f.get('important') ? 1 : 0, url: f.get('url'), notes: f.get('notes') };
+    const body = { kind: f.get('kind'), title: f.get('title'), date: f.get('date'), end_date: f.get('end_date'), time: f.get('time'), end_time: f.get('end_time'), category: f.get('category'), icon: f.get('icon'), important: f.get('important') ? 1 : 0, url: f.get('url'), notes: f.get('notes') };
     if (body.kind !== 'tarea' && !body.date) { toast('Pon la fecha de inicio.'); return; }
     try {
       if (editing) { const r = await send('PUT', `/api/agenda/${editing.id}`, { ...body, done: editing.done }); items = items.map((x) => (x.id === editing.id ? { ...x, ...r.item } : x)); }

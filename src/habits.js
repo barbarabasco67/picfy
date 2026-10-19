@@ -19,7 +19,7 @@ const num = (v, d) => { const n = Math.round(Number(v)); return Number.isFinite(
 function clean(b) {
   const name = clip(b.name, 60);
   if (!name) return null;
-  return { name, icon: clip(b.icon, 8) || null, color: HABIT_COLORS.includes(b.color) ? b.color : HABIT_COLORS[0], unit: clip(b.unit, 12) || null, goal: num(b.goal, 1), step: num(b.step, 1) };
+  return { name, icon: /^[a-z]{2,20}$/.test(String(b.icon || '')) ? String(b.icon) : null, color: HABIT_COLORS.includes(b.color) ? b.color : HABIT_COLORS[0], unit: clip(b.unit, 12) || null, goal: num(b.goal, 1), step: num(b.step, 1) };
 }
 
 export function habitsRoutes(app) {

@@ -15,6 +15,7 @@ async function reg(b, name) {
 async function add(p, kind, title, date, x = {}) {
   await p.click('#agAdd'); await p.waitForSelector('#agDlg[open]');
   await p.click(`#agForm .kradio:has(input[value=${kind}]) span`);
+  if (x.icon) await p.click(`#agIcons .icopt[data-ic=${x.icon}]`);
   if (x.imp) await p.check('#agForm input[name=important]');
   await p.fill('#agForm input[name=title]', title);
   await p.fill('#agForm input[name=date]', date || '');
@@ -33,12 +34,13 @@ const api = (p, path, o) => p.evaluate(async ([path, o]) => { const r = await fe
   await p.fill('#agQuickT', 'Preparar convocatoria'); await p.press('#agQuickT', 'Enter');
   await p.waitForSelector('#agSide .agbox:has-text("Por hacer") .agent');
   check('tarea rápida en Por hacer', /Preparar convocatoria/.test(await p.textContent('#agSide')));
-  await add(p, 'evento', 'Game Canoe', iso(new Date()), { time: '10:30', cat: 'Las Rozas 3x3' });
+  await add(p, 'evento', 'Game Canoe', iso(new Date()), { time: '10:30', cat: 'Las Rozas 3x3', icon: 'balon' });
   await add(p, 'torneo', 'Torneo fin de semana', iso(off(1)), { end: iso(off(3)) });
   await add(p, 'tarea', 'Entregar fotos', iso(off(-2)), { cat: 'Behind the Bench' });
   await add(p, 'grabacion', 'Grabación spot', iso(off(2)));
   await add(p, 'reunion', 'Reunión patrocinador', iso(off(200)), { imp: true });
   check('evento en la semana', /Game Canoe/.test(await p.textContent('#agWeek')) && /10:30/.test(await p.textContent('#agWeek')));
+  check('icono solo si se elige', (await p.$$('#agWeek .agic')).length === 1 && !/[\u{1F300}-\u{1FAFF}\u2B50\u2705]/u.test(await p.textContent('#agWeek')));
   check('todos los tipos en el formulario', (await (async () => { await p.click('#agAdd'); const n = await p.$$eval('#agForm .kradio', (x) => x.map((e) => e.textContent.trim())); await p.click('#agDlg [data-close]'); return n; })()).length === 8);
   check('importante lejano en el lateral', /Reunión patrocinador/.test(await p.textContent('#agSide .agbox.imp')));
   check('atrasadas en el lateral', /Entregar fotos/.test(await p.textContent('#agSide .agbox.bad')));

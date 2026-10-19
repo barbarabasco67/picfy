@@ -777,3 +777,17 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 24px); r
 @media (max-width:560px){.hbday i{width:34px;height:34px}.hbcard{padding:12px}}
 
 .hbsec{margin-top:34px;scroll-margin-top:90px}.hbhead h2{margin:0;font-size:1.5rem;letter-spacing:-.02em}
+
+/* iconos propios */
+.ic{width:1.1em;height:1.1em;flex:none;vertical-align:-.17em;margin-right:.4em}
+.agmain strong .ic.agstar{margin:0 0 0 .4em;color:#d8a028;fill:#f3cf6e;stroke-width:1.5}
+.agbox h3 .agstar{color:#d8a028;fill:#f3cf6e;margin-right:.35em;vertical-align:-.2em}
+.agic{color:var(--c)}
+.icopick{display:flex;flex-wrap:wrap;gap:6px;padding-top:6px}
+.icopt{width:36px;height:36px;border-radius:10px;border:1px solid var(--glass-line);background:#fff;display:grid;place-items:center;cursor:pointer;padding:0;color:var(--ink)}
+.icopt .ic{margin:0;width:20px;height:20px}
+.icopt.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink,#fff)}
+.kradio i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c)}
+.kradio input:checked+span i{background:#fff}
+.hbico .ic{width:26px;height:26px;margin:0;color:var(--c)}
+.hbico i{width:18px;height:18px;border-radius:50%;background:var(--c);display:block}
