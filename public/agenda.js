@@ -50,11 +50,11 @@
   const timeTxt = (it) => (it.time ? it.time + (it.end_time ? '–' + it.end_time : '') : '');
   const rangeTxt = (it) => (it.end_date ? ` · hasta ${parse(it.end_date).getDate()} ${MONTHS[parse(it.end_date).getMonth()].slice(0, 3)}` : '');
 
-  function entry(it) {
-    const meta = [timeTxt(it), K(it).label, it.category ? esc(it.category) : ''].filter(Boolean).join(' · ');
+  function entry(it, bare) {
+    const meta = bare ? '' : [timeTxt(it), K(it).label, it.category ? esc(it.category) : ''].filter(Boolean).join(' · ');
     return `<div class="agent${it.done ? ' done' : ''}" data-id="${it.id}" style="--c:${colorOf(it)}">
 <button type="button" class="agck${it.done ? ' on' : ''}" data-check="${it.id}" aria-label="${it.done ? 'Marcar como pendiente' : 'Marcar como hecho'}"></button>
-<div class="agmain"><strong>${iconOf(it)}${esc(it.title)}${it.important ? STAR() : ''}</strong><span class="muted small">${meta}${rangeTxt(it)}</span></div></div>`;
+<div class="agmain"><strong>${iconOf(it)}${esc(it.title)}${it.important ? STAR() : ''}</strong>${bare ? '' : `<span class="muted small">${meta}${rangeTxt(it)}</span>`}</div></div>`;
   }
 
   function renderWeek() {
@@ -113,7 +113,7 @@
     if (imp.length) out += box(STAR() + 'Importantes', imp.length, imp.map(nextRow).join(''), 'imp');
     out += box('Próximos', '', next.length ? next.map(nextRow).join('') : '<p class="muted small">Nada en los próximos 30 días.</p>');
     if (late.length) out += box('Atrasadas', late.length, late.map(entry).join(''), 'bad');
-    out += box('Por hacer', todo.length || '', todo.length ? todo.map(entry).join('') : '<p class="muted small">Nada pendiente sin fecha.</p>');
+    out += box('Por hacer', todo.length || '', todo.length ? todo.map((it) => entry(it, true)).join('') : '<p class="muted small">Nada pendiente sin fecha.</p>');
     out += box('Hechas', '', done.length ? done.map(entry).join('') : '<p class="muted small">Aún no has completado ninguna.</p>');
     $('agSide').innerHTML = out;
   }
