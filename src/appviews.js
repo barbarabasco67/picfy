@@ -19,6 +19,7 @@ const ICON = {
   brush: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.4 0 2-.9 2-1.8 0-1.2-1-1.6-1-2.7 0-1 .8-1.5 1.8-1.5H17a4 4 0 004-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/></svg>',
   pipette: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.7 3.3a2.4 2.4 0 00-3.4 0l-3 3-1-1-1.4 1.4 1 1L4 15.6V20h4.4l8.2-8.2 1 1 1.4-1.4-1-1 3-3a2.4 2.4 0 000-3.4z"/></svg>',
   coll: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="14" height="14" rx="2"/><path d="M3 7v12a2 2 0 002 2h12"/></svg>',
+  cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
   lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>',
 };
 export { ICON };
@@ -50,6 +51,8 @@ ${collapsible ? '<button class="iconbtn navtoggle" type="button" id="navToggle" 
 ${side || `<p class="side-h">Gestiona tus fotos</p>
 <a class="nav ${active === 'galerias' ? 'on' : ''}" href="/galerias">${ICON.gal}<span>Galerías</span></a>
 <a class="nav ${active === 'colecciones' ? 'on' : ''}" href="/colecciones">${ICON.coll}<span>Colecciones</span></a>
+<p class="side-h" style="margin-top:14px">Tu trabajo</p>
+<a class="nav ${active === 'agenda' ? 'on' : ''}" href="/agenda">${ICON.cal}<span>Agenda</span></a>
 <a class="nav trashnav ${active === 'papelera' ? 'on' : ''}" href="/papelera">${ICON.trash}<span>Papelera</span></a>`}
 </aside>`}
 <main class="main">${main}</main>
@@ -570,6 +573,47 @@ ${items.length ? `<div class="collist">${cards}</div>` : '<div class="glass empt
 <label class="field"><span>Nombre</span><input class="txt" type="text" name="name" maxlength="120" value="${esc(col.name)}" required></label>
 <label class="field"><span>Descripción (opcional)</span><input class="txt" type="text" name="lead" maxlength="400" value="${esc(col.lead || '')}"></label>
 <footer><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer></form></dialog>`,
+    }),
+  });
+}
+
+/* ---------- Agenda ---------- */
+
+export function agendaPage({ user, ready, kinds }) {
+  const kindBtns = Object.entries(kinds).map(([k, v]) => `<button type="button" class="chipf" data-kind="${k}" style="--c:${v.color}"><i></i>${esc(v.plural)}</button>`).join('');
+  const radios = Object.entries(kinds).map(([k, v]) => `<label class="kradio" style="--c:${v.color}"><input type="radio" name="kind" value="${k}"><span><i></i>${esc(v.label)}</span></label>`).join('');
+  return appPage({
+    title: 'Agenda',
+    scripts: ['/app.js', '/agenda.js'],
+    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}"`,
+    body: shell({
+      user, active: 'agenda', crumbs: '<span>Agenda</span>',
+      main: !ready ? `<div class="head"><div><h1>Agenda</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0024) para activar la agenda.</div>` : `<div class="head"><div><h1>Agenda</h1><p class="muted">Torneos, partidos, publicaciones y entregas en un solo sitio.</p></div>
+<button class="btn primary" type="button" id="agAdd">${ICON.plus} Añadir</button></div>
+<div class="agsum" id="agSum"></div>
+<div class="glass agbar">
+<div class="agnav"><button class="iconbtn" type="button" id="agPrev" aria-label="Mes anterior">‹</button><button class="btn sm" type="button" id="agToday">Hoy</button><button class="iconbtn" type="button" id="agNext" aria-label="Mes siguiente">›</button><h2 id="agTitle"></h2></div>
+<div class="agtools"><select id="agClient" aria-label="Filtrar por cliente"><option value="">Todos los clientes</option></select>
+<div class="vtog" role="group" aria-label="Vista"><button type="button" data-view="month" class="on">Mes</button><button type="button" data-view="list">Lista</button></div></div>
+</div>
+<div class="agchips" id="agKinds"><button type="button" class="chipf on" data-kind="">Todo</button>${kindBtns}</div>
+<div id="agMonth" class="agmonth"></div><div id="agList" class="aglist" hidden></div>
+
+<dialog id="agDlg" class="glassdlg"><form class="dlgbox" id="agForm" autocomplete="off">
+<header><h2 id="agDlgT">Nuevo</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div class="kradios" id="agKindRadios">${radios}</div>
+<label class="field"><span>Título</span><input type="text" name="title" maxlength="160" required placeholder="Ej.: Torneo Las Rozas 3x3"></label>
+<div class="row2"><label class="field"><span>Fecha</span><input type="date" name="date" required></label>
+<label class="field"><span>Hasta (si dura varios días)</span><input type="date" name="end_date"></label></div>
+<div class="row2"><label class="field"><span>Hora (opcional)</span><input type="time" name="time"></label>
+<label class="field"><span>Estado</span><select name="status" id="agStatus"></select></label></div>
+<div class="row2"><label class="field"><span>Cliente o proyecto</span><input type="text" name="client" maxlength="80" list="agClients" placeholder="Ej.: Las Rozas 3x3"><datalist id="agClients"></datalist></label>
+<label class="field"><span id="agDetailL">Detalle</span><input type="text" name="detail" maxlength="120"></label></div>
+<label class="field"><span>Enlace (opcional)</span><input type="text" name="url" maxlength="400" placeholder="https://"></label>
+<label class="field"><span>Notas</span><textarea name="notes" maxlength="2000" rows="3"></textarea></label>
+<footer><button class="btn danger" type="button" id="agDel" hidden>${ICON.trash} Borrar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
+</form></dialog>
+<dialog id="agDay" class="glassdlg"><div class="dlgbox"><header><h2 id="agDayT"></h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header><div id="agDayList"></div><footer><span class="spacer"></span><button class="btn primary" type="button" id="agDayAdd">${ICON.plus} Añadir aquí</button></footer></div></dialog>`,
     }),
   });
 }
