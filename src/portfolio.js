@@ -108,7 +108,7 @@ export function portfolioPage() {
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="${P}/fonts/league-gothic-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${P}/fonts/montserrat-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" as="image" href="${P}/ph/43-l.webp?v=${v}">
+<link rel="preload" as="image" href="${P}/ph/person.webp?v=${v}">
 <link rel="stylesheet" href="${P}/portfolio.css?v=${v}">
 <script type="application/ld+json">${ld}</script>
 </head>
@@ -118,7 +118,6 @@ export function portfolioPage() {
 
 <header class="nav">
   <div class="wrap nav-in">
-    <a class="brand" href="#top" aria-label="Inicio">Pablo &amp; Bárbara</a>
     <nav class="menu" aria-label="Secciones">
       <a href="#apps">Apps</a><a href="#webs">Webs</a><a href="#video">Vídeo</a><a href="#foto">Foto</a><a href="#diseno">Diseño</a><a href="#contenido">Contenido</a><a href="#marcas">Marcas</a>
     </nav>
@@ -131,19 +130,17 @@ export function portfolioPage() {
 
 <!-- HERO -->
 <section class="hero" aria-labelledby="h1">
-  <div class="hero-bg" aria-hidden="true"><img src="${P}/ph/43-l.webp?v=${v}" alt="" fetchpriority="high" decoding="async"></div>
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-person" aria-hidden="true"><div class="hp-halo"></div><div class="hp-tilt"><img src="${P}/ph/person.webp?v=${v}" alt="" width="1332" height="1456" fetchpriority="high" decoding="async"></div></div>
   <div class="wrap hero-in">
     <div class="hero-txt">
       <p class="eb rise">Pablo &amp; Bárbara&nbsp;·&nbsp;Madrid</p>
-      <h1 id="h1" class="mega">${lines(['Webs, apps', 'y contenido', '<em>que mueven</em>', '<em>marcas</em>'])}</h1>
+      <h1 id="h1" class="mega">${lines(['Damos forma', 'digital', '<em>a tu marca</em>'])}</h1>
       <p class="hero-sub rise" style="--i:5">Somos un equipo con ganas y experiencia que digitaliza tu empresa: webs, apps y herramientas a medida, vídeo, fotografía, diseño y contenido para redes.</p>
       <div class="hero-cta rise" style="--i:6">
         <a class="btn gold" href="#apps"><span>Ver proyectos</span><i aria-hidden="true">→</i></a>
         <a class="btn line" href="${WA_LINK}" target="_blank" rel="noopener"><span>Escríbenos por WhatsApp</span></a>
       </div>
-    </div>
-    <div class="hero-vid rise" style="--i:3" data-speed="0.08">
-      <div class="frame"><img src="${P}/ph/28-l.webp?v=${v}" alt="${esc(PH_ALT[27])}" width="1472" height="2208" fetchpriority="high" decoding="async"></div>
     </div>
   </div>
   <div class="wrap hero-facts rise" style="--i:7">
@@ -201,7 +198,7 @@ export function portfolioPage() {
         <h3 class="h3" data-r>Picfy</h3>
         <p data-r>Las fotos de tu torneo, en un solo enlace. Una galería por pabellón o evento donde equipos, voluntarios y familias suben y descargan sus fotos, sin crear cuentas.</p>
         <ul class="ticks" data-r><li>Un enlace por evento</li><li>Subida desde el móvil</li><li>Descarga por equipos</li><li>Gestión para la organización</li></ul>
-        <a class="btn gold" data-r href="/"><span>picfy.es</span><i aria-hidden="true">↗</i></a>
+        <a class="btn gold" data-r href="/?landing"><span>picfy.es</span><i aria-hidden="true">↗</i></a>
       </div>
       <div class="app-vis" aria-label="Capturas de Picfy en el móvil">
         <div class="ph-s p1" data-speed="0.04" data-r="zoom">${ui('pf1', 'Página de inicio de Picfy en el móvil', `data-lb="${P}/ui/pf1.webp?v=${v}" data-alt="Página de inicio de Picfy en el móvil"`)}</div>
@@ -219,7 +216,7 @@ export function portfolioPage() {
     <div class="head split">
       <div>
         <p class="eb" data-r>02&nbsp;—&nbsp;Webs</p>
-        <h2 class="h2" id="web-t">${lines(['Webs con', 'identidad propia'])}</h2>
+        <h2 class="h2" id="web-t">${lines(['Webs que', 'cuentan tu marca'])}</h2>
       </div>
       <div>
         <p class="lead" data-r>Páginas y landings corporativas en WordPress, diseñadas para transmitir tu marca y para que tus clientes encuentren lo que buscan a la primera.</p>
@@ -263,8 +260,7 @@ export function portfolioPage() {
   </div>
   <div class="vs" data-r role="region" aria-roledescription="carrusel" aria-label="Vídeos verticales">
     <div class="vs-track">${['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7'].map((k) => `<div class="pv">${vid(k, 'fill')}</div>`).join('')}</div>
-    <button class="vs-b prev" type="button" aria-label="Anterior">←</button>
-    <button class="vs-b next" type="button" aria-label="Siguiente">→</button>
+    <div class="vs-ctl"><button class="vs-b prev" type="button" aria-label="Anterior">←</button><button class="vs-b next" type="button" aria-label="Siguiente">→</button></div>
   </div>
 </section>
 
@@ -310,7 +306,7 @@ export function portfolioPage() {
   <div class="wrap two">
     <div class="sticky-l">
       <p class="eb" data-r>06&nbsp;—&nbsp;Contenido y UGC</p>
-      <h2 class="h2" id="con-t">${lines(['Vídeos que', 'la gente comparte'])}</h2>
+      <h2 class="h2" id="con-t">${lines(['Vídeos con', 'identidad de marca'])}</h2>
       <p class="lead" data-r>Creamos contenido para redes y vídeos corporativos: producto, eventos, promoción, formación, novedades y activación de marca.</p>
     </div>
     <div class="wall">

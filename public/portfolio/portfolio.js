@@ -74,6 +74,7 @@
   /* ---------- luz del cursor y botones magnéticos ---------- */
   if (fine && !reduce) {
     var gx = 0, gy = 0, gt = false;
+    addEventListener('pointermove', function (e) { px = (e.clientX / innerWidth - 0.5) * 2; req(); }, { passive: true });
     addEventListener('pointermove', function (e) {
       gx = e.clientX; gy = e.clientY;
       if (!gt) { gt = true; requestAnimationFrame(function () { gt = false; root.style.setProperty('--gx', gx + 'px'); root.style.setProperty('--gy', gy + 'px'); }); }
@@ -89,13 +90,14 @@
   }
 
   /* ---------- scroll: progreso, nav y parallax ---------- */
-  var par = $$('[data-speed]'), ticking = false;
+  var par = $$('[data-speed]'), ticking = false, px = 0;
   function frame() {
     ticking = false;
     var y = window.scrollY, h = root.scrollHeight - innerHeight;
     root.style.setProperty('--prog', h > 0 ? (y / h).toFixed(4) : 0);
     nav.classList.toggle('solid', y > 30);
     root.style.setProperty('--sy', Math.min(y, innerHeight * 1.2));
+    if (!reduce) { var k = Math.min(1, y / (innerHeight * 0.9)); root.style.setProperty('--ry', (px * 7 + k * 22).toFixed(2)); root.style.setProperty('--rz', (k * -5).toFixed(2)); }
     if (reduce) return;
     var vh = innerHeight;
     par.forEach(function (el) {
