@@ -14,6 +14,9 @@
     if (!data.sedes.length) root.append(h('div', { class: 'glass emptybox' }, 'Añade la primera sede.'));
   }
 
+  const KEY = 'picfy_sedes_cerradas';
+  const closed = (() => { try { return new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch (e) { return new Set(); } })();
+  const saveClosed = () => { try { localStorage.setItem(KEY, JSON.stringify([...closed])); } catch (e) {} };
   const PAL = ['#e5604f', '#2f9e6f', '#4a63d6', '#c9376e', '#1f9fb3', '#8e5bd6', '#e5964c', '#6b7280'];
 
   function taskList(list, names) {
@@ -38,8 +41,12 @@
 
   function sedeCard(s) {
     const done = s.tareas.filter((t) => t.done).length;
-    const card = h('section', { class: 'tsede' });
-    card.append(h('header', { class: 'tshead' }, h('h2', {}, s.name), h('span', { class: 'tprog' }, `${done}/${s.tareas.length}`),
+    const card = h('section', { class: 'tsede' + (closed.has(s.id) ? ' closed' : '') });
+    const fold = h('button', { class: 'tfold', type: 'button', 'aria-expanded': String(!closed.has(s.id)), 'aria-label': 'Plegar o desplegar la sede', onclick: () => { if (closed.has(s.id)) closed.delete(s.id); else closed.add(s.id); saveClosed(); card.classList.toggle('closed', closed.has(s.id)); fold.setAttribute('aria-expanded', String(!closed.has(s.id))); } },
+      h('svg', {}), h('h2', {}, s.name), h('span', { class: 'tprog' }, `${done}/${s.tareas.length}`));
+    fold.firstChild.replaceWith(Object.assign(document.createElementNS('http://www.w3.org/2000/svg', 'svg'), {}));
+    const sv = fold.firstChild; sv.setAttribute('viewBox', '0 0 24 24'); sv.setAttribute('fill', 'none'); sv.setAttribute('stroke', 'currentColor'); sv.setAttribute('stroke-width', '2.2'); sv.setAttribute('stroke-linecap', 'round'); sv.setAttribute('stroke-linejoin', 'round'); sv.innerHTML = '<path d="M6 9l6 6 6-6"/>';
+    card.append(h('header', { class: 'tshead' }, fold,
       h('button', { class: 'iconbtn', type: 'button', title: 'Borrar sede', 'aria-label': 'Borrar sede', onclick: async () => { if (confirm('¿Borrar la sede con sus tareas y creadores?')) { await api('DELETE', '/api/sedes/' + s.id); load(); } } }, '×')));
 
     // Cuadros para añadir (separados de las tareas)

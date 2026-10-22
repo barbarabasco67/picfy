@@ -1039,3 +1039,12 @@ body.app:has(.mdia) { background: #f6f4f0; color: #14213d; }
 .tnone { margin: 0; color: var(--muted); font-size: .85rem; }
 .ttasks li { gap: 8px; }
 .tform .trow { margin: 0; padding: 0; } .tform .trow > *, .tform input, .tform select { margin: 0; }
+
+.tshead { gap: 8px; } .tfold { flex: 1; display: flex; align-items: center; gap: 10px; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; padding: 0; min-width: 0; }
+.tfold h2 { flex: 0 1 auto; } .tfold svg { width: 22px; height: 22px; flex: none; color: var(--muted); transition: transform .2s; }
+.tsede.closed .tfold svg { transform: rotate(-90deg); } .tsede.closed .tforms, .tsede.closed .tboxes { display: none; }
+.tcreator { border: 0; border-top: 0; background: color-mix(in srgb, var(--pc) 13%, #fff); box-shadow: none; }
+.tcreator .tprog, .tcreator .tcopy { background: var(--pc); color: #fff; }
+.tcreator .tkind { background: color-mix(in srgb, var(--pc) 22%, #fff); color: color-mix(in srgb, var(--pc) 70%, #000); }
+.tcreator input[type=checkbox] { accent-color: var(--pc); width: 17px; height: 17px; }
+.tcreator .tx:hover { background: color-mix(in srgb, var(--pc) 20%, #fff); }
