@@ -138,7 +138,7 @@ export function portfolioPage() {
     <div class="hero-txt">
       <p class="eb rise">Pablo &amp; Bárbara&nbsp;·&nbsp;Madrid</p>
       <h1 id="h1" class="mega">${lines(['Webs, apps,', 'vídeo y foto', '<em>a tu imagen</em>'])}</h1>
-      <p class="hero-sub rise" style="--i:5">Somos un equipo con ganas y experiencia que cuida tu imagen: webs, apps y herramientas a medida, vídeo, fotografía, diseño y contenido para redes.</p>
+      <p class="hero-sub rise" style="--i:5">Somos un equipo con ganas y experiencia que digitaliza tu empresa: webs, apps y herramientas a medida, vídeo, fotografía, diseño y contenido para redes.</p>
       <div class="hero-cta rise" style="--i:6">
         <a class="btn gold" href="#apps"><span>Ver proyectos</span><i aria-hidden="true">→</i></a>
         <a class="btn line" href="${WA_LINK}" target="_blank" rel="noopener"><span>Escríbenos por WhatsApp</span></a>
