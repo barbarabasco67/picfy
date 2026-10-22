@@ -21,6 +21,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await p.locator('.tsede').first().locator('.tnewtask input[name=title]').fill('Storie del partido');
   await p.locator('.tsede').first().locator('.tnewtask button').click(); await p.waitForFunction(() => document.querySelectorAll('.ttasks li').length === 2);
   await p.click('.tsede >> nth=0 >> .tfold'); ok(await p.isHidden('.tsede >> nth=0 >> .tforms'), 'la sede se pliega'); await p.reload(); await p.waitForSelector('.tsede'); ok(await p.isHidden('.tsede >> nth=0 >> .tforms'), 'recuerda que está plegada'); await p.click('.tsede >> nth=0 >> .tfold'); ok(await p.isVisible('.tsede >> nth=0 >> .tforms'), 'la sede se despliega');
+  ok(!/object Object/.test(await p.textContent('#tSedes')), 'sin textos raros en los cuadros');
   // editar tarea desde el hub
   await p.click('.tedit >> nth=1'); await p.waitForSelector('#taskDlg[open]');
   await p.fill('#taskForm input[name=title]', 'Storie editada'); await p.selectOption('#taskForm select[name=kind]', 'foto'); await p.click('#taskForm button[type=submit]');
