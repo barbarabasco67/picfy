@@ -69,7 +69,8 @@ const JS = `(function(){
   addEventListener('scroll',req,{passive:true}); addEventListener('resize',req); upd();
 })();`;
 
-export function landingPage() {
+export function landingPage(user = null) {
+  const goHref = user ? '/galerias' : '/entrar', goText = user ? 'Ir a mi panel' : 'Entrar';
   const title = 'Picfy · Galerías de fotos para torneos con varias sedes';
   const desc = 'Una galería por sede y un solo enlace para todo el torneo. Fotógrafos y voluntarios suben desde el móvil, tú revisas y los equipos eligen y descargan sus fotos.';
   return `<!doctype html>
@@ -94,7 +95,7 @@ export function landingPage() {
 <header class="top">
   <a class="logo" href="/"><i aria-hidden="true"></i>Picfy</a>
   <nav class="main" aria-label="Principal">
-    <a href="#como">Cómo funciona</a><a href="#funciones">Funciones</a><a class="btn" href="/entrar">Entrar</a>
+    <a href="#como">Cómo funciona</a><a href="#funciones">Funciones</a><a class="btn" href="${goHref}">${goText}</a>
   </nav>
 </header>
 
@@ -103,7 +104,7 @@ export function landingPage() {
   <div>
     <h1>Las fotos de tu torneo, en un solo enlace</h1>
     <p class="lead">Una galería por pabellón y un solo enlace para todo el torneo. Fotógrafos, voluntarios y familias suben desde el móvil, y los equipos eligen y descargan las suyas. Sin apps y sin crear cuentas para ellos.</p>
-    <div class="cta"><a class="btn primary lg" href="/entrar">Entrar</a><a class="btn lg" href="/registro">Tengo un código de invitación</a></div>
+    <div class="cta"><a class="btn primary lg" href="${goHref}">${goText}</a>${user ? '' : '<a class="btn lg" href="/registro">Crear cuenta</a>'}</div>
     <p class="fine">¿Te han pasado el enlace de una galería? Ábrelo directamente, no necesitas cuenta.</p>
   </div>
   <div class="stage">
@@ -236,13 +237,13 @@ export function landingPage() {
 <div class="end">
   <h2>Prepara tu próximo torneo</h2>
   <p>Entra, crea la galería con una subgalería por sede y reparte los enlaces. Tus fotógrafos pueden empezar a subir fotos en cuanto los reciban.</p>
-  <div class="cta"><a class="btn primary lg" href="/entrar">Entrar</a><a class="btn lg" href="/registro">Crear cuenta con código</a></div>
+  <div class="cta"><a class="btn primary lg" href="${goHref}">${goText}</a>${user ? '' : '<a class="btn lg" href="/registro">Crear cuenta</a>'}</div>
 </div>
 </main>
 
 <footer>
   <a class="logo" href="/" style="font-size:1.1rem"><i aria-hidden="true" style="width:20px;height:20px;border-radius:6px"></i>Picfy</a>
-  <div class="links"><a href="/entrar">Entrar</a><a href="/registro">Crear cuenta</a></div>
+  <div class="links"><a href="${goHref}">${goText}</a>${user ? '' : '<a href="/registro">Crear cuenta</a>'}</div>
 </footer>
 </div>
 <script>${JS}</script>

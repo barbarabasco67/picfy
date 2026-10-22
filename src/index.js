@@ -40,7 +40,7 @@ app.use('*', async (c, next) => {
   c.res.headers.set('X-Robots-Tag', p === '/portfolio' || p.startsWith('/portfolio/') ? 'index, follow' : 'noindex, nofollow');
 });
 
-app.get('/', async (c) => (c.req.query('landing') === undefined && await currentUser(c)) ? c.redirect('/galerias', 303) : html(landingPage()));
+app.get('/', async (c) => html(landingPage(await currentUser(c))));
 // Diagnóstico sin datos sensibles: solo dice si cada pieza está conectada.
 app.get('/health', async (c) => {
   const out = { admin_password_set: Boolean(c.env.ADMIN_PASSWORD), database: false, photos_bucket: false };
