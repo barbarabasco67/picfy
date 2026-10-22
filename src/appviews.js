@@ -300,9 +300,8 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
     body: shell({
       user,
       collapsible: true,
-      crumbs: parent ? `<a href="/galerias">Galerías</a><span>/</span><a href="/galerias/${parent.id}">${esc(parent.name)}</a>` : '',
-      main: `${note ? `<div class="alert ok">${esc(note)}</div>` : ''}${expiryBanner(event)}
-<div class="gwrap">
+      crumbs: '',
+      main: `<div class="gwrap">
 <aside class="gside glass" id="gside">
 <h2>${esc(event.name)}</h2>
 ${event.event_date ? `<p class="muted small" style="margin:0">${esc(fmtDate(event.event_date))}</p>` : ''}
@@ -333,7 +332,7 @@ ${days.length > 1 ? `<select id="fDay" aria-label="Día"><option value="">Todos 
 <label class="size-ctl">Tamaño <input type="range" id="size" min="90" max="320" value="170"></label>
 <p class="muted small" style="margin:0">Arrastra las fotos para ordenarlas a mano. Estira un rectángulo para seleccionar varias.</p>
 </aside>
-<section class="gmain">
+<section class="gmain">${parent ? `<nav class="crumbs gcrumbs"><a href="/galerias">Galerías</a><span>/</span><a href="/galerias/${parent.id}">${esc(parent.name)}</a></nav>` : ''}${note ? `<div class="alert ok">${esc(note)}</div>` : ''}${expiryBanner(event)}
 ${event.parent_id ? '' : `<div class="subs"><div class="bar"><h2 class="sec" style="margin:0">Subgalerías</h2><span class="spacer"></span><button class="btn sm" type="button" data-open="subDlg">${ICON.plus} Crear subgalería</button></div>
 <form method="post" action="/galerias/${event.id}/mostrar-subs" class="subtog"><label class="check"><input type="checkbox" name="show_subs" value="1" ${event.show_subs ? 'checked' : ''} onchange="this.form.submit()"> Mostrarlas en la página de invitados</label></form>
 ${subs.length ? `<div class="gcards small">${subs.map((s) => `<div class="gcard-wrap"><a class="gcard glass" href="/galerias/${s.id}"><div class="cover">${s.thumb_v ? `<img src="/c/${s.guest_token}/thumb?v=${s.thumb_v}" alt="" loading="lazy">` : s.cover ? `<img src="/m/${s.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}${s.new_sel ? `<span class="chip newsel">${s.new_sel === 1 ? 'Selección nueva' : s.new_sel + ' selecciones nuevas'}</span>` : ''}${s.pending ? `<span class="chip warn">${s.pending} por revisar</span>` : ''}</div><div class="gmeta"><strong>${esc(s.name)}</strong><span>${s.approved} · ${fmtSize(sizeOf(s.bytes, s.nph))}</span></div></a>
