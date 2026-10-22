@@ -80,7 +80,8 @@ export function authPage({ mode = 'login', error = '', email = '', name = '', go
   const login = mode === 'login';
   const other = login ? 'signup' : 'login';
   const act = { error, email, name }, idle = { error: '', email: '', name: '' };
-  const tile = (cls, g) => `<i class="au-tile ${cls}" style="--g:${g}"><b></b></i>`;
+  const U = (id) => `url(https://images.unsplash.com/${id}?auto=format&fit=crop&w=520&q=70)`; // Unsplash: uso libre, sin atribución
+  const tile = (cls, g, id) => `<i class="au-tile ${cls}" style="--g:${g};--img:${U(id)}"><b></b></i>`;
   return appPage({
     title: login ? 'Entrar' : 'Crear cuenta',
     scripts: ['/auth.js'],
@@ -88,7 +89,7 @@ export function authPage({ mode = 'login', error = '', email = '', name = '', go
 <section class="au-art" aria-hidden="true">
 <a class="au-logo" href="/"><span class="logo-dot"></span>Picfy</a>
 <div class="au-collage">
-${tile('t1', 'linear-gradient(160deg,#f6c27b,#d9703a 55%,#7a2f2a)')}${tile('t2', 'linear-gradient(200deg,#7fb3c9,#3d6a8e 60%,#1d2f4a)')}${tile('t3', 'linear-gradient(150deg,#f3d9b8,#e0a56a 50%,#b46a3a)')}${tile('t4', 'linear-gradient(190deg,#e7a0a8,#b9456a 60%,#4a1f3a)')}${tile('t5', 'linear-gradient(160deg,#9fd3b8,#3f8f73 60%,#173d33)')}${tile('t6', 'linear-gradient(200deg,#cdb8f0,#7b5cc4 60%,#2c1f5c)')}
+${tile('t1', 'linear-gradient(160deg,#f6c27b,#d9703a 55%,#7a2f2a)', 'photo-1506744038136-46273834b3fb')}${tile('t2', 'linear-gradient(200deg,#7fb3c9,#3d6a8e 60%,#1d2f4a)', 'photo-1470229722913-7c0e2dbbafd3')}${tile('t3', 'linear-gradient(150deg,#f3d9b8,#e0a56a 50%,#b46a3a)', 'photo-1519741497674-611481863552')}${tile('t4', 'linear-gradient(190deg,#e7a0a8,#b9456a 60%,#4a1f3a)', 'photo-1474511320723-9a56873867b5')}${tile('t5', 'linear-gradient(160deg,#9fd3b8,#3f8f73 60%,#173d33)', 'photo-1546519638-68e109498ffc')}${tile('t6', 'linear-gradient(200deg,#cdb8f0,#7b5cc4 60%,#2c1f5c)', 'photo-1501785888041-af3ef285b470')}
 </div>
 </section>
 <section class="au-pane"><div class="au-box">
