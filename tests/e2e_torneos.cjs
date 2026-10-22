@@ -30,7 +30,11 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await m.click('.mdt label >> nth=0'); await m.waitForTimeout(400);
   await m.reload(); await m.waitForSelector('.mdt');
   ok((await m.$$('.mdt.done')).length === 1, 'la tarea marcada se guarda');
+  await m.click('.mdtabs button:has-text("Semana")'); await m.waitForSelector('.mdday');
+  ok((await m.$$('.mdday')).length === 7 && (await m.$$('.mdday.now .mdt')).length === 1, 'vista semanal con 7 días y la tarea de hoy');
+  await m.click('.mdweek button >> nth=1'); ok((await m.$$('.mdday.now')).length === 0, 'semana siguiente'); await m.click('.mdnow'); ok((await m.$$('.mdday.now')).length === 1, 'volver a esta semana');
   ok(await m.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'sin scroll horizontal en móvil');
+  await m.screenshot({ path: '/tmp/picfy_shots/midia_semana.png' }); await m.click('.mdtabs button:has-text("Lista")');
   await m.screenshot({ path: '/tmp/picfy_shots/midia.png' });
   const bad = await m.goto(B + '/t/' + 'a'.repeat(24)); ok(bad.status() === 404, 'enlace falso da 404');
   // el hub ve quién la hizo
