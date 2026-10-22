@@ -227,7 +227,12 @@ export function portfolioPage() {
     <h3 class="sub" data-r>Nuestras apps <em>HERRAMIENTAS PROPIAS</em></h3>
     <div class="apps">
       <article class="app pf" data-r>
-        <div class="vis">${PLAY_SVG}</div>
+        <div class="vis"><div class="pbs">
+          <div class="win w1"><img src="/portfolio/img/pb1.webp?v=${v}" width="840" height="404" alt="Panel de control de entrenamientos de Playbook Finder" data-lb="/portfolio/img/pb1.webp?v=${v}" data-alt="Panel de control de entrenamientos de Playbook Finder" loading="lazy" decoding="async"></div>
+          <div class="win w2"><img src="/portfolio/img/pb2.webp?v=${v}" width="698" height="336" alt="Biblioteca de jugadas de Playbook Finder" data-lb="/portfolio/img/pb2.webp?v=${v}" data-alt="Biblioteca de jugadas de Playbook Finder" loading="lazy" decoding="async"></div>
+          <div class="win w3"><img src="/portfolio/img/pb3.webp?v=${v}" width="844" height="412" alt="Editor de jugadas de Playbook Finder" data-lb="/portfolio/img/pb3.webp?v=${v}" data-alt="Editor de jugadas de Playbook Finder" loading="lazy" decoding="async"></div>
+          <div class="win w4"><img src="/portfolio/img/pb4.webp?v=${v}" width="620" height="296" alt="Análisis de vídeo (video scouting) de Playbook Finder" data-lb="/portfolio/img/pb4.webp?v=${v}" data-alt="Análisis de vídeo (video scouting) de Playbook Finder" loading="lazy" decoding="async"></div>
+        </div></div>
         <div class="txt">
           <h3>Playbook Finder</h3>
           <p>Biblioteca de jugadas animadas y herramientas de gestión para entrenadores de baloncesto. Una plataforma web hecha por gente de baloncesto para gente de baloncesto.</p>

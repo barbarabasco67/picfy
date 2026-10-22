@@ -271,3 +271,15 @@ footer a{text-decoration:none}footer a:hover{color:var(--y)}
   .mega span{transform:none}.hero-ph{opacity:.92}
   body::after{display:none}
 }
+
+/* Playbook Finder: capturas reales en ventanas */
+.app.pf .vis{aspect-ratio:16/11}
+.pbs{position:absolute;inset:0}
+.win{position:absolute;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.16);box-shadow:0 30px 60px -18px rgba(0,0,0,.85);background:#0b0909;transition:transform .6s var(--ease),z-index 0s .3s}
+.win img{display:block;width:100%;height:auto;cursor:zoom-in}
+.win.w1{width:66%;left:4%;top:7%;z-index:1;animation:bob 9s ease-in-out infinite}
+.win.w2{width:50%;left:6%;bottom:6%;z-index:3;animation:bob 8s ease-in-out infinite -2s}
+.win.w3{width:54%;right:4%;top:24%;z-index:2;animation:bob 10s ease-in-out infinite -5s}
+.win.w4{width:40%;right:6%;bottom:5%;z-index:4;animation:bob 7s ease-in-out infinite -3s}
+.win:hover{z-index:9;transform:scale(1.04);transition-delay:0s}
+@media (prefers-reduced-motion:reduce){.win{animation:none!important}}

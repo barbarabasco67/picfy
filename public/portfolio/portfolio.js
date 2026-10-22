@@ -116,7 +116,7 @@
   /* ---------- visor de imágenes (navega dentro de su propia galería) ---------- */
   var lb = $('.lb'), lbi = $('img', lb), list = [], cur = 0, lastFocus = null;
   function listFor(el) {
-    var c = el.closest('.gal,.md,.posters') || d, seen = {}, out = [];
+    var c = el.closest('.gal,.md,.posters,.pbs') || d, seen = {}, out = [];
     $$('[data-lb]', c).forEach(function (x) { var k = x.getAttribute('data-lb'); if (!seen[k]) { seen[k] = 1; out.push(x); } });
     return out;
   }
