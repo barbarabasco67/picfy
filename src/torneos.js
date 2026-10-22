@@ -2,7 +2,6 @@
 import { randomHex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
 import { torneosPage, torneoPage, miDiaPage } from './appviews.js';
-import { AGENDA_KINDS } from './agenda.js';
 
 let st = { v: null, t: 0 };
 export async function torneosReady(db) {
@@ -16,7 +15,7 @@ const reDate = /^\d{4}-\d{2}-\d{2}$/;
 const reTime = /^([01]\d|2[0-3]):[0-5]\d$/;
 const clip = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
 const go = (to) => new Response(null, { status: 303, headers: { location: to } });
-const KINDS = Object.fromEntries(Object.entries(AGENDA_KINDS).map(([k, v]) => [k, { label: v.label, color: v.color }]));
+const KINDS = { storie: { label: 'Story', color: '#c9376e' }, video: { label: 'Vídeo', color: '#4a63d6' }, foto: { label: 'Foto', color: '#e5964c' } };
 
 export function torneosRoutes(app) {
   async function auth(c) {
@@ -131,7 +130,7 @@ export function torneosRoutes(app) {
     const title = clip(b.title, 160);
     if (!title) return null;
     const date = reDate.test(String(b.date || '')) ? String(b.date) : '';
-    return { kind: b.kind in KINDS ? b.kind : 'tarea', title, date, time: date && reTime.test(String(b.time || '')) ? String(b.time) : null, notes: clip(b.notes, 1000) || null, creador_id: isHex(b.creador_id, 16) ? b.creador_id : null };
+    return { kind: b.kind in KINDS ? b.kind : 'foto', title, date, time: date && reTime.test(String(b.time || '')) ? String(b.time) : null, notes: clip(b.notes, 1000) || null, creador_id: isHex(b.creador_id, 16) ? b.creador_id : null };
   }
 
   app.post('/api/sedes/:id/tareas', async (c) => {
