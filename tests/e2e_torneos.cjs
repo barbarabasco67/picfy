@@ -23,7 +23,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await p.click('.tsede >> nth=0 >> .tfold'); ok(await p.isHidden('.tsede >> nth=0 >> .tforms'), 'la sede se pliega'); await p.reload(); await p.waitForSelector('.tsede'); ok(await p.isHidden('.tsede >> nth=0 >> .tforms'), 'recuerda que está plegada'); await p.click('.tsede >> nth=0 >> .tfold'); ok(await p.isVisible('.tsede >> nth=0 >> .tforms'), 'la sede se despliega');
   ok(!/object Object/.test(await p.textContent('#tSedes')), 'sin textos raros en los cuadros');
   // editar tarea desde el hub
-  await p.click('.tedit >> nth=1'); await p.waitForSelector('#taskDlg[open]');
+  await p.click('button[aria-label="Editar tarea"] >> nth=1'); await p.waitForSelector('#taskDlg[open]');
   await p.fill('#taskForm input[name=title]', 'Storie editada'); await p.selectOption('#taskForm select[name=kind]', 'foto'); await p.click('#taskForm button[type=submit]');
   await p.waitForFunction(() => /Storie editada/.test(document.querySelector('#tSedes').textContent)); ok(!/Storie del partido/.test(await p.textContent('#tSedes')), 'la tarea se edita sin crear otra');
   // editar torneo (nombre, descripción, portada)
@@ -64,8 +64,10 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   const st = await p.evaluate(async (h) => { const r = await fetch(h); return [r.status, r.headers.get('content-type'), (await r.arrayBuffer()).byteLength]; }, href);
   ok(st[0] === 200 && /image/.test(st[1]) && st[2] > 1000, 'el hub puede abrir el archivo ' + st);
   const rg = await p.evaluate(async (h) => { const r = await fetch(h, { headers: { range: 'bytes=0-9' } }); return [r.status, (await r.arrayBuffer()).byteLength]; }, href); ok(rg[0] === 206 && rg[1] === 10, 'admite rangos (vídeo) ' + rg);
+  await p.setViewportSize({ width: 390, height: 900 }); await p.evaluate(() => document.querySelectorAll('.tfl .fn').forEach((a) => { a.textContent = 'c5d2280a-0744-4333-b83e-3f9a1c2d4e5f-nombre-muy-largo-del-archivo.mp4'; }));
+  await p.screenshot({ path: '/tmp/picfy_shots/hub_movil.png', fullPage: true }); await p.setViewportSize({ width: 1280, height: 900 });
   // devolver una tarea hecha con un comentario
-  await p.click('.tsede >> nth=0 >> .tedit:has-text("Devolver")'); await p.waitForSelector('#retryDlg[open]');
+  await p.click('.tsede >> nth=0 >> button[aria-label="Devolver al creador"]'); await p.waitForSelector('#retryDlg[open]');
   await p.fill('#retryForm textarea', 'El saludo se ve movido, repítelo en horizontal'); await p.click('#retryForm button[type=submit]');
   await p.waitForSelector('.tretry'); ok(true, 'devuelta');
   await m.goto(B + '/t/' + token); await m.waitForSelector('.mdretry'); ok(/en horizontal/.test(await m.textContent('.mdretry')), 'el creador ve el comentario');

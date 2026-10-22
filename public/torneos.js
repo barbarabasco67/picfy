@@ -63,24 +63,30 @@
   const bytes = (b) => (b >= 1048576 ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB');
   const PAL = ['#e5604f', '#2f9e6f', '#4a63d6', '#c9376e', '#1f9fb3', '#8e5bd6', '#e5964c', '#6b7280'];
 
+  function svgi(path) { const v = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); v.setAttribute('viewBox', '0 0 24 24'); v.setAttribute('fill', 'none'); v.setAttribute('stroke', 'currentColor'); v.setAttribute('stroke-width', '2'); v.setAttribute('stroke-linecap', 'round'); v.setAttribute('stroke-linejoin', 'round'); v.innerHTML = path; return v; }
+  function ico(path, label, fn) { const b = h('button', { type: 'button', class: 'ib', title: label, 'aria-label': label, onclick: fn }); b.append(svgi(path)); return b; }
   function taskList(list, sede) {
     const days = [...new Set(list.map((t) => t.date))].sort((a, b) => (a || '9').localeCompare(b || '9'));
     return days.map((d) => h('div', { class: 'tdaybox' }, h('h4', { class: 'tday' }, fmt(d)), h('ul', { class: 'ttasks' }, list.filter((t) => t.date === d).map((t) => {
       const k = kinds[t.kind] || { color: '#999', label: t.kind };
-      return h('li', { class: t.done ? 'done' : '' },
+      const files = t.entregas || [];
+      return h('li', { class: (t.done ? 'done' : '') + (t.retry && !t.done ? ' retry' : '') },
         h('input', { type: 'checkbox', checked: !!t.done, 'aria-label': 'Hecha', onchange: async (e) => { await api('PUT', '/api/tareas/' + t.id, { done: e.target.checked ? 1 : 0 }); load(); } }),
-        h('span', { class: 'tkind', style: `--c:${k.color}` }, k.label),
-        h('span', { class: 't' }, t.title, t.time ? h('small', {}, ' · ' + t.time) : null),
-        t.retry && !t.done ? h('span', { class: 'tretry', title: t.retry_note || '' }, 'Repetir') : null,
-        t.done ? h('button', { class: 'tx tedit', type: 'button', title: 'Pedir que lo repita', onclick: () => askRetry(t) }, 'Devolver') : null,
-        t.done && t.done_by ? h('span', { class: 'by' }, t.done_by === 'hub' ? 'Hecha' : 'Hecha por ' + t.done_by) : null,
-        (t.entregas || []).length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => { const ul = e.target.closest('li').querySelector('.tfl'); ul.hidden = !ul.hidden; } }, `${t.entregas.length} ${t.entregas.length === 1 ? 'archivo' : 'archivos'}`) : null,
-        h('button', { class: 'tx tedit', type: 'button', title: 'Editar tarea', 'aria-label': 'Editar tarea', onclick: () => editTask(t, sede) }, 'Editar'),
-        h('button', { class: 'tx', type: 'button', title: 'Borrar tarea', 'aria-label': 'Borrar tarea', onclick: async () => { await api('DELETE', '/api/tareas/' + t.id); load(); } }, '×'),
-        (t.entregas || []).length ? h('ul', { class: 'tfl', hidden: true }, t.entregas.map((f) => h('li', {},
-          h('a', { href: `/api/entregas/${f.id}/archivo`, target: '_blank', rel: 'noopener' }, f.filename), h('small', {}, bytes(f.size)),
-          h('a', { href: `/api/entregas/${f.id}/archivo?dl=1`, class: 'tdl' }, 'Descargar'),
-          h('button', { type: 'button', class: 'tx', 'aria-label': 'Borrar archivo', onclick: async () => { if (confirm('¿Borrar ' + f.filename + '?')) { await api('DELETE', '/api/entregas/' + f.id); load(); } } }, '×')))) : null);
+        h('div', { class: 'tbd' },
+          h('div', { class: 'tmain' }, h('span', { class: 'tkind', style: `--c:${k.color}` }, k.label), h('span', { class: 't' }, t.title, t.time ? h('small', {}, ' · ' + t.time) : null)),
+          t.retry && !t.done || t.done && t.done_by || files.length ? h('div', { class: 'tmeta' },
+            t.retry && !t.done ? h('span', { class: 'tretry', title: t.retry_note || '' }, 'Repetir') : null,
+            t.done && t.done_by ? h('span', { class: 'by' }, t.done_by === 'hub' ? 'Hecha' : 'Hecha por ' + t.done_by) : null,
+            files.length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => { const ul = e.target.closest('li').querySelector('.tfl'); ul.hidden = !ul.hidden; } }, `${files.length} ${files.length === 1 ? 'archivo' : 'archivos'}`) : null) : null,
+          t.retry && !t.done && t.retry_note ? h('p', { class: 'tnote' }, t.retry_note) : null),
+        h('div', { class: 'tacts' },
+          t.done ? ico('<path d="M20 11a8 8 0 00-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0014.5 4.5L20 16"/><path d="M20 20v-4h-4"/>', 'Devolver al creador', () => askRetry(t)) : null,
+          ico('<path d="M4 20h4L19 9l-4-4L4 16v4z"/>', 'Editar tarea', () => editTask(t, sede)),
+          ico('<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>', 'Borrar tarea', async () => { await api('DELETE', '/api/tareas/' + t.id); load(); })),
+        files.length ? h('ul', { class: 'tfl', hidden: true }, files.map((f) => h('li', {},
+          h('a', { href: `/api/entregas/${f.id}/archivo`, target: '_blank', rel: 'noopener', class: 'fn' }, f.filename), h('small', {}, bytes(f.size)),
+          h('a', { href: `/api/entregas/${f.id}/archivo?dl=1`, class: 'ib', title: 'Descargar', 'aria-label': 'Descargar' }, svgi('<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/>')),
+          ico('<path d="M6 6l12 12M18 6L6 18"/>', 'Borrar archivo', async () => { if (confirm('¿Borrar ' + f.filename + '?')) { await api('DELETE', '/api/entregas/' + f.id); load(); } })))) : null);
     }))));
   }
 
