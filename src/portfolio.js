@@ -1,4 +1,4 @@
-// Portfolio público de Pablo y Bárbara (Bedigy) en picfy.es/portfolio.
+// Portfolio público de Pablo y Bárbara en picfy.es/portfolio.
 // El HTML se genera aquí; estilos, efectos, fotos y vídeos están en /public/portfolio/.
 import { ASSET_V } from './version.js';
 import D from './portfolio-dims.json';
@@ -11,20 +11,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const pad = (n) => String(n).padStart(2, '0');
 
 // textos alternativos de las fotos (por orden en la galería)
-const PH_ALT = [
-  'Jugador de 3x3 con el balón frente a una pared de colores', 'Equipo de 3x3 posando con su entrenador', 'Jugadora botando dos balones en pista', 'Jugador entrenando reflejos junto a una pared con luces',
-  'Jugadoras de 3x3 abrazadas durante un partido', 'Clase de ciclo indoor con luces azules', 'Jugador preparando un tiro', 'Jugador lanzando el balón en pista',
-  'Zona de entrenamiento del gimnasio Krown Fitness', 'Entrenador con el balón entre las manos', 'Entrenador con camiseta roja durante una sesión', 'Jugador con el balón en un posado',
-  'Sala de máquinas del gimnasio Krown Fitness', 'Joven jugador ajustándose la camiseta en una sesión de combine', 'Niño sonriendo tumbado en la pista', 'Cuatro jugadoras posando en pista',
-  'Mujer colgada de una barra en el gimnasio', 'Jugador concentrado con gafas deportivas', 'Jugadores disputando un rebote bajo la canasta', 'Niños dándose la mano durante un partido',
-  'Fachada del gimnasio Krown Fitness al atardecer', 'Clase de ciclo con humo y luces', 'Niño lanzando a canasta', 'Instructor tumbado dirigiendo una clase',
-  'Jugador lanzando a canasta con fondo de gradas naranjas', 'Jugador en una sesión de fotos con luz de contraluz', 'Instructor sobre el escenario en una clase colectiva', 'Jugador con el balón y mirada al frente',
-  'Dos jóvenes jugadores de Las Rozas 3x3', 'Instructor de ciclo con luces de colores', 'Salto a canasta con un entrenador de apoyo', 'Entrenador con camiseta negra',
-  'Jugador del Elite de Pro Basket Lab', 'Mujer sentada en el gimnasio con suplementos', 'Instructor señalando durante una clase', 'Jugador saltando contra una pared de entrenamiento',
-  'Joven alcanzando una pared de luces de reacción', 'Jugador de Las Rozas 3x3 en la pista', 'Jugadora de perfil con coleta', 'Joven posando en un gimnasio',
-  'Joven con el balón y el entrenador de espaldas', 'Niños con pizarra durante un entrenamiento', 'Jugador de perfil con trenzas', 'Equipo celebrando el campeonato en pista',
-  'Duelo entre dos jugadores por un balón', 'Bicicleta de ciclo indoor en movimiento',
-];
+const PH_ALT = ["Jugador con el balón frente a una pared de colores", "Equipo de 3x3 posando con su entrenador", "Jugadora botando dos balones en pista", "Jugador entrenando saltos junto a su entrenador", "Jugadoras de un equipo preparándose antes del partido", "Clase de ciclo indoor con luces azules", "Jugador preparando un tiro", "Jugador lanzando el balón en pista", "Pasillo de la zona de entrenamiento de Krown Fitness", "Entrenador con el balón entre las manos", "Entrenador con camiseta roja", "Jugador posando con el balón", "Sala de máquinas de Krown Fitness", "Joven jugador en una sesión de fotos", "Niño tumbado en la pista", "Cuatro jugadoras posando en pista", "Mujer colgada de una barra en el gimnasio", "Jugador con gafas deportivas", "Jugadores disputando un rebote bajo la canasta", "Niños dándose la mano durante un partido", "Fachada de Krown Fitness al atardecer", "Clase de ciclo con humo y luces", "Niño lanzando a canasta", "Instructor tumbado dirigiendo una clase", "Jugador lanzando a canasta con gradas naranjas", "Retrato de jugador con luz de contraluz", "Instructor de una clase colectiva con una pelota", "Jugador con el balón y mirada al frente", "Dos jóvenes jugadores de Las Rozas 3x3", "Salto a canasta durante un partido", "Jugador y entrenador de apoyo en un entrenamiento", "Entrenador con camiseta negra", "Jugador de Pro Basket Lab", "Instructor de ciclo con luces de colores", "Instructor señalando durante una clase", "Jugador saltando contra una pared de entrenamiento", "Joven con una pared de luces de reacción", "Mujer en el gimnasio con suplementos", "Jugadora de perfil con coleta", "Joven posando en un gimnasio", "Joven con el balón y el entrenador de espaldas", "Niños con una pizarra durante un entrenamiento", "Jugador de perfil con trenzas", "Equipo con pancartas en pista", "Duelo entre dos jugadores por el balón", "Bicicleta de ciclo indoor en movimiento"];
 
 const MD_ALT = ['Jugadora de Las Rozas 3x3 con el balón sobre el hombro', 'Jugador con el balón de 3x3 en fondo de estudio', 'Jugador de Las Rozas 3x3 girando el balón', 'Niño de espaldas con el balón',
   'Jugador con el balón bajo el brazo', 'Jugadora con el balón de 3x3 junto a la cara', 'Jugadora con dos balones', 'Jugador señalando a cámara',
@@ -56,11 +43,32 @@ const ui = (k, alt, extra = '') => {
 const marquee = (items, cls = '', secs = 60) => `<div class="mq ${cls}" style="--t:${secs}s"><div class="mq-in">${items}</div><div class="mq-in" aria-hidden="true">${items}</div></div>`;
 const lines = (arr) => arr.map((l, i) => `<span class="ln"><span style="--i:${i}">${l}</span></span>`).join('');
 
+
+// álbumes de fotografía: [clave, título, fotos [tipo, nº], portadas (posiciones en la lista)]
+const ALB = [
+  ['retrato', 'Retrato', [...Array.from({ length: 12 }, (_, i) => ['md', i + 1]), ...[10, 11, 12, 18, 26, 32, 33, 39, 40, 43, 38, 14].map((n) => ['ph', n])], [2, 5, 19, 21, 20]],
+  ['baloncesto', 'Baloncesto', [28, 7, 16, 8, 3, 2, 19, 25, 30, 31, 45, 44, 20, 29, 23, 41, 42, 1, 4, 5, 15, 36, 37].map((n) => ['ph', n]), [0, 2, 8, 6, 11]],
+  ['eventos', 'Clases y entrenos', [27, 34, 35, 46, 24, 17, 38].map((n) => ['ph', n]), [0, 1, 2, 3, 4]],
+  ['espacios', 'Espacios', [21, 13, 9, 22, 6].map((n) => ['ph', n]), [0, 1, 2, 3, 4]],
+];
+const albumHtml = (a) => {
+  const [k, t, items, cov] = a;
+  const src = ([ty, n], big) => `${P}/${ty}/${pad(n)}${big ? '-l' : ''}.webp?v=${ASSET_V}`;
+  const alt = ([ty, n]) => (ty === 'md' ? MD_ALT[n - 1] : PH_ALT[n - 1]);
+  const dim = ([ty, n]) => (ty === 'md' ? D.md[n - 1] : D.photos[n - 1]);
+  const covers = cov.map((ix) => { const it = items[ix], d = dim(it); return `<img data-ix="${ix}" src="${src(it)}" width="${d.w}" height="${d.h}" alt="${esc(alt(it))}" loading="lazy" decoding="async">`; }).join('');
+  return `<article class="album" data-gal="alb-${k}" tabindex="0" role="button" aria-label="Abrir el álbum ${esc(t)}, ${items.length} fotos" data-r>
+    <div class="alb-mos">${covers}</div>
+    <div class="alb-cap"><h3>${esc(t)}</h3><span>${items.length} fotos<i aria-hidden="true">→</i></span></div>
+    <div hidden aria-hidden="true">${items.map((it) => `<i data-lb="${src(it, true)}" data-alt="${esc(alt(it))}"></i>`).join('')}</div>
+  </article>`;
+};
+
 const SERVICES = [
   ['apps', 'Apps y herramientas', 'Plataformas propias y herramientas a medida para resolver un problema concreto de tu negocio.'],
   ['webs', 'Diseño y desarrollo web', 'Del dominio y el hosting al SEO: todo el proceso, con tu identidad en cada página.'],
   ['video', 'Grabación y edición de vídeo', 'Piezas para redes, eventos, formación y campañas, adaptadas a cada plataforma.'],
-  ['foto', 'Fotografía', 'Retrato, producto, gastronomía y deporte, con edición profesional.'],
+  ['foto', 'Fotografía', 'Retrato, producto, gastronomía y deporte.'],
   ['diseno', 'Diseño gráfico e imagen de marca', 'Redes sociales, carteles, cartas, tarjetas y stands con una identidad coherente.'],
   ['contenido', 'Contenido y community manager', 'Contenido para redes pensado para que tu marca crezca.'],
 ];
@@ -73,16 +81,16 @@ const WEBS = [
 
 export function portfolioPage() {
   const v = ASSET_V;
-  const title = 'Bedigy · Webs, apps, vídeo, foto y contenido | Portfolio de Pablo y Bárbara';
-  const desc = 'Webs, apps y herramientas a medida, grabación y edición de vídeo, fotografía, diseño gráfico y contenido para marcas. Portfolio de Pablo y Bárbara (Bedigy), Madrid.';
+  const title = 'Webs, apps, vídeo, foto y contenido | Portfolio de Pablo y Bárbara';
+  const desc = 'Webs, apps y herramientas a medida, grabación y edición de vídeo, fotografía, diseño gráfico y contenido para marcas. Portfolio de Pablo y Bárbara, Madrid.';
   const url = 'https://picfy.es/portfolio';
   const ld = JSON.stringify({
-    '@context': 'https://schema.org', '@type': 'ProfessionalService', name: 'Bedigy · Pablo y Bárbara', url,
+    '@context': 'https://schema.org', '@type': 'ProfessionalService', name: 'Pablo y Bárbara', url,
     description: desc, telephone: '+34690770638', areaServed: 'ES', address: { '@type': 'PostalAddress', addressLocality: 'Madrid', addressCountry: 'ES' },
     makesOffer: SERVICES.map((s) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: s[1] } })),
   });
-  const logos = D.logos.map((l, i) => `<li class="lg" data-i="${i}"><img src="${P}/logos/${l.k}.webp?v=${v}" width="${l.w}" height="${l.h}" alt="${esc(l.n)}" loading="lazy" decoding="async"></li>`).join('');
-  const logoNames = D.logos.map((l) => l.n).join(', ');
+  const albums = ALB.map(albumHtml).join('');
+  const logos = D.logos.map((l, i) => `<li class="lg" data-i="${i}"><img src="${P}/logos/${l.k}.webp?v=${v}" width="${l.w}" height="${l.h}" alt="Logotipo de una marca cliente" loading="lazy" decoding="async"></li>`).join('');
 
   return `<!doctype html>
 <html lang="es">
@@ -94,7 +102,7 @@ export function portfolioPage() {
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#121110">
 <link rel="canonical" href="${url}">
-<meta property="og:type" content="website"><meta property="og:locale" content="es_ES"><meta property="og:site_name" content="Bedigy">
+<meta property="og:type" content="website"><meta property="og:locale" content="es_ES"><meta property="og:site_name" content="Pablo y Bárbara">
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${url}"><meta property="og:image" content="https://picfy.es${P}/og.jpg?v=${v}">
 <meta name="twitter:card" content="summary_large_image">
@@ -110,7 +118,7 @@ export function portfolioPage() {
 
 <header class="nav">
   <div class="wrap nav-in">
-    <a class="brand" href="#top" aria-label="Bedigy, inicio">BEDIGY</a>
+    <a class="brand" href="#top" aria-label="Inicio">Pablo &amp; Bárbara</a>
     <nav class="menu" aria-label="Secciones">
       <a href="#apps">Apps</a><a href="#webs">Webs</a><a href="#video">Vídeo</a><a href="#foto">Foto</a><a href="#diseno">Diseño</a><a href="#contenido">Contenido</a><a href="#marcas">Marcas</a>
     </nav>
@@ -126,7 +134,7 @@ export function portfolioPage() {
   <div class="hero-bg" aria-hidden="true"><img src="${P}/ph/43-l.webp?v=${v}" alt="" fetchpriority="high" decoding="async"></div>
   <div class="wrap hero-in">
     <div class="hero-txt">
-      <p class="eb rise">Bedigy&nbsp;·&nbsp;Pablo &amp; Bárbara&nbsp;·&nbsp;Madrid</p>
+      <p class="eb rise">Pablo &amp; Bárbara&nbsp;·&nbsp;Madrid</p>
       <h1 id="h1" class="mega">${lines(['Webs, apps', 'y contenido', '<em>que mueven</em>', '<em>marcas</em>'])}</h1>
       <p class="hero-sub rise" style="--i:5">Somos un equipo con ganas y experiencia que digitaliza tu empresa: webs, apps y herramientas a medida, vídeo, fotografía, diseño y contenido para redes.</p>
       <div class="hero-cta rise" style="--i:6">
@@ -135,13 +143,12 @@ export function portfolioPage() {
       </div>
     </div>
     <div class="hero-vid rise" style="--i:3" data-speed="0.08">
-      <div class="frame">${vid('hola', 'fill', 'Vídeo de presentación de Bedigy')}</div>
-      <span class="tag">Un vídeo de nuestro trabajo</span>
+      <div class="frame"><img src="${P}/ph/28-l.webp?v=${v}" alt="${esc(PH_ALT[27])}" width="1472" height="2208" fetchpriority="high" decoding="async"></div>
     </div>
   </div>
   <div class="wrap hero-facts rise" style="--i:7">
     <div><b class="count" data-to="1.8" data-dec="1" data-suf=" M">1,8 M</b><span>visualizaciones en un solo vídeo</span></div>
-    <div><b class="count" data-to="742" data-suf=" mil">742 mil</b><span>en otro de nuestros vídeos</span></div>
+    <div><b class="count" data-to="20000">20.000</b><span>seguidores con un solo TikTok</span></div>
     <div><b class="count" data-to="35" data-suf="+">35+</b><span>marcas que han confiado en nosotros</span></div>
     <div><b>6</b><span>servicios con un único equipo</span></div>
   </div>
@@ -238,7 +245,7 @@ export function portfolioPage() {
         <h2 class="h2" id="vid-t">${lines(['Vídeo adaptado', 'a cada plataforma'])}</h2>
       </div>
       <div>
-        <p class="lead" data-r>Material promocional, cobertura de eventos para marcas, vídeos para deportistas profesionales y contenido formativo para la escuela de negocios ThePower Business School.</p>
+        <p class="lead" data-r>Material promocional, cobertura de eventos para marcas, vídeos para deportistas profesionales y contenido formativo para escuelas de negocios.</p>
         <ul class="chips" data-r><li>Final Cut Pro</li><li>Premiere Pro</li><li>CapCut</li></ul>
       </div>
     </div>
@@ -254,8 +261,10 @@ export function portfolioPage() {
       </figure>
     </div>
   </div>
-  <div class="reel" data-r>
-    ${marquee(['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8'].map((k) => `<div class="pv">${vid(k, 'fill')}</div>`).join(''), 'phones', 70)}
+  <div class="vs" data-r role="region" aria-roledescription="carrusel" aria-label="Vídeos verticales">
+    <div class="vs-track">${['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7'].map((k) => `<div class="pv">${vid(k, 'fill')}</div>`).join('')}</div>
+    <button class="vs-b prev" type="button" aria-label="Anterior">←</button>
+    <button class="vs-b next" type="button" aria-label="Siguiente">→</button>
   </div>
 </section>
 
@@ -265,24 +274,14 @@ export function portfolioPage() {
     <div class="head split">
       <div>
         <p class="eb" data-r>04&nbsp;—&nbsp;Fotografía y edición</p>
-        <h2 class="h2" id="fot-t">${lines(['La acción, el retrato', 'y el detalle'])}</h2>
+        <h2 class="h2" id="fot-t">${lines(['Álbumes', 'por temática'])}</h2>
       </div>
       <div>
-        <p class="lead" data-r>Retrato, producto, gastronomía y deporte. Cada sesión se edita después con herramientas profesionales para sacar el mejor resultado de cada imagen.</p>
+        <p class="lead" data-r>Retrato, baloncesto, eventos y espacios. Abre cada álbum para ver la sesión completa.</p>
         <ul class="chips" data-r><li>Lightroom</li><li>Photoshop</li><li>Picsart</li></ul>
       </div>
     </div>
-    <div class="masonry" data-gal="fotos">${Array.from({ length: 46 }, (_, i) => ph(i + 1, '', i < 4)).join('')}</div>
-  </div>
-
-  <div class="media" id="mediadays" data-gal="md">
-    <div class="wrap">
-      <div class="head split">
-        <div><p class="eb" data-r>Sesiones de estudio</p><h3 class="h2 md-t">${lines(['Media Days'])}</h3></div>
-        <p class="lead" data-r>Retratos de estudio para clubes y torneos: toda la plantilla fotografiada en un solo día, con una imagen cuidada y coherente para cada jugador.</p>
-      </div>
-      <div class="mdgrid">${Array.from({ length: 12 }, (_, i) => mdImg(i + 1)).join('')}</div>
-    </div>
+    <div class="albums">${albums}</div>
   </div>
 </section>
 
@@ -312,15 +311,11 @@ export function portfolioPage() {
     <div class="sticky-l">
       <p class="eb" data-r>06&nbsp;—&nbsp;Contenido y UGC</p>
       <h2 class="h2" id="con-t">${lines(['Vídeos que', 'la gente comparte'])}</h2>
-      <p class="lead" data-r>Creamos contenido para redes y vídeos corporativos: producto, eventos, promoción, formación y novedades. Conocer las necesidades de cada marca nos ha permitido crear vídeos virales y hacer crecer sus redes.</p>
-      <div class="stats" data-r>
-        <div><b class="count" data-to="1.8" data-dec="1" data-suf=" M">1,8 M</b><span>visualizaciones</span></div>
-        <div><b class="count" data-to="742" data-suf=" mil">742 mil</b><span>visualizaciones</span></div>
-      </div>
+      <p class="lead" data-r>Creamos contenido para redes y vídeos corporativos: producto, eventos, promoción, formación, novedades y activación de marca.</p>
     </div>
     <div class="wall">
-      <div class="col c1" data-speed="0.1">${['gym', 'u2', 'u5'].map((k) => `<div class="pv">${vid(k, 'fill')}</div>`).join('')}</div>
-      <div class="col c2" data-speed="0.3">${['u1', 'u3', 'u7'].map((k) => `<div class="pv">${vid(k, 'fill')}</div>`).join('')}</div>
+      <div class="col c1" data-speed="0.1">${['gym', 'u2', 'u5', 'e8'].map((k) => `<div class="pv">${vid(k, 'fill')}</div>`).join('')}</div>
+      <div class="col c2" data-speed="0.3">${['hola', 'u1', 'u3', 'u7'].map((k) => `<div class="pv">${vid(k, 'fill')}</div>`).join('')}</div>
       <div class="col c3" data-speed="0.05">${['u4', 'u6', 'u8', 'u9'].map((k) => `<div class="pv">${vid(k, 'fill')}</div>`).join('')}</div>
     </div>
   </div>
@@ -336,9 +331,7 @@ export function portfolioPage() {
     <ul class="track">${logos}</ul>
     <button class="sl-b prev" type="button" aria-label="Marca anterior">←</button>
     <button class="sl-b next" type="button" aria-label="Marca siguiente">→</button>
-    <p class="cap" aria-live="polite"></p>
   </div>
-  <p class="sr">${esc(logoNames)}</p>
 </section>
 
 <!-- CONTACTO -->
@@ -357,7 +350,7 @@ export function portfolioPage() {
 </main>
 
 <footer>
-  <div class="wrap foot"><span class="brand">BEDIGY</span><span>© ${new Date().getFullYear()} Pablo &amp; Bárbara · Madrid</span><a href="#top">Volver arriba&nbsp;↑</a></div>
+  <div class="wrap foot"><span class="brand">Pablo &amp; Bárbara</span><span>© ${new Date().getFullYear()} · Madrid</span><a href="#top">Volver arriba&nbsp;↑</a></div>
 </footer>
 
 <div class="lb" role="dialog" aria-modal="true" aria-label="Imagen ampliada">

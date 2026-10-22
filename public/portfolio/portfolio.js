@@ -111,7 +111,7 @@
   /* ---------- carrusel de marcas, logo por logo ---------- */
   (function () {
     var sl = $('.slider'); if (!sl) return;
-    var track = $('.track', sl), cap = $('.cap', sl), base = $$('.lg', track), N = base.length;
+    var track = $('.track', sl), base = $$('.lg', track), N = base.length;
     if (!N) return;
     for (var k = 0; k < 2; k++) base.forEach(function (li) { var c = li.cloneNode(true); c.setAttribute('aria-hidden', 'true'); c.querySelector('img').alt = ''; track.appendChild(c); });
     var all = $$('.lg', track), idx = N, timer = null, busy = false;
@@ -120,7 +120,6 @@
       track.classList.toggle('nt', !!noTrans);
       track.style.transform = 'translateX(' + (sl.clientWidth / 2 - (li.offsetLeft + li.offsetWidth / 2)) + 'px)';
       all.forEach(function (x, i) { var dd = Math.abs(i - idx); x.classList.toggle('on', dd === 0); x.classList.toggle('n1', dd === 1); });
-      cap.textContent = base[idx % N].querySelector('img').alt;
       if (noTrans) { void track.offsetWidth; track.classList.remove('nt'); }
     }
     function go(n) {
@@ -148,6 +147,40 @@
     pos(true);
   })();
 
+  /* ---------- carrusel de vídeos: arrastrable, con flechas y avance suave ---------- */
+  (function () {
+    var vs = $('.vs'); if (!vs) return;
+    var tr = $('.vs-track', vs), timer = null, hold = false;
+    function step() { var c = $('.pv', tr); return c ? c.offsetWidth + 18 : 300; }
+    function by(n) {
+      var max = tr.scrollWidth - tr.clientWidth;
+      if (n > 0 && tr.scrollLeft >= max - 4) tr.scrollTo({ left: 0, behavior: 'smooth' });
+      else if (n < 0 && tr.scrollLeft <= 4) tr.scrollTo({ left: max, behavior: 'smooth' });
+      else tr.scrollBy({ left: n * step(), behavior: 'smooth' });
+    }
+    function play() { stop(); if (!reduce) timer = setInterval(function () { if (!hold && !d.hidden) by(1); }, 3200); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    $('.next', vs).addEventListener('click', function () { by(1); play(); });
+    $('.prev', vs).addEventListener('click', function () { by(-1); play(); });
+    vs.addEventListener('pointerenter', function () { hold = true; });
+    vs.addEventListener('pointerleave', function () { hold = false; });
+    tr.addEventListener('touchstart', function () { hold = true; }, { passive: true });
+    tr.addEventListener('touchend', function () { setTimeout(function () { hold = false; }, 2500); }, { passive: true });
+    var down = false, sx = 0, sl0 = 0, moved = false;
+    tr.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse') return; down = true; moved = false; sx = e.clientX; sl0 = tr.scrollLeft; });
+    addEventListener('pointermove', function (e) {
+      if (!down) return; var dx = e.clientX - sx;
+      if (Math.abs(dx) > 4) { moved = true; tr.classList.add('drag'); }
+      if (moved) tr.scrollLeft = sl0 - dx;
+    });
+    addEventListener('pointerup', function () {
+      if (!down) return; down = false;
+      if (moved) { tr.classList.remove('drag'); var st = step(); tr.scrollTo({ left: Math.round(tr.scrollLeft / st) * st, behavior: 'smooth' }); }
+    });
+    var vis = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) play(); else stop(); }); }, { threshold: 0.25 });
+    vis.observe(vs);
+  })();
+
   /* ---------- visor de imágenes ---------- */
   var lb = $('.lb'), lbi = $('img', lb), list = [], cur = 0, lastFocus = null;
   function listFor(el) {
@@ -157,6 +190,7 @@
   }
   function show(i) {
     cur = (i + list.length) % list.length;
+    lb.setAttribute('data-ct', list.length > 1 ? (cur + 1) + ' / ' + list.length : '');
     var el = list[cur]; lbi.src = el.getAttribute('data-lb'); lbi.alt = el.getAttribute('data-alt') || '';
   }
   function open(el) {
@@ -164,6 +198,14 @@
     var k = el.getAttribute('data-lb'), i = 0; list.forEach(function (x, n) { if (x.getAttribute('data-lb') === k) i = n; });
     show(i); lb.classList.add('on'); d.body.style.overflow = 'hidden'; $('.x', lb).focus();
   }
+  function openAlbum(a, ix) {
+    lastFocus = d.activeElement; list = $$('[data-lb]', a);
+    show(ix || 0); lb.classList.add('on'); d.body.style.overflow = 'hidden'; $('.x', lb).focus();
+  }
+  $$('.album').forEach(function (a) {
+    a.addEventListener('click', function (e) { var c = e.target.closest('[data-ix]'); openAlbum(a, c ? parseInt(c.getAttribute('data-ix'), 10) : 0); });
+    a.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAlbum(a, 0); } });
+  });
   function close() { lb.classList.remove('on'); d.body.style.overflow = ''; lbi.removeAttribute('src'); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
   $$('[data-lb]').forEach(function (el) {
     el.addEventListener('click', function () { open(el); });
