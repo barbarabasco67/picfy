@@ -24,6 +24,7 @@ const ICON = {
   lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>',
 };
 ICON.dash = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="9" rx="2"/><rect x="13.5" y="3" width="7.5" height="5.5" rx="2"/><rect x="13.5" y="12" width="7.5" height="9" rx="2"/><rect x="3" y="15.5" width="7.5" height="5.5" rx="2"/></svg>';
+ICON.team = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20v-1a5 5 0 015-5h2a5 5 0 015 5v1"/><circle cx="17.5" cy="9" r="2.4"/><path d="M18 14.2a4 4 0 013 3.8v1"/></svg>';
 export { ICON };
 
 function appPage({ title, body, scripts = [], bodyAttrs = '' }) {
@@ -54,7 +55,7 @@ function shell({ user, active = 'galerias', crumbs = '', main, collapsible = fal
 <aside class="side">
 <div class="side-head"><a class="logo" href="/inicio"><span class="logo-dot"></span><b>Picfy</b></a>${true ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}</div>
 <nav class="side-nav">
-${link('inicio', '/inicio', 'Inicio', 'dash')}${link('galerias', '/galerias', 'Galerías', 'gal')}${link('colecciones', '/colecciones', 'Colecciones', 'coll')}${link('agenda', '/agenda', 'Agenda', 'cal')}
+${link('inicio', '/inicio', 'Inicio', 'dash')}${link('galerias', '/galerias', 'Galerías', 'gal')}${link('colecciones', '/colecciones', 'Colecciones', 'coll')}${link('agenda', '/agenda', 'Agenda', 'cal')}${link('torneos', '/torneo', 'Torneos', 'team')}
 </nav>
 <div class="side-bot">
 ${storage ? spaceBox(storage) : ''}
@@ -717,5 +718,47 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
 </div>
 `,
     }),
+  });
+}
+
+
+/* ---------- Torneos (hub) y "Mi día" (creadores) ---------- */
+
+export function torneosPage({ user, ready, torneos }) {
+  const cards = torneos.map((t) => `<a class="tcard" href="/torneo/${t.id}"><strong>${esc(t.name)}</strong><span>${t.sedes} ${t.sedes === 1 ? 'sede' : 'sedes'} · ${t.hechas}/${t.tareas} tareas</span><i><u style="width:${t.tareas ? Math.round((t.hechas / t.tareas) * 100) : 0}%"></u></i></a>`).join('');
+  return appPage({
+    title: 'Torneos',
+    scripts: ['/app.js'],
+    body: shell({
+      user, active: 'torneos',
+      main: !ready ? `<div class="head"><div><h1>Torneos</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0027) para activar los torneos.</div>` : `<div class="head"><div><h1>Torneos</h1></div>
+<form class="tnew" method="post" action="/torneo"><input class="search glass" type="text" name="name" maxlength="120" placeholder="Nombre del torneo" aria-label="Nombre del torneo" required><button class="btn primary" type="submit">${ICON.plus} Crear torneo</button></form></div>
+${torneos.length ? `<div class="tcards">${cards}</div>` : `<div class="glass emptybox">Todavía no hay torneos.</div>`}`,
+    }),
+  });
+}
+
+export function torneoPage({ user, torneo, kinds }) {
+  return appPage({
+    title: torneo.name,
+    scripts: ['/torneos.js'],
+    bodyAttrs: `data-torneo="${torneo.id}" data-kinds="${esc(JSON.stringify(kinds))}"`,
+    body: shell({
+      user, active: 'torneos', crumbs: '<a href="/torneo">Torneos</a>',
+      main: `<div class="head"><div><h1>${esc(torneo.name)}</h1></div>
+<form class="tnew" id="sedeForm"><input class="search glass" type="text" name="name" maxlength="80" placeholder="Nueva sede" aria-label="Nueva sede" required><button class="btn primary" type="submit">${ICON.plus} Añadir sede</button></form></div>
+<div class="tsedes" id="tSedes"></div>
+<form method="post" action="/torneo/${torneo.id}/borrar" class="tdel" onsubmit="return confirm('¿Borrar el torneo con todas sus sedes y tareas?')"><button class="btn danger sm" type="submit">${ICON.trash} Borrar torneo</button></form>`,
+    }),
+  });
+}
+
+export function miDiaPage({ me, token = '', kinds = {} }) {
+  return appPage({
+    title: me ? `${me.sede} · ${me.torneo}` : 'Enlace no válido',
+    scripts: me ? ['/midia.js'] : [],
+    bodyAttrs: me ? `data-token="${esc(token)}" data-kinds="${esc(JSON.stringify(kinds))}"` : '',
+    body: `<main class="mdia"><header class="mdhead"><a class="logo" href="/"><span class="logo-dot"></span><b>Picfy</b></a></header>
+${me ? `<h1>Hola, ${esc(me.name)}</h1><p class="mdsub">${esc(me.torneo)} · ${esc(me.sede)}</p><div id="mdList"></div>` : `<h1>Enlace no válido</h1><p class="mdsub">Pide un enlace nuevo a quien organiza el torneo.</p>`}</main>`,
   });
 }
