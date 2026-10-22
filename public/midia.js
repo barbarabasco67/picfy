@@ -47,12 +47,16 @@
     }
   }
 
+  function retryIcon() { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2'); s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round'); s.innerHTML = '<path d="M20 11a8 8 0 00-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0014.5 4.5L20 16"/><path d="M20 20v-4h-4"/>'; return s; }
   function row(t) {
     const k = kinds[t.kind] || { color: '#999', label: '' };
     const files = (t.entregas || []).map((e) => h('li', {}, h('span', {}, e.filename), h('small', {}, size(e.size)),
       h('button', { type: 'button', 'aria-label': 'Quitar archivo', onclick: async () => { if (!confirm('¿Quitar ' + e.filename + '?')) return; await api('DELETE', `/api/t/${token}/entregas/${e.id}`); t.entregas = t.entregas.filter((x) => x.id !== e.id); draw(); } }, '×')));
     const input = h('input', { type: 'file', multiple: true, accept: 'image/*,video/*', hidden: true, onchange: (e) => { const fs = [...e.target.files]; e.target.value = ''; fs.forEach((f) => sendFile(t, f)); } });
-    return h('li', { class: 'mdt' + (t.done ? ' done' : '') },
+    const retry = t.retry && !t.done ? h('div', { class: 'mdretry' }, h('b', {}, 'Hay que repetirlo'), t.retry_note ? h('p', {}, t.retry_note) : null) : null;
+    if (retry) retry.prepend(retryIcon());
+    return h('li', { class: 'mdt' + (t.done ? ' done' : '') + (retry ? ' retry' : '') },
+      retry,
       h('div', { class: 'mdrow' },
         h('label', {}, h('input', { type: 'checkbox', checked: !!t.done, onchange: (e) => toggle(t, e.target.checked) }), h('span', { class: 'mdck' }),
           h('span', { class: 'mdtx' }, h('strong', {}, t.title), h('small', {}, [k.label, t.time].filter(Boolean).join(' · ')), t.notes ? h('em', {}, t.notes) : null)),
@@ -88,10 +92,11 @@
   function listView() {
     const open = tareas.filter((t) => !t.done);
     const parts = [
-      section('Hoy', open.filter((t) => t.date === today)),
-      section('Atrasadas', open.filter((t) => t.date && t.date < today)),
-      ...[...new Set(open.filter((t) => t.date > today).map((t) => t.date))].map((d) => section(fmt(d), open.filter((t) => t.date === d))),
-      section('Sin fecha', open.filter((t) => !t.date)),
+      section('Por repetir', open.filter((t) => t.retry)),
+      section('Hoy', open.filter((t) => !t.retry && t.date === today)),
+      section('Atrasadas', open.filter((t) => !t.retry && t.date && t.date < today)),
+      ...[...new Set(open.filter((t) => !t.retry && t.date > today).map((t) => t.date))].map((d) => section(fmt(d), open.filter((t) => !t.retry && t.date === d))),
+      section('Sin fecha', open.filter((t) => !t.retry && !t.date)),
       section('Hechas', tareas.filter((t) => t.done)),
     ].filter(Boolean);
     return parts.length ? parts : [h('p', { class: 'mdsub' }, 'No hay tareas.')];

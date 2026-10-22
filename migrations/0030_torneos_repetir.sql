@@ -1,0 +1,2 @@
+ALTER TABLE tareas_torneo ADD COLUMN retry INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE tareas_torneo ADD COLUMN retry_note TEXT;

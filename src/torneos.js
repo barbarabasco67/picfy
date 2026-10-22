@@ -25,6 +25,13 @@ export async function detallesReady(db) {
   catch { sx = { v: false, t: Date.now() }; }
   return sx.v;
 }
+let sr = { v: null, t: 0 };
+export async function repetirReady(db) {
+  if (sr.v === true || (sr.v === false && Date.now() - sr.t < 30000)) return sr.v;
+  try { await db.prepare('SELECT retry, retry_note FROM tareas_torneo LIMIT 1').first(); sr = { v: true, t: Date.now() }; }
+  catch { sr = { v: false, t: Date.now() }; }
+  return sr.v;
+}
 const COLORS = ['#14213d', '#e5604f', '#2f9e6f', '#4a63d6', '#c9376e', '#1f9fb3', '#8e5bd6', '#e5964c'];
 const MAX_BYTES = 1024 * 1024 * 1024, PART = 10 * 1024 * 1024;
 const okType = (m) => /^(image|video)\//.test(String(m || ''));
@@ -162,7 +169,8 @@ export function torneosRoutes(app) {
     const ids = sedes.map((s) => s.id);
     const q = (sql) => ids.length ? c.env.DB.prepare(sql.replace('?', ids.map(() => '?').join(','))).bind(...ids).all().then((r) => r.results) : [];
     const creadores = await q('SELECT id, sede_id, name, token FROM creadores WHERE sede_id IN (?) ORDER BY created_at');
-    const tareas = await q("SELECT id, sede_id, creador_id, kind, title, date, time, notes, done, done_at, done_by FROM tareas_torneo WHERE sede_id IN (?) ORDER BY date, COALESCE(time, '99:99'), created_at");
+    const rc = (await repetirReady(c.env.DB)) ? ', retry, retry_note' : '';
+    const tareas = await q("SELECT id, sede_id, creador_id, kind, title, date, time, notes, done, done_at, done_by" + rc + " FROM tareas_torneo WHERE sede_id IN (?) ORDER BY date, COALESCE(time, '99:99'), created_at");
     const entregas = (await entregasReady(c.env.DB)) ? await q("SELECT id, sede_id, tarea_id, creador_id, filename, mime, size FROM entregas_torneo WHERE state = 'ok' AND sede_id IN (?) ORDER BY created_at") : [];
     return json({ sedes: sedes.map((s) => ({ ...s, creadores: creadores.filter((x) => x.sede_id === s.id), tareas: tareas.filter((x) => x.sede_id === s.id).map((t) => ({ ...t, entregas: entregas.filter((e) => e.tarea_id === t.id) })) })) });
   });
@@ -246,6 +254,16 @@ export function torneosRoutes(app) {
     return json({ ok: true });
   });
 
+  app.post('/api/tareas/:id/devolver', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    if (!(await repetirReady(c.env.DB))) return json({ error: 'setup' }, 503);
+    const cur = await ownTask(c, a.user, c.req.param('id'));
+    if (!cur) return json({ error: 'nf' }, 404);
+    const note = clip((await c.req.json().catch(() => ({}))).note, 600);
+    await c.env.DB.prepare('UPDATE tareas_torneo SET done = 0, done_at = NULL, done_by = NULL, retry = 1, retry_note = ?2 WHERE id = ?1').bind(cur.id, note || null).run();
+    return json({ ok: true });
+  });
+
   app.delete('/api/tareas/:id', async (c) => {
     const a = await auth(c); if (a.err) return a.err;
     const cur = await ownTask(c, a.user, c.req.param('id'));
@@ -271,7 +289,8 @@ export function torneosRoutes(app) {
   app.get('/api/t/:token', async (c) => {
     const me = await byToken(c);
     if (!me) return json({ error: 'nf' }, 404);
-    const rows = (await c.env.DB.prepare("SELECT id, kind, title, date, time, notes, done FROM tareas_torneo WHERE sede_id = ? AND (creador_id IS NULL OR creador_id = ?) ORDER BY date, COALESCE(time, '99:99'), created_at LIMIT 1000").bind(me.sede_id, me.id).all()).results;
+    const rc = (await repetirReady(c.env.DB)) ? ', retry, retry_note' : '';
+    const rows = (await c.env.DB.prepare("SELECT id, kind, title, date, time, notes, done" + rc + " FROM tareas_torneo WHERE sede_id = ? AND (creador_id IS NULL OR creador_id = ?) ORDER BY date, COALESCE(time, '99:99'), created_at LIMIT 1000").bind(me.sede_id, me.id).all()).results;
     const up = await entregasReady(c.env.DB);
     const ent = up ? (await c.env.DB.prepare("SELECT id, tarea_id, filename, mime, size FROM entregas_torneo WHERE sede_id = ? AND creador_id = ? AND state = 'ok' ORDER BY created_at LIMIT 3000").bind(me.sede_id, me.id).all()).results : [];
     return json({ subida: up, max: MAX_BYTES, part: PART, tareas: rows.map((t) => ({ ...t, entregas: ent.filter((e) => e.tarea_id === t.id) })) });
@@ -286,6 +305,7 @@ export function torneosRoutes(app) {
     if (!cur) return json({ error: 'nf' }, 404);
     const done = Number((await c.req.json().catch(() => ({}))).done) ? 1 : 0;
     await c.env.DB.prepare('UPDATE tareas_torneo SET done = ?2, done_at = ?3, done_by = ?4 WHERE id = ?1').bind(id, done, done ? Date.now() : null, done ? me.name : null).run();
+    if (done && (await repetirReady(c.env.DB))) await c.env.DB.prepare('UPDATE tareas_torneo SET retry = 0 WHERE id = ?').bind(id).run();
     return json({ ok: true });
   });
   /* ----- Subida de archivos por tarea (creadores, por trozos) ----- */

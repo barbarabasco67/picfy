@@ -95,7 +95,7 @@ const email = `t${Date.now()}@ejemplo.es`;
   check('contraseña incorrecta', await w.isVisible('.alert'));
 
   // Salir
-  await p.goto(B + '/galerias'); await p.click('button[aria-label=Salir]');
+  await p.goto(B + '/galerias'); await p.click('.side button.nav:has-text("Salir")');
   await p.waitForURL('**/entrar');
   await p.goto(B + '/galerias');
   check('tras salir pide entrar', p.url().endsWith('/entrar'));

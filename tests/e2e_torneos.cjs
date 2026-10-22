@@ -64,6 +64,13 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   const st = await p.evaluate(async (h) => { const r = await fetch(h); return [r.status, r.headers.get('content-type'), (await r.arrayBuffer()).byteLength]; }, href);
   ok(st[0] === 200 && /image/.test(st[1]) && st[2] > 1000, 'el hub puede abrir el archivo ' + st);
   const rg = await p.evaluate(async (h) => { const r = await fetch(h, { headers: { range: 'bytes=0-9' } }); return [r.status, (await r.arrayBuffer()).byteLength]; }, href); ok(rg[0] === 206 && rg[1] === 10, 'admite rangos (vídeo) ' + rg);
+  // devolver una tarea hecha con un comentario
+  await p.click('.tsede >> nth=0 >> .tedit:has-text("Devolver")'); await p.waitForSelector('#retryDlg[open]');
+  await p.fill('#retryForm textarea', 'El saludo se ve movido, repítelo en horizontal'); await p.click('#retryForm button[type=submit]');
+  await p.waitForSelector('.tretry'); ok(true, 'devuelta');
+  await m.goto(B + '/t/' + token); await m.waitForSelector('.mdretry'); ok(/en horizontal/.test(await m.textContent('.mdretry')), 'el creador ve el comentario');
+  ok(/Por repetir/.test(await m.textContent('#mdList')), 'sección por repetir'); await m.screenshot({ path: '/tmp/picfy_shots/midia_repetir.png' });
+  await m.click('.mdt.retry label'); await m.waitForTimeout(500); await m.goto(B + '/t/' + token); await m.waitForSelector('.mdt'); ok((await m.$$('.mdretry')).length === 0, 'al marcarla de nuevo desaparece el aviso');
   // el otro hub no accede
   const o = await (await b.newContext()).newPage(); await o.goto(B + '/registro'); await o.fill('input[name=name]', 'O'); await o.fill('input[name=email]', `o${Date.now()}@t.es`); await o.fill('input[name=password]', 'clave12345'); await o.click('.au-submit'); await o.waitForURL('**/inicio');
   const rs = await o.evaluate(async (id) => (await fetch('/api/torneos/' + id)).status, url.split('/').pop()); ok(rs === 404, 'otra cuenta no ve el torneo ' + rs); const rf = await o.evaluate(async (h) => (await fetch(h)).status, href); ok(rf === 404, 'otra cuenta no ve el archivo ' + rf);

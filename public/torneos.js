@@ -21,6 +21,11 @@
     taskDlg.close(); load();
   });
 
+  // Pedir que se repita
+  const retryDlg = document.getElementById('retryDlg'), retryForm = document.getElementById('retryForm'); let retrying = null;
+  function askRetry(t) { retrying = t; document.getElementById('retryTitle').textContent = t.title; retryForm.note.value = ''; retryDlg.showModal(); }
+  retryForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!retrying || !retryForm.note.value.trim()) return; await api('POST', `/api/tareas/${retrying.id}/devolver`, { note: retryForm.note.value }); retryDlg.close(); load(); });
+
   // Editar torneo
   const tDlg = document.getElementById('torneoDlg'), tForm = document.getElementById('torneoForm'); let coverFile = null, coverDel = false;
   document.getElementById('editTorneo').addEventListener('click', () => tDlg.showModal());
@@ -66,6 +71,8 @@
         h('input', { type: 'checkbox', checked: !!t.done, 'aria-label': 'Hecha', onchange: async (e) => { await api('PUT', '/api/tareas/' + t.id, { done: e.target.checked ? 1 : 0 }); load(); } }),
         h('span', { class: 'tkind', style: `--c:${k.color}` }, k.label),
         h('span', { class: 't' }, t.title, t.time ? h('small', {}, ' · ' + t.time) : null),
+        t.retry && !t.done ? h('span', { class: 'tretry', title: t.retry_note || '' }, 'Repetir') : null,
+        t.done ? h('button', { class: 'tx tedit', type: 'button', title: 'Pedir que lo repita', onclick: () => askRetry(t) }, 'Devolver') : null,
         t.done && t.done_by ? h('span', { class: 'by' }, t.done_by === 'hub' ? 'Hecha' : 'Hecha por ' + t.done_by) : null,
         (t.entregas || []).length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => { const ul = e.target.closest('li').querySelector('.tfl'); ul.hidden = !ul.hidden; } }, `${t.entregas.length} ${t.entregas.length === 1 ? 'archivo' : 'archivos'}`) : null,
         h('button', { class: 'tx tedit', type: 'button', title: 'Editar tarea', 'aria-label': 'Editar tarea', onclick: () => editTask(t, sede) }, 'Editar'),
