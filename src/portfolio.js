@@ -46,10 +46,11 @@ const lines = (arr) => arr.map((l, i) => `<span class="ln"><span style="--i:${i}
 
 // álbumes de fotografía: [clave, título, fotos [tipo, nº], portadas (posiciones en la lista)]
 const ALB = [
-  ['retrato', 'Retrato', [...Array.from({ length: 12 }, (_, i) => ['md', i + 1]), ...[10, 11, 12, 18, 26, 32, 33, 39, 40, 43, 38, 14].map((n) => ['ph', n])], [2, 5, 19, 21, 20]],
-  ['baloncesto', 'Baloncesto', [28, 7, 16, 8, 3, 2, 19, 25, 30, 31, 45, 44, 20, 29, 23, 41, 42, 1, 4, 5, 15, 36, 37].map((n) => ['ph', n]), [0, 2, 8, 6, 11]],
-  ['eventos', 'Clases y entrenos', [27, 34, 35, 46, 24, 17, 38].map((n) => ['ph', n]), [0, 1, 2, 3, 4]],
-  ['espacios', 'Espacios', [21, 13, 9, 22, 6].map((n) => ['ph', n]), [0, 1, 2, 3, 4]],
+  ['baloncesto', 'Baloncesto', [28, 7, 16, 8, 3, 2, 19, 25, 30, 31, 45, 44, 20, 23, 41, 42, 4, 5, 15, 36, 37].map((n) => ['ph', n]), [0, 2, 8, 6, 11]],
+  ['retrato', 'Retrato', [1, 10, 11, 12, 14, 18, 26, 29, 32, 33, 39, 40, 43].map((n) => ['ph', n]), [3, 1, 10, 7, 12]],
+  ['mediaday', 'Media Day', Array.from({ length: 12 }, (_, i) => ['md', i + 1]), [2, 5, 0, 10, 7]],
+  ['espacios', 'Espacios', [21, 13, 9, 17, 38].map((n) => ['ph', n]), [0, 1, 2, 3, 4]],
+  ['eventos', 'Eventos', [27, 34, 35, 46, 24, 22, 6].map((n) => ['ph', n]), [5, 1, 2, 3, 0]],
 ];
 const albumHtml = (a) => {
   const [k, t, items, cov] = a;
@@ -118,6 +119,7 @@ export function portfolioPage() {
 
 <header class="nav">
   <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="Inicio"><img src="${P}/logo.webp?v=${v}" alt="" width="256" height="255"></a>
     <nav class="menu" aria-label="Secciones">
       <a href="#apps">Apps</a><a href="#webs">Webs</a><a href="#video">Vídeo</a><a href="#foto">Foto</a><a href="#diseno">Diseño</a><a href="#contenido">Contenido</a><a href="#marcas">Marcas</a>
     </nav>
@@ -135,7 +137,7 @@ export function portfolioPage() {
   <div class="wrap hero-in">
     <div class="hero-txt">
       <p class="eb rise">Pablo &amp; Bárbara&nbsp;·&nbsp;Madrid</p>
-      <h1 id="h1" class="mega">${lines(['Damos forma', 'digital', '<em>a tu marca</em>'])}</h1>
+      <h1 id="h1" class="mega">${lines(['Todo lo que', 'tu marca', '<em>necesita</em>'])}</h1>
       <p class="hero-sub rise" style="--i:5">Somos un equipo con ganas y experiencia que digitaliza tu empresa: webs, apps y herramientas a medida, vídeo, fotografía, diseño y contenido para redes.</p>
       <div class="hero-cta rise" style="--i:6">
         <a class="btn gold" href="#apps"><span>Ver proyectos</span><i aria-hidden="true">→</i></a>
@@ -270,10 +272,10 @@ export function portfolioPage() {
     <div class="head split">
       <div>
         <p class="eb" data-r>04&nbsp;—&nbsp;Fotografía y edición</p>
-        <h2 class="h2" id="fot-t">${lines(['Álbumes', 'por temática'])}</h2>
+        <h2 class="h2" id="fot-t">${lines(['La acción, el retrato', 'y el detalle'])}</h2>
       </div>
       <div>
-        <p class="lead" data-r>Retrato, baloncesto, eventos y espacios. Abre cada álbum para ver la sesión completa.</p>
+        <p class="lead" data-r>Retrato, producto, gastronomía y deporte. Cada sesión se edita después con herramientas profesionales para sacar el mejor resultado de cada imagen.</p>
         <ul class="chips" data-r><li>Lightroom</li><li>Photoshop</li><li>Picsart</li></ul>
       </div>
     </div>
@@ -297,7 +299,7 @@ export function portfolioPage() {
   </div>
   <div class="posters" data-gal="ds">
     ${marquee([1, 2, 3, 4, 5, 6, 7, 8].map(ds).join(''), 'p-a', 80)}
-    ${marquee([9, 10, 11, 12, 13, 14, 15, 16].map(ds).join(''), 'p-b rev', 90)}
+    ${marquee([9, 10, 11, 12, 15, 16].map(ds).join(''), 'p-b rev', 90)}
   </div>
 </section>
 
