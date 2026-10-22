@@ -6,7 +6,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   const ctx = await b.newContext({ viewport: { width: 1300, height: 900 } }); const p = await ctx.newPage();
   await p.goto(B + '/registro'); await p.fill('[name=name]', 'S'); await p.fill('[name=email]', 'sel' + Date.now() + '@e.es'); await p.fill('[name=password]', 'clave-12345');
   const sc = await p.$('[name=code]'); if (sc) await sc.fill('codigo');
-  await Promise.all([p.waitForNavigation(), p.click('button[type=submit]')]);
+  await Promise.all([p.waitForNavigation(), p.click('button[type=submit]')]); await p.goto(B + '/galerias');
   await p.click('#newGal'); await p.fill('#newDlg [name=name]', 'Boda Sel'); await Promise.all([p.waitForNavigation(), p.click('#newDlg button.primary')]);
   const adminUrl = p.url().split('?')[0]; const token = await p.evaluate(() => document.body.dataset.token);
   // selector de archivos en español

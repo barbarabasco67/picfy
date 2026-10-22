@@ -8,7 +8,7 @@ const img = (i) => `${process.cwd()}/tests/img/p0${i}.jpg`;
   p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; });
   await p.goto(B + '/registro'); await p.fill('input[name=name]', 'Best'); await p.fill('input[name=email]', `b${Date.now()}@t.es`); await p.fill('input[name=password]', 'clave-larga-123');
   if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
-  await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
+  await p.click('button[type=submit]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Con destacadas'); await p.click('#newDlg button[type=submit]');
   await p.waitForURL(/galerias\/[0-9a-f]{16}/); const gid = p.url().split('?')[0].split('/').pop();
   await p.click('#openUpload'); await p.setInputFiles('#fileInput', [0, 1, 2, 3].map(img));

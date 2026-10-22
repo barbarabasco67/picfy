@@ -29,7 +29,7 @@ async function settle(p, g) { // esperar a que el navegador termine de rehacer l
   p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; });
   await p.goto(B + '/registro'); await p.fill('input[name=name]', 'Marca'); await p.fill('input[name=email]', `w${Date.now()}@t.es`); await p.fill('input[name=password]', 'clave-larga-123');
   if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
-  await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
+  await p.click('button[type=submit]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Con marca'); await p.click('#newDlg button[type=submit]');
   await p.waitForURL(/galerias\/[0-9a-f]{16}/); const gurl = p.url().split('?')[0];
   await p.click('#openUpload'); await p.setInputFiles('#fileInput', [img(0), img(1), img(2)]);

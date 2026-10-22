@@ -12,7 +12,7 @@ const img = (i) => `${process.cwd()}/tests/img/p${String(i).padStart(2, '0')}.jp
   await p.goto(B + '/registro');
   await p.fill('input[name=name]', 'Marca'); await p.fill('input[name=email]', `b${Date.now()}@ejemplo.es`); await p.fill('input[name=password]', 'clave-larga-123');
   if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
-  await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
+  await p.click('button[type=submit]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
 
   // Crear con personalización
   await p.click('#newGal');

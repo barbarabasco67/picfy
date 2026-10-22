@@ -12,7 +12,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await p.goto(B + '/registro');
   await p.fill('input[name=name]', 'Sedes'); await p.fill('input[name=email]', `s${Date.now()}@ejemplo.es`); await p.fill('input[name=password]', 'clave-larga-123');
   if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
-  await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
+  await p.click('button[type=submit]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Torneo grande'); await p.click('#newDlg button[type=submit]');
   await p.waitForURL(/\/galerias\/[0-9a-f]{16}/); const parentUrl = p.url().split('?')[0];
 

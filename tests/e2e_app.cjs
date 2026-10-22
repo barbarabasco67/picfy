@@ -28,7 +28,7 @@ const email = `t${Date.now()}@ejemplo.es`;
     if (await p.$('input[name=code]')) await p.fill('input[name=code]', process.env.SIGNUP_CODE || 'codigo');
     await p.click('button[type=submit]');
   }
-  await p.waitForURL('**/galerias');
+  await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   check('registro lleva a Galerías', await p.isVisible('h1:has-text("Galerías")'));
   check('lista vacía', await p.isVisible('.emptybox'));
   await p.screenshot({ path: SHOTS + '/2_galerias_vacias.png' });
@@ -83,7 +83,7 @@ const email = `t${Date.now()}@ejemplo.es`;
   const m = await (await b.newContext({ viewport: { width: 390, height: 800 } })).newPage();
   await m.goto(B + '/entrar');
   await m.fill('input[name=email]', email); await m.fill('input[name=password]', 'clave-larga-123');
-  await m.click('button[type=submit]'); await m.waitForURL('**/galerias');
+  await m.click('button[type=submit]'); await m.waitForURL('**/inicio'); await m.goto(B + '/galerias');
   check('login con contraseña', true);
   await m.screenshot({ path: SHOTS + '/7_movil.png' });
   const sw = await m.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);

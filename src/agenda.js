@@ -2,7 +2,6 @@
 import { randomHex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
 import { agendaPage } from './appviews.js';
-import { habitsReady, HABIT_COLORS } from './habits.js';
 
 // Tipos de elemento de la agenda (el navegador los usa para pintar; el servidor, para validar).
 export const AGENDA_KINDS = {
@@ -48,7 +47,7 @@ export function agendaRoutes(app) {
   app.get('/agenda', async (c) => {
     const user = await currentUser(c);
     if (!user) return go('/entrar');
-    return html(agendaPage({ user, ready: await agendaReady(c.env.DB), kinds: AGENDA_KINDS, colors: HABIT_COLORS, habitsOk: await habitsReady(c.env.DB) }));
+    return html(agendaPage({ user, ready: await agendaReady(c.env.DB), kinds: AGENDA_KINDS }));
   });
 
   async function auth(c) {

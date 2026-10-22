@@ -34,7 +34,7 @@ function appPage({ title, body, scripts = [], bodyAttrs = '' }) {
   });
 }
 
-const logo = `<a class="logo" href="/galerias"><span class="logo-dot"></span>Picfy</a>`;
+const logo = `<a class="logo" href="/inicio"><span class="logo-dot"></span>Picfy</a>`;
 
 // Marco con barra superior y lateral de cristal
 function shell({ user, active = 'galerias', crumbs = '', main, collapsible = false, side = '', noside = false }) {
@@ -601,12 +601,12 @@ ${items.length ? `<div class="collist">${cards}</div>` : '<div class="glass empt
 
 /* ---------- Agenda ---------- */
 
-export function agendaPage({ user, ready, kinds, colors, habitsOk }) {
+export function agendaPage({ user, ready, kinds }) {
   const radios = Object.entries(kinds).map(([k, v]) => `<label class="kradio" style="--c:${v.color}"><input type="radio" name="kind" value="${k}"${k === 'tarea' ? ' checked' : ''}><span><i></i>${esc(v.label)}</span></label>`).join('');
   return appPage({
     title: 'Agenda',
-    scripts: ['/app.js', '/navtoggle.js', '/icons.js', '/agenda.js', '/habitos.js'],
-    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}" data-colors="${esc(JSON.stringify(colors))}"`,
+    scripts: ['/app.js', '/navtoggle.js', '/icons.js', '/agenda.js'],
+    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}"`,
     body: shell({
       user, active: 'agenda', crumbs: '<span>Agenda</span>', collapsible: true,
       main: !ready ? `<div class="head"><div><h1>Agenda</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar la agenda.</div>` : `<div class="head"><div><h1>Agenda</h1></div>
@@ -618,7 +618,6 @@ export function agendaPage({ user, ready, kinds, colors, habitsOk }) {
 <div class="agchips" id="agCats"></div>
 <div id="agWeek" class="agweekv"></div><div id="agMonth" class="agmonth" hidden></div>
 </div><aside class="agside" id="agSide"></aside></div>
-${habitsSection(colors, habitsOk)}
 
 <dialog id="agDlg" class="glassdlg"><form class="dlgbox" id="agForm" autocomplete="off">
 <header><h2 id="agDlgT">Nuevo</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
@@ -640,22 +639,93 @@ ${habitsSection(colors, habitsOk)}
 
 /* ---------- Hábitos ---------- */
 
-function habitsSection(colors, ready) {
-  const sw = colors.map((c, i) => `<label class="swatch" style="--c:${c}"><input type="radio" name="color" value="${c}"${i === 0 ? ' checked' : ''}><span></span></label>`).join('');
-  if (!ready) return '<section class="hbsec" id="hbSection"><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar los hábitos.</div></section>';
-  return `<section class="hbsec" id="hbSection"><div class="head hbhead"><div><h2>Hábitos</h2><p class="muted" id="hbSub"></p></div>
-<button class="btn primary" type="button" id="hbAdd">${ICON.plus} Nuevo hábito</button></div>
-<div class="glass hbweek"><button class="iconbtn" type="button" id="hbPrev" aria-label="Semana anterior">‹</button><div class="hbdays" id="hbDays"></div><button class="iconbtn" type="button" id="hbNext" aria-label="Semana siguiente">›</button></div>
-<div id="hbList" class="hblist"></div>
-<dialog id="hbDlg" class="glassdlg"><form class="dlgbox" id="hbForm" autocomplete="off">
-<header><h2 id="hbDlgT">Nuevo hábito</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
-<label class="field"><span>Nombre</span><input type="text" name="name" maxlength="60" required placeholder="Ej.: Beber agua"></label>
-<div class="field"><span>Icono (opcional)</span><input type="hidden" name="icon"><div class="icopick" id="hbIcons"></div></div>
-<div class="field"><span>Color</span><div class="swatches">${sw}</div></div>
-<div class="row2"><label class="field"><span>Objetivo al día</span><input type="number" name="goal" min="1" max="1000000" value="1" required></label>
-<label class="field"><span>Unidad (opcional)</span><input type="text" name="unit" maxlength="12" placeholder="ml, hr, pasos…"></label></div>
-<label class="field"><span>Suma por pulsación</span><input type="number" name="step" min="1" max="1000000" value="1" required></label>
-<div class="field" id="hbValBox" hidden><span>Valor de <b id="hbValD"></b></span><input type="number" name="value" min="0" max="1000000"></div>
-<footer><button class="btn danger" type="button" id="hbDel" hidden>${ICON.trash} Borrar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
-</form></dialog></section>`;
+
+/* ---------- Panel de inicio ---------- */
+
+const DNAV = [
+  ['inicio', '/inicio', 'Inicio', 'dash'],
+  ['galerias', '/galerias', 'Galerías', 'gal'],
+  ['colecciones', '/colecciones', 'Colecciones', 'coll'],
+  ['agenda', '/agenda', 'Agenda', 'cal'],
+  ['papelera', '/papelera', 'Papelera', 'trash'],
+];
+ICON.dash = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="9" rx="2"/><rect x="13.5" y="3" width="7.5" height="5.5" rx="2"/><rect x="13.5" y="12" width="7.5" height="9" rx="2"/><rect x="3" y="15.5" width="7.5" height="5.5" rx="2"/></svg>';
+
+const MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const DIA3 = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+const DIAS_L = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+function miniCal(today, dots) {
+  const [y, m] = today.split('-').map(Number);
+  const first = new Date(Date.UTC(y, m - 1, 1));
+  const lead = (first.getUTCDay() + 6) % 7;
+  const n = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  let cells = DIA3.map((d) => `<b>${d}</b>`).join('') + '<i></i>'.repeat(lead);
+  for (let d = 1; d <= n; d++) {
+    const key = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    cells += `<a href="/agenda?d=${key}" class="${key === today ? 'now' : ''}${dots.includes(key) ? ' dot' : ''}">${d}</a>`;
+  }
+  return `<div class="dcal">${cells}</div>`;
+}
+
+export function dashPage({ user, today, galleries, totals, days, perDay, agenda, kinds }) {
+  const first = (user.name || user.email).trim().split(/\s+/)[0];
+  const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
+  const [, m, d] = today.split('-').map(Number);
+  const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Madrid', hour: '2-digit', hour12: false }).format(new Date()));
+  const hi = hour < 6 ? 'Buenas noches' : hour < 13 ? 'Buenos días' : hour < 21 ? 'Buenas tardes' : 'Buenas noches';
+  const used = sizeOf(totals.bytes, totals.n);
+  const pct = Math.min(100, (used / FREE_BYTES) * 100);
+  const max = Math.max(1, ...days.map((x) => perDay[x]));
+  const bars = days.map((x) => {
+    const v = perDay[x];
+    const w = DIAS_L[new Date(x + 'T12:00:00Z').getUTCDay()];
+    return `<div class="dbar${x === today ? ' now' : ''}" tabindex="0"><span class="dtip">${v} ${v === 1 ? 'foto' : 'fotos'}</span><i style="height:${Math.max(v ? 8 : 3, (v / max) * 100)}%"></i><em>${w}</em></div>`;
+  }).join('');
+  const weekTotal = days.reduce((a, x) => a + perDay[x], 0);
+  const chip = (it) => {
+    const k = kinds[it.kind] || { color: '#999', label: '' };
+    return `<li class="dit"><i class="dk" style="background:${k.color}"></i><a href="/agenda"><strong>${esc(it.title)}</strong><span>${it.time ? esc(it.time) : it.date ? esc(fmtDate(it.date)) : 'Sin fecha'}</span></a><span class="dchip" style="--c:${k.color}">${esc(k.label || '')}</span></li>`;
+  };
+  const list = (rows, empty) => rows.length ? `<ul class="dlist">${rows.map(chip).join('')}</ul>` : `<p class="dempty">${empty}</p>`;
+  const cards = galleries.slice(0, 3).map((e) => `<a class="dgal" href="/galerias/${e.id}" data-name="${esc(e.name.toLowerCase())}">
+<div class="dcov">${e.cover ? `<img src="/m/${e.cover}/m" alt="" loading="lazy">` : `<span>${ICON.gal}</span>`}${e.pending ? `<b class="dwarn">${e.pending} por revisar</b>` : ''}</div>
+<strong>${esc(e.name)}</strong><span>${e.approved} fotos${e.event_date ? ' · ' + esc(fmtDate(e.event_date)) : ''}</span></a>`).join('');
+  const nav = DNAV.map(([k, href, label, ic]) => `<a class="dnav${k === 'inicio' ? ' on' : ''}" href="${href}">${ICON[ic]}<span>${label}</span></a>`).join('');
+  return appPage({
+    title: 'Inicio',
+    scripts: ['/dash.js'],
+    body: `<div class="dash">
+<aside class="dside">
+<a class="dlogo" href="/inicio"><span class="logo-dot"></span>Picfy</a>
+<nav class="dnavs">${nav}</nav>
+<div class="dpromo"><span class="dpl">Espacio ocupado</span><strong>${fmtSize(used)}</strong><span class="dps">de ${fmtSize(FREE_BYTES)} gratis</span><div class="dbarp"><i style="width:${Math.max(pct, used ? 2 : 0).toFixed(1)}%"></i></div><a class="dpbtn" href="/galerias?nueva=1">Nueva galería</a></div>
+<div class="dfoot"><a href="/cuenta">${ICON.cog}<span>Mi cuenta</span></a><form method="post" action="/salir"><button type="submit">${ICON.out}<span>Salir</span></button></form></div>
+</aside>
+<main class="dmain">
+<header class="dtop"><div><h1>${hi}, ${esc(first)}</h1><p>${DIAS_L[new Date(today + 'T12:00:00Z').getUTCDay()]}, ${d} de ${MES[m - 1]}</p></div>
+<span class="spacer"></span>
+<input class="dsearch" type="search" id="dq" placeholder="Buscar galerías" aria-label="Buscar galerías">
+<a class="avatar" href="/cuenta" aria-label="Mi cuenta"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</a></header>
+<section class="dstats">
+<a class="dstat" href="/galerias"><span class="dsi">${ICON.gal}</span><strong>${galleries.length}</strong><span>Galerías</span></a>
+<a class="dstat" href="/galerias"><span class="dsi">${ICON.up}</span><strong>${totals.n}</strong><span>Fotos</span></a>
+<a class="dstat" href="/galerias"><span class="dsi">${ICON.eye}</span><strong>${totals.pending}</strong><span>Por revisar</span></a>
+<div class="dcta"><strong>Crea una galería nueva</strong><span>Comparte el enlace y recibe las fotos de tus invitados.</span><a href="/galerias?nueva=1">${ICON.plus} Crear galería</a></div>
+</section>
+<div class="dgrid">
+<div class="dcol">
+<section class="dcard"><header><h2>Fotos subidas</h2><span class="dsub">${weekTotal} esta semana</span></header><div class="dchart">${bars}</div></section>
+<section class="dcard"><header><h2>Tus galerías</h2><a href="/galerias">Ver todas</a></header>${galleries.length ? `<div class="dgals" id="dgals">${cards}</div><p class="dempty hidden" id="dnone">Ninguna galería coincide.</p>` : `<p class="dempty">Todavía no tienes galerías.</p>`}</section>
+<section class="dcard"><header><h2>Próximos eventos</h2><a href="/agenda">Agenda</a></header>${agenda.ready ? list(agenda.events, 'No hay eventos próximos.') : '<p class="dempty">Agenda no disponible.</p>'}</section>
+</div>
+<div class="dcol">
+<section class="dcard"><header><h2>Hoy</h2><a href="/agenda">Agenda</a></header>${agenda.ready ? list(agenda.today, 'Nada para hoy.') : '<p class="dempty">Agenda no disponible.</p>'}</section>
+<section class="dcard"><header><h2>${MES[m - 1][0].toUpperCase() + MES[m - 1].slice(1)}</h2><a href="/agenda">Calendario</a></header>${miniCal(today, agenda.dots)}</section>
+<section class="dcard"><header><h2>Por hacer</h2><a href="/agenda">Ver</a></header>${agenda.ready ? list(agenda.todo, 'Todo al día.') : ''}</section>
+</div>
+</div>
+</main>
+</div>`,
+  });
 }

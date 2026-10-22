@@ -7,7 +7,7 @@ let ok = true; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAI
   p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; });
   await p.goto(B + '/registro'); await p.fill('input[name=name]', 'Esp'); await p.fill('input[name=email]', `e${Date.now()}@t.es`); await p.fill('input[name=password]', 'clave-larga-123');
   if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
-  await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
+  await p.click('button[type=submit]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   check('vacía: 0 KB', /Espacio ocupado/.test(await p.textContent('.storage')) && /0 fotos/.test(await p.textContent('.storage')), await p.textContent('.storage'));
   await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Pesada'); await p.click('#newDlg button[type=submit]');
   await p.waitForURL(/galerias\/[0-9a-f]{16}/);

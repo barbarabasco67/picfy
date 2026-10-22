@@ -19,7 +19,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   const m = await (await f.request.get(B + '/')).text(); ok(m.includes('name="description"') && !m.includes('noindex'), 'meta descripción e indexable');
   { // con sesión iniciada, picfy.es también enseña la página de inicio (no te manda al panel)
     const u = await (await b.newContext()).newPage();
-    await u.goto(B + '/registro'); await u.fill('input[name=name]', 'L'); await u.fill('input[name=email]', `l${Date.now()}@t.es`); await u.fill('input[name=password]', 'clave-larga-123'); await u.click('.au-submit'); await u.waitForURL('**/galerias');
+    await u.goto(B + '/registro'); await u.fill('input[name=name]', 'L'); await u.fill('input[name=email]', `l${Date.now()}@t.es`); await u.fill('input[name=password]', 'clave-larga-123'); await u.click('.au-submit'); await u.waitForURL('**/inicio'); await u.goto(B + '/galerias');
     await u.goto(B + '/'); ok(new URL(u.url()).pathname === '/', 'con sesión se queda en la página de inicio');
     ok(/Ir a mi panel/.test(await u.textContent('nav, header')), 'botón «Ir a mi panel»');
     const o = await (await b.newContext()).newPage(); await o.goto(B + '/'); ok(!/Ir a mi panel/.test(await o.content()) && /Crear cuenta/.test(await o.content()), 'sin sesión: Entrar y Crear cuenta');

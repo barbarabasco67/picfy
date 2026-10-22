@@ -36,20 +36,20 @@ async function fresh(b) { const p = await (await b.newContext()).newPage(); p.on
   // alta nueva con Google
   const email = `g${Date.now()}@gmail.com`;
   global.__who = `${email}|Ana Pérez`;
-  await p.click('a[href="/auth/google"]'); await p.waitForURL('**/galerias');
+  await p.click('a[href="/auth/google"]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   check('entra con Google y crea el perfil', /Ana/.test(await p.textContent('header .avatar')) || (await p.$('header .avatar')) !== null);
   const me = await p.evaluate(async () => (await fetch('/cuenta')).status);
   check('sesión abierta', me === 200);
   // sale y vuelve a entrar: misma cuenta
   await p.evaluate(() => fetch('/salir', { method: 'POST' })); await p.goto(B + '/galerias'); check('sin sesión pide entrar', /entrar/.test(p.url()));
-  await p.goto(B + '/entrar'); await p.click('a[href="/auth/google"]'); await p.waitForURL('**/galerias');
+  await p.goto(B + '/entrar'); await p.click('a[href="/auth/google"]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   check('vuelve a entrar', /galerias/.test(p.url()));
   // cuenta con contraseña y mismo correo: entra en la misma
   const q = await fresh(b); const email2 = `p${Date.now()}@gmail.com`;
-  await q.goto(B + '/registro'); await q.fill('input[name=name]', 'Con clave'); await q.fill('input[name=email]', email2); await q.fill('input[name=password]', 'clave-larga-123'); await q.click('button[type=submit]'); await q.waitForURL('**/galerias');
+  await q.goto(B + '/registro'); await q.fill('input[name=name]', 'Con clave'); await q.fill('input[name=email]', email2); await q.fill('input[name=password]', 'clave-larga-123'); await q.click('button[type=submit]'); await q.waitForURL('**/inicio'); await q.goto(B + '/galerias');
   await q.evaluate(() => fetch('/salir', { method: 'POST' }));
   global.__who = `${email2}|Otro nombre`;
-  await q.goto(B + '/entrar'); await q.click('a[href="/auth/google"]'); await q.waitForURL('**/galerias');
+  await q.goto(B + '/entrar'); await q.click('a[href="/auth/google"]'); await q.waitForURL('**/inicio'); await q.goto(B + '/galerias');
   await q.goto(B + '/cuenta'); check('mismo correo: misma cuenta', /Con clave/.test(await q.content()) || (await q.inputValue('input[name=name]').catch(() => '')) === 'Con clave');
   // fallos: estado distinto, destinatario distinto, correo sin verificar
   for (const m of ['badstate', 'badaud', 'unverified']) {

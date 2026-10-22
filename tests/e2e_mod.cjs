@@ -6,7 +6,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   const ctx = await b.newContext({ viewport: { width: 1300, height: 900 } }); const p = await ctx.newPage();
   await p.goto(B + '/registro'); await p.fill('[name=name]', 'M'); await p.fill('[name=email]', 'm' + Date.now() + '@e.es'); await p.fill('[name=password]', 'clave-12345');
   const sc = await p.$('[name=code]'); if (sc) await sc.fill('codigo');
-  await Promise.all([p.waitForNavigation(), p.click('button[type=submit]')]);
+  await Promise.all([p.waitForNavigation(), p.click('button[type=submit]')]); await p.goto(B + '/galerias');
   await p.click('#newGal'); await p.fill('#newDlg [name=name]', 'Mod');
   const au = await p.$('#newDlg [name=auto_approve]'); if (au && await au.isChecked()) await au.uncheck();
   await Promise.all([p.waitForNavigation(), p.click('#newDlg button.primary')]);

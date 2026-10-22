@@ -10,6 +10,7 @@ import { wmRoutes, getWm, wmAttr } from './watermark.js';
 import { getBest } from './best.js';
 import { collectionRoutes } from './collections.js';
 import { agendaRoutes } from './agenda.js';
+import { dashboardRoutes } from './dashboard.js';
 import { habitsRoutes } from './habits.js';
 import { googleRoutes, googleOn } from './google.js';
 import { createUser, signupOpen } from './accounts.js';
@@ -29,12 +30,13 @@ export function appRoutes(app) {
   wmRoutes(app);
   collectionRoutes(app);
   agendaRoutes(app);
+  dashboardRoutes(app);
   habitsRoutes(app);
   googleRoutes(app);
 
   /* ----- Entrar ----- */
   const GERR = { google: 'No se ha podido entrar con Google. Inténtalo de nuevo.', cerrado: 'El registro está cerrado por ahora.' };
-  app.get('/entrar', async (c) => (await currentUser(c)) ? go('/galerias') : html(authPage({ mode: 'login', google: googleOn(c.env), error: GERR[c.req.query('e')] || '' })));
+  app.get('/entrar', async (c) => (await currentUser(c)) ? go('/inicio') : html(authPage({ mode: 'login', google: googleOn(c.env), error: GERR[c.req.query('e')] || '' })));
 
   app.post('/entrar', async (c) => {
     const f = await c.req.formData();
@@ -44,12 +46,12 @@ export function appRoutes(app) {
     // Se calcula siempre el hash para que no se note si el correo existe.
     const ok = user ? await checkPassword(user, password) : (await hashPassword(password, '00'.repeat(16)), false);
     if (!ok) return html(authPage({ mode: 'login', email, google: googleOn(c.env), error: 'Correo o contraseña incorrectos.' }), 401);
-    return go('/galerias', { 'set-cookie': await startSession(c.env.DB, user.id) });
+    return go('/inicio', { 'set-cookie': await startSession(c.env.DB, user.id) });
   });
 
   /* ----- Crear cuenta ----- */
   app.get('/registro', async (c) => {
-    if (await currentUser(c)) return go('/galerias');
+    if (await currentUser(c)) return go('/inicio');
     if (!(await signupOpen(c.env))) return html(authPage({ mode: 'login', error: GERR.cerrado }), 403);
     return html(authPage({ mode: 'signup', google: googleOn(c.env) }));
   });
@@ -66,7 +68,7 @@ export function appRoutes(app) {
     if (password.length < 8) return back('La contraseña debe tener al menos 8 caracteres.');
     if (await c.env.DB.prepare('SELECT 1 FROM users WHERE email = ?').bind(email).first()) return back('Ya existe una cuenta con ese correo.', 409);
     const id = await createUser(c.env.DB, { name, email, password });
-    return go('/galerias', { 'set-cookie': await startSession(c.env.DB, id) });
+    return go('/inicio', { 'set-cookie': await startSession(c.env.DB, id) });
   });
 
   app.post('/salir', async (c) => go('/entrar', { 'set-cookie': await endSession(c.env.DB, c.req.raw) }));

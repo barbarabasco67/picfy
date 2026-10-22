@@ -7,7 +7,11 @@
   });
 
   const nb = $('#newGal'), nd = $('#newDlg');
-  if (nb && nd) nb.addEventListener('click', () => { nd.showModal(); const i = nd.querySelector('input[name=name]'); if (i) i.focus(); });
+  if (nb && nd) {
+    const open = () => { nd.showModal(); const i = nd.querySelector('input[name=name]'); if (i) i.focus(); };
+    nb.addEventListener('click', open);
+    if (/[?&]nueva=1/.test(location.search)) { history.replaceState(null, '', '/galerias'); open(); }
+  }
 
   const sb = $('#openShare'), sd = $('#shareDlg');
   if (sb && sd) sb.addEventListener('click', () => sd.showModal());

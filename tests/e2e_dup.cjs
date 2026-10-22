@@ -11,7 +11,7 @@ const check = (n, c, e = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n, e); o
   await p.goto(B + '/registro');
   await p.fill('input[name=name]', 'Dup'); await p.fill('input[name=email]', `d${Date.now()}@ejemplo.es`); await p.fill('input[name=password]', 'clave-larga-123');
   if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
-  await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
+  await p.click('button[type=submit]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Campus Navidad'); await p.click('#newDlg button[type=submit]');
   await p.waitForURL(/\/galerias\/[0-9a-f]{16}/); const url = p.url().split('?')[0];
   await p.click('[data-open=brandDlg]');

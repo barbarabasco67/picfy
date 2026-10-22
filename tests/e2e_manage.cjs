@@ -19,7 +19,7 @@ const email = `m${Date.now()}@ejemplo.es`;
   await p.goto(B + '/registro');
   await p.fill('input[name=name]', 'Gestor'); await p.fill('input[name=email]', email); await p.fill('input[name=password]', 'clave-larga-123');
   if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
-  await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
+  await p.click('button[type=submit]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
 
   await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Torneo sedes');
   await p.uncheck('#newDlg input[name=auto_approve]'); // las fotos entran "en revisión"

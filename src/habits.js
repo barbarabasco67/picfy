@@ -24,7 +24,7 @@ function clean(b) {
 
 export function habitsRoutes(app) {
   const go = (to) => new Response(null, { status: 303, headers: { location: to } });
-  app.get('/habitos', () => go('/agenda#habitos'));
+  app.get('/habitos', () => go('/agenda'));
 
   async function auth(c) {
     const user = await currentUser(c);

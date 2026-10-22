@@ -70,7 +70,7 @@ const JS = `(function(){
 })();`;
 
 export function landingPage(user = null) {
-  const goHref = user ? '/galerias' : '/entrar', goText = user ? 'Ir a mi panel' : 'Entrar';
+  const goHref = user ? '/inicio' : '/entrar', goText = user ? 'Ir a mi panel' : 'Entrar';
   const title = 'Picfy · Galerías de fotos para torneos con varias sedes';
   const desc = 'Una galería por sede y un solo enlace para todo el torneo. Fotógrafos y voluntarios suben desde el móvil, tú revisas y los equipos eligen y descargan sus fotos.';
   return `<!doctype html>

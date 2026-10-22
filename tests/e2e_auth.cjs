@@ -24,7 +24,7 @@ let ok = true; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAI
   // crear cuenta desde la pantalla de entrar
   const mail = `au${Date.now()}@t.es`;
   await p.fill('input[name=name]', 'Persona Uno'); await p.fill('input[name=email]', mail); await p.fill('input[name=password]', 'clave-larga-123');
-  await p.click('.au-submit'); await p.waitForURL('**/galerias');
+  await p.click('.au-submit'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   check('cuenta creada desde la misma pantalla', /galerias/.test(p.url()));
   // error de contraseña: se queda en «Entrar» con el aviso
   const q = await (await b.newContext()).newPage();

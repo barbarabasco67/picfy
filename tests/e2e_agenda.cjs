@@ -9,7 +9,7 @@ async function reg(b, name) {
   p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; });
   await p.goto(B + '/registro'); await p.fill('input[name=name]', name); await p.fill('input[name=email]', `a${Date.now()}${Math.random().toString(36).slice(2, 5)}@t.es`); await p.fill('input[name=password]', 'clave-larga-123');
   if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
-  await p.click('button[type=submit]'); await p.waitForURL('**/galerias');
+  await p.click('button[type=submit]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   return p;
 }
 async function add(p, kind, title, date, x = {}) {
