@@ -18,6 +18,14 @@ export async function entregasReady(db) {
   catch { se = { v: false, t: Date.now() }; }
   return se.v;
 }
+let sx = { v: null, t: 0 };
+export async function detallesReady(db) {
+  if (sx.v === true || (sx.v === false && Date.now() - sx.t < 30000)) return sx.v;
+  try { await db.prepare('SELECT description, start_date, end_date, color, cover_v FROM torneos LIMIT 1').first(); sx = { v: true, t: Date.now() }; }
+  catch { sx = { v: false, t: Date.now() }; }
+  return sx.v;
+}
+const COLORS = ['#14213d', '#e5604f', '#2f9e6f', '#4a63d6', '#c9376e', '#1f9fb3', '#8e5bd6', '#e5964c'];
 const MAX_BYTES = 1024 * 1024 * 1024, PART = 10 * 1024 * 1024;
 const okType = (m) => /^(image|video)\//.test(String(m || ''));
 const keyOf = (e) => `torneo/${e.sede_id}/${e.id}`;
@@ -53,13 +61,15 @@ export function torneosRoutes(app) {
     const user = await currentUser(c);
     if (!user) return go('/entrar');
     const ready = await torneosReady(c.env.DB);
+    const dx = ready && (await detallesReady(c.env.DB));
     const rows = ready ? (await c.env.DB.prepare(
-      `SELECT t.id, t.name,
+      `SELECT t.id, t.name${dx ? ', t.description, t.start_date, t.end_date, t.color, t.cover_v' : ''},
          (SELECT COUNT(*) FROM sedes s WHERE s.torneo_id = t.id) AS sedes,
+         (SELECT COUNT(*) FROM creadores x JOIN sedes s ON s.id = x.sede_id WHERE s.torneo_id = t.id) AS creadores,
          (SELECT COUNT(*) FROM tareas_torneo k JOIN sedes s ON s.id = k.sede_id WHERE s.torneo_id = t.id) AS tareas,
          (SELECT COUNT(*) FROM tareas_torneo k JOIN sedes s ON s.id = k.sede_id WHERE s.torneo_id = t.id AND k.done = 1) AS hechas
        FROM torneos t WHERE t.owner_id = ? ORDER BY t.created_at DESC LIMIT 200`).bind(user.id).all()).results : [];
-    return html(torneosPage({ user, ready, torneos: rows }));
+    return html(torneosPage({ user, ready, torneos: rows, colors: COLORS }));
   });
 
   app.post('/torneo', async (c) => {
@@ -78,7 +88,7 @@ export function torneosRoutes(app) {
     if (!(await torneosReady(c.env.DB))) return go('/torneo');
     const t = await ownTorneo(c, user, c.req.param('id'));
     if (!t) return go('/torneo');
-    return html(torneoPage({ user, torneo: { id: t.id, name: t.name }, kinds: KINDS }));
+    return html(torneoPage({ user, torneo: { id: t.id, name: t.name, description: t.description || '', start_date: t.start_date || '', end_date: t.end_date || '', color: t.color || COLORS[0], cover_v: t.cover_v || 0, extra: await detallesReady(c.env.DB) }, kinds: KINDS, colors: COLORS }));
   });
 
   app.post('/torneo/:id/borrar', async (c) => {
@@ -87,12 +97,60 @@ export function torneosRoutes(app) {
     if (t) {
       const ids = (await c.env.DB.prepare('SELECT id FROM sedes WHERE torneo_id = ?').bind(t.id).all()).results.map((r) => r.id);
       await purge(c, 'sede_id', ids);
+      try { await c.env.PHOTOS.delete(`torneo-portada/${t.id}`); } catch { /* sin portada */ }
       const st2 = [];
       for (const s of ids) st2.push(c.env.DB.prepare('DELETE FROM tareas_torneo WHERE sede_id = ?').bind(s), c.env.DB.prepare('DELETE FROM creadores WHERE sede_id = ?').bind(s));
       st2.push(c.env.DB.prepare('DELETE FROM sedes WHERE torneo_id = ?').bind(t.id), c.env.DB.prepare('DELETE FROM torneos WHERE id = ?').bind(t.id));
       await c.env.DB.batch(st2);
     }
     return go('/torneo');
+  });
+
+  app.put('/api/torneos/:id', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    const t = await ownTorneo(c, a.user, c.req.param('id'));
+    if (!t) return json({ error: 'nf' }, 404);
+    const b = await c.req.json().catch(() => ({}));
+    const name = clip(b.name, 120);
+    if (!name) return json({ error: 'name' }, 400);
+    if (await detallesReady(c.env.DB)) {
+      let sd = reDate.test(String(b.start_date || '')) ? b.start_date : null, ed = reDate.test(String(b.end_date || '')) ? b.end_date : null;
+      if (sd && ed && ed < sd) ed = sd;
+      await c.env.DB.prepare('UPDATE torneos SET name=?2, description=?3, start_date=?4, end_date=?5, color=?6 WHERE id=?1').bind(t.id, name, clip(b.description, 600) || null, sd, ed, COLORS.includes(b.color) ? b.color : COLORS[0]).run();
+    } else await c.env.DB.prepare('UPDATE torneos SET name=?2 WHERE id=?1').bind(t.id, name).run();
+    return json({ ok: true });
+  });
+
+  app.post('/api/torneos/:id/portada', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    const t = await ownTorneo(c, a.user, c.req.param('id'));
+    if (!t || !(await detallesReady(c.env.DB))) return json({ error: 'nf' }, 404);
+    const buf = await c.req.arrayBuffer();
+    const type = c.req.header('content-type') || '';
+    if (!/^image\/(jpeg|png|webp)$/.test(type) || !buf.byteLength || buf.byteLength > 6 * 1024 * 1024) return json({ error: 'img' }, 400);
+    await c.env.PHOTOS.put(`torneo-portada/${t.id}`, buf, { httpMetadata: { contentType: type } });
+    const v = Date.now();
+    await c.env.DB.prepare('UPDATE torneos SET cover_v = ? WHERE id = ?').bind(v, t.id).run();
+    return json({ v });
+  });
+
+  app.delete('/api/torneos/:id/portada', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    const t = await ownTorneo(c, a.user, c.req.param('id'));
+    if (!t || !(await detallesReady(c.env.DB))) return json({ error: 'nf' }, 404);
+    try { await c.env.PHOTOS.delete(`torneo-portada/${t.id}`); } catch { /* no estaba */ }
+    await c.env.DB.prepare('UPDATE torneos SET cover_v = NULL WHERE id = ?').bind(t.id).run();
+    return json({ ok: true });
+  });
+
+  app.get('/torneo/:id/portada', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return new Response('', { status: 401 });
+    const t = await ownTorneo(c, user, c.req.param('id'));
+    if (!t) return new Response('', { status: 404 });
+    const obj = await c.env.PHOTOS.get(`torneo-portada/${t.id}`);
+    if (!obj) return new Response('', { status: 404 });
+    return new Response(obj.body, { headers: { 'content-type': obj.httpMetadata?.contentType || 'image/jpeg', 'cache-control': 'private, max-age=86400' } });
   });
 
   /* ----- API del hub ----- */

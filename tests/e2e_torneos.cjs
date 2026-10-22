@@ -21,6 +21,18 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await p.locator('.tsede').first().locator('.tnewtask input[name=title]').fill('Storie del partido');
   await p.locator('.tsede').first().locator('.tnewtask button').click(); await p.waitForFunction(() => document.querySelectorAll('.ttasks li').length === 2);
   await p.click('.tsede >> nth=0 >> .tfold'); ok(await p.isHidden('.tsede >> nth=0 >> .tforms'), 'la sede se pliega'); await p.reload(); await p.waitForSelector('.tsede'); ok(await p.isHidden('.tsede >> nth=0 >> .tforms'), 'recuerda que está plegada'); await p.click('.tsede >> nth=0 >> .tfold'); ok(await p.isVisible('.tsede >> nth=0 >> .tforms'), 'la sede se despliega');
+  // editar tarea desde el hub
+  await p.click('.tedit >> nth=1'); await p.waitForSelector('#taskDlg[open]');
+  await p.fill('#taskForm input[name=title]', 'Storie editada'); await p.selectOption('#taskForm select[name=kind]', 'foto'); await p.click('#taskForm button[type=submit]');
+  await p.waitForFunction(() => /Storie editada/.test(document.querySelector('#tSedes').textContent)); ok(!/Storie del partido/.test(await p.textContent('#tSedes')), 'la tarea se edita sin crear otra');
+  // editar torneo (nombre, descripción, portada)
+  await p.click('#editTorneo'); await p.waitForSelector('#torneoDlg[open]');
+  await p.fill('#torneoForm input[name=name]', 'Torneo Final 2026'); await p.fill('#torneoForm textarea[name=description]', 'Cuatro sedes y una gran final');
+  await p.setInputFiles('#tcFile', process.cwd() + '/tests/img/p01.jpg'); await p.click('#torneoForm button[type=submit]'); await p.waitForFunction(() => /Torneo Final 2026/.test(document.querySelector('h1').textContent), null, { timeout: 20000 }); await p.waitForSelector('.tsede');
+  ok(/Torneo Final 2026/.test(await p.textContent('h1')) && /Cuatro sedes/.test(await p.textContent('.tdesc2')), 'torneo editado');
+  await p.goto(B + '/torneo'); await p.waitForSelector('.tcard'); ok(await p.isVisible('.tcard .tcover img') && /Cuatro sedes/.test(await p.textContent('.tcard')), 'tarjeta grande con foto y descripción');
+  ok((await p.$eval('.tcard', (e) => e.getBoundingClientRect().height)) > 300, 'la tarjeta es grande'); await p.screenshot({ path: '/tmp/picfy_shots/torneos_lista.png' }); await p.goto(url);
+  await p.waitForSelector('.tsede');
   // enlace del creador
   const token = await p.evaluate(async (u) => { const id = location.pathname.split('/').pop(); const r = await (await fetch('/api/torneos/' + id)).json(); return r.sedes[0].creadores[0].token; });
   const m = await (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage(); const merrs = []; m.on('pageerror', (e) => merrs.push(e.message));

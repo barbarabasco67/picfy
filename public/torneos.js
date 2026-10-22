@@ -7,6 +7,44 @@
   const fmt = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Sin fecha';
   let data = { sedes: [] };
 
+  // Editar tarea
+  const taskDlg = document.getElementById('taskDlg'), taskForm = document.getElementById('taskForm'); let editing = null;
+  function editTask(t, s) {
+    editing = t; const f = taskForm;
+    f.title.value = t.title; f.kind.value = t.kind in kinds ? t.kind : Object.keys(kinds)[0]; f.date.value = t.date || ''; f.time.value = t.time || ''; f.notes.value = t.notes || '';
+    f.creador_id.replaceChildren(h('option', { value: '' }, 'Toda la sede'), ...s.creadores.map((c) => h('option', { value: c.id }, c.name))); f.creador_id.value = t.creador_id || '';
+    taskDlg.showModal();
+  }
+  taskForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); const f = taskForm; if (!editing || !f.title.value.trim()) return;
+    await api('PUT', '/api/tareas/' + editing.id, { title: f.title.value, kind: f.kind.value, date: f.date.value, time: f.time.value, notes: f.notes.value, creador_id: f.creador_id.value });
+    taskDlg.close(); load();
+  });
+
+  // Editar torneo
+  const tDlg = document.getElementById('torneoDlg'), tForm = document.getElementById('torneoForm'); let coverFile = null, coverDel = false;
+  document.getElementById('editTorneo').addEventListener('click', () => tDlg.showModal());
+  const pick = document.getElementById('tcPick');
+  if (pick) {
+    const file = document.getElementById('tcFile'), prev = document.getElementById('tcPrev'), del = document.getElementById('tcDel');
+    pick.addEventListener('click', () => file.click());
+    file.addEventListener('change', () => { const f = file.files[0]; if (!f) return; coverFile = f; coverDel = false; prev.src = URL.createObjectURL(f); prev.hidden = false; del.hidden = false; });
+    del.addEventListener('click', () => { coverFile = null; coverDel = true; prev.hidden = true; del.hidden = true; });
+  }
+  const shrink = (file) => new Promise((res, rej) => {
+    const img = new Image(); img.onload = () => { const k = Math.min(1, 1600 / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => (b ? res(b) : rej(new Error('img'))), 'image/jpeg', 0.85); };
+    img.onerror = () => rej(new Error('img')); img.src = URL.createObjectURL(file);
+  });
+  tForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); const f = tForm; if (!f.name.value.trim()) return;
+    const body = { name: f.name.value }; if (f.description) Object.assign(body, { description: f.description.value, start_date: f.start_date.value, end_date: f.end_date.value, color: (f.querySelector('input[name=color]:checked') || {}).value });
+    await api('PUT', '/api/torneos/' + tid, body);
+    if (coverDel) await fetch(`/api/torneos/${tid}/portada`, { method: 'DELETE' });
+    if (coverFile) { try { const blob = await shrink(coverFile); await fetch(`/api/torneos/${tid}/portada`, { method: 'POST', headers: { 'content-type': 'image/jpeg' }, body: blob }); } catch (x) { /* sin portada */ } }
+    location.reload();
+  });
+  document.querySelectorAll('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-close]')) d.close(); }));
+
   const load = async () => { data = await api('GET', '/api/torneos/' + tid); draw(); };
 
   function draw() {
@@ -20,7 +58,7 @@
   const bytes = (b) => (b >= 1048576 ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB');
   const PAL = ['#e5604f', '#2f9e6f', '#4a63d6', '#c9376e', '#1f9fb3', '#8e5bd6', '#e5964c', '#6b7280'];
 
-  function taskList(list, names) {
+  function taskList(list, sede) {
     const days = [...new Set(list.map((t) => t.date))].sort((a, b) => (a || '9').localeCompare(b || '9'));
     return days.map((d) => h('div', { class: 'tdaybox' }, h('h4', { class: 'tday' }, fmt(d)), h('ul', { class: 'ttasks' }, list.filter((t) => t.date === d).map((t) => {
       const k = kinds[t.kind] || { color: '#999', label: t.kind };
@@ -30,6 +68,7 @@
         h('span', { class: 't' }, t.title, t.time ? h('small', {}, ' · ' + t.time) : null),
         t.done && t.done_by ? h('span', { class: 'by' }, t.done_by === 'hub' ? 'Hecha' : 'Hecha por ' + t.done_by) : null,
         (t.entregas || []).length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => { const ul = e.target.closest('li').querySelector('.tfl'); ul.hidden = !ul.hidden; } }, `${t.entregas.length} ${t.entregas.length === 1 ? 'archivo' : 'archivos'}`) : null,
+        h('button', { class: 'tx tedit', type: 'button', title: 'Editar tarea', 'aria-label': 'Editar tarea', onclick: () => editTask(t, sede) }, 'Editar'),
         h('button', { class: 'tx', type: 'button', title: 'Borrar tarea', 'aria-label': 'Borrar tarea', onclick: async () => { await api('DELETE', '/api/tareas/' + t.id); load(); } }, '×'),
         (t.entregas || []).length ? h('ul', { class: 'tfl', hidden: true }, t.entregas.map((f) => h('li', {},
           h('a', { href: `/api/entregas/${f.id}/archivo`, target: '_blank', rel: 'noopener' }, f.filename), h('small', {}, bytes(f.size)),
@@ -38,11 +77,11 @@
     }))));
   }
 
-  function personBox(name, color, list, extra) {
+  function personBox(name, color, list, extra, sede) {
     const done = list.filter((t) => t.done).length;
     return h('article', { class: 'tcreator', style: `--pc:${color}` },
       h('header', {}, h('span', { class: 'tdot' }), h('h3', {}, name), h('span', { class: 'tprog' }, `${done}/${list.length}`), extra),
-      list.length ? taskList(list) : h('p', { class: 'tnone' }, 'Sin tareas'));
+      list.length ? taskList(list, sede) : h('p', { class: 'tnone' }, 'Sin tareas'));
   }
 
   function sedeCard(s) {
@@ -74,11 +113,11 @@
     // Un cuadro por persona, cada una con su color
     const boxes = h('div', { class: 'tboxes' });
     const general = s.tareas.filter((t) => !t.creador_id || !s.creadores.some((c) => c.id === t.creador_id));
-    if (general.length) boxes.append(personBox('Toda la sede', '#14213d', general));
+    if (general.length) boxes.append(personBox('Toda la sede', '#14213d', general, null, s));
     s.creadores.forEach((c, i) => boxes.append(personBox(c.name, PAL[i % PAL.length], s.tareas.filter((t) => t.creador_id === c.id),
       h('span', { class: 'tact' },
         h('button', { type: 'button', class: 'tcopy', onclick: async (e) => { const url = location.origin + '/t/' + c.token; try { await navigator.clipboard.writeText(url); } catch (x) { prompt('Copia el enlace', url); } e.target.textContent = 'Copiado'; setTimeout(() => (e.target.textContent = 'Copiar enlace'), 1500); } }, 'Copiar enlace'),
-        h('button', { type: 'button', class: 'tx', title: 'Quitar creador', 'aria-label': 'Quitar creador', onclick: async () => { if (confirm('¿Quitar a ' + c.name + '? Su enlace dejará de funcionar.')) { await api('DELETE', '/api/creadores/' + c.id); load(); } } }, '×')))));
+        h('button', { type: 'button', class: 'tx', title: 'Quitar creador', 'aria-label': 'Quitar creador', onclick: async () => { if (confirm('¿Quitar a ' + c.name + '? Su enlace dejará de funcionar.')) { await api('DELETE', '/api/creadores/' + c.id); load(); } } }, '×'))), s));
     if (!boxes.children.length) boxes.append(h('p', { class: 'tnone' }, 'Añade un creador o una tarea para empezar.'));
     card.append(boxes);
     return card;

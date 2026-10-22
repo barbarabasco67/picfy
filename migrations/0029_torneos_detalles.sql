@@ -1,0 +1,5 @@
+ALTER TABLE torneos ADD COLUMN description TEXT;
+ALTER TABLE torneos ADD COLUMN start_date TEXT;
+ALTER TABLE torneos ADD COLUMN end_date TEXT;
+ALTER TABLE torneos ADD COLUMN color TEXT;
+ALTER TABLE torneos ADD COLUMN cover_v INTEGER;

@@ -724,8 +724,20 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
 
 /* ---------- Torneos (hub) y "Mi día" (creadores) ---------- */
 
-export function torneosPage({ user, ready, torneos }) {
-  const cards = torneos.map((t) => `<a class="tcard" href="/torneo/${t.id}"><strong>${esc(t.name)}</strong><span>${t.sedes} ${t.sedes === 1 ? 'sede' : 'sedes'} · ${t.hechas}/${t.tareas} tareas</span><i><u style="width:${t.tareas ? Math.round((t.hechas / t.tareas) * 100) : 0}%"></u></i></a>`).join('');
+const fmtRange = (a, b) => {
+  const f = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  return a && b && a !== b ? `${f(a)} – ${f(b)}` : a ? f(a) : b ? f(b) : '';
+};
+
+export function torneosPage({ user, ready, torneos, colors = [] }) {
+  const cards = torneos.map((t) => {
+    const c = t.color || '#14213d', pct = t.tareas ? Math.round((t.hechas / t.tareas) * 100) : 0, range = fmtRange(t.start_date, t.end_date);
+    return `<a class="tcard" href="/torneo/${t.id}" style="--tc:${esc(c)}">
+<div class="tcover">${t.cover_v ? `<img src="/torneo/${t.id}/portada?v=${t.cover_v}" alt="" loading="lazy">` : `<span>${ICON.team}</span>`}</div>
+<div class="tbody"><h2>${esc(t.name)}</h2>${range ? `<p class="tdates">${esc(range)}</p>` : ''}${t.description ? `<p class="tdesc">${esc(t.description)}</p>` : ''}
+<div class="tstats"><span><b>${t.sedes}</b> ${t.sedes === 1 ? 'sede' : 'sedes'}</span><span><b>${t.creadores}</b> ${t.creadores === 1 ? 'creador' : 'creadores'}</span><span><b>${t.hechas}/${t.tareas}</b> tareas</span></div>
+<div class="tbar"><i><u style="width:${pct}%"></u></i><b>${pct}%</b></div></div></a>`;
+  }).join('');
   return appPage({
     title: 'Torneos',
     scripts: ['/app.js'],
@@ -738,17 +750,35 @@ ${torneos.length ? `<div class="tcards">${cards}</div>` : `<div class="glass emp
   });
 }
 
-export function torneoPage({ user, torneo, kinds }) {
+export function torneoPage({ user, torneo, kinds, colors = [] }) {
+  const range = fmtRange(torneo.start_date, torneo.end_date);
+  const sw = colors.map((c) => `<label class="tsw" style="--c:${c}"><input type="radio" name="color" value="${c}"${c === torneo.color ? ' checked' : ''}><span></span></label>`).join('');
   return appPage({
     title: torneo.name,
     scripts: ['/torneos.js'],
     bodyAttrs: `data-torneo="${torneo.id}" data-kinds="${esc(JSON.stringify(kinds))}"`,
     body: shell({
       user, active: 'torneos', crumbs: '<a href="/torneo">Torneos</a>',
-      main: `<div class="head"><div><h1>${esc(torneo.name)}</h1></div>
-<form class="tnew" id="sedeForm"><input class="search glass" type="text" name="name" maxlength="80" placeholder="Nueva sede" aria-label="Nueva sede" required><button class="btn primary" type="submit">${ICON.plus} Añadir sede</button></form></div>
+      main: `<div class="head thead"><div><h1>${esc(torneo.name)}</h1>${range ? `<p class="muted">${esc(range)}</p>` : ''}${torneo.description ? `<p class="tdesc2">${esc(torneo.description)}</p>` : ''}</div>
+<div class="tbtns"><button class="btn" type="button" id="editTorneo">${ICON.cog} Editar torneo</button>
+<form class="tnew" id="sedeForm"><input class="search glass" type="text" name="name" maxlength="80" placeholder="Nueva sede" aria-label="Nueva sede" required><button class="btn primary" type="submit">${ICON.plus} Añadir sede</button></form></div></div>
 <div class="tsedes" id="tSedes"></div>
-<form method="post" action="/torneo/${torneo.id}/borrar" class="tdel" onsubmit="return confirm('¿Borrar el torneo con todas sus sedes y tareas?')"><button class="btn danger sm" type="submit">${ICON.trash} Borrar torneo</button></form>`,
+<form method="post" action="/torneo/${torneo.id}/borrar" class="tdel" onsubmit="return confirm('¿Borrar el torneo con todas sus sedes y tareas?')"><button class="btn danger sm" type="submit">${ICON.trash} Borrar torneo</button></form>
+<dialog id="torneoDlg" class="glassdlg"><form class="dlgbox" id="torneoForm" method="dialog">
+<header><h2>Editar torneo</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<label class="field"><span>Nombre</span><input type="text" name="name" maxlength="120" required value="${esc(torneo.name)}"></label>
+${torneo.extra ? `<label class="field"><span>Descripción</span><textarea name="description" maxlength="600" rows="3">${esc(torneo.description)}</textarea></label>
+<div class="row2"><label class="field"><span>Empieza</span><input type="date" name="start_date" value="${esc(torneo.start_date)}"></label><label class="field"><span>Termina</span><input type="date" name="end_date" value="${esc(torneo.end_date)}"></label></div>
+<div class="field"><span>Color</span><div class="tsws">${sw}</div></div>
+<div class="field"><span>Foto de portada</span><div class="tcoverpick">${torneo.cover_v ? `<img id="tcPrev" src="/torneo/${torneo.id}/portada?v=${torneo.cover_v}" alt="">` : '<img id="tcPrev" hidden alt="">'}<input type="file" id="tcFile" accept="image/jpeg,image/png,image/webp" hidden><button class="btn sm" type="button" id="tcPick">Elegir foto</button><button class="btn sm danger" type="button" id="tcDel"${torneo.cover_v ? '' : ' hidden'}>Quitar</button></div></div>` : `<p class="muted">Falta una actualización de la base de datos (migración 0029) para personalizar el torneo.</p>`}
+<footer><span class="spacer"></span><button class="btn primary" type="submit">Guardar</button></footer></form></dialog>
+<dialog id="taskDlg" class="glassdlg"><form class="dlgbox" id="taskForm" method="dialog">
+<header><h2>Editar tarea</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<label class="field"><span>Qué hay que hacer</span><input type="text" name="title" maxlength="160" required></label>
+<div class="row2"><label class="field"><span>Tipo</span><select name="kind">${Object.entries(kinds).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join('')}</select></label><label class="field"><span>Asignada a</span><select name="creador_id"></select></label></div>
+<div class="row2"><label class="field"><span>Fecha</span><input type="date" name="date"></label><label class="field"><span>Hora</span><input type="time" name="time"></label></div>
+<label class="field"><span>Notas para el creador</span><textarea name="notes" maxlength="1000" rows="3"></textarea></label>
+<footer><span class="spacer"></span><button class="btn primary" type="submit">Guardar cambios</button></footer></form></dialog>`,
     }),
   });
 }
