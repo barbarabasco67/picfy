@@ -11,6 +11,8 @@ import { getBest } from './best.js';
 import { collectionRoutes } from './collections.js';
 import { agendaRoutes } from './agenda.js';
 import { habitsRoutes } from './habits.js';
+import { googleRoutes, googleOn } from './google.js';
+import { createUser, signupOpen } from './accounts.js';
 import { splitParts } from './zip.js';
 import { socialReady, loadStats, viewsReady } from './social.js';
 import { loadSelections, selSeenReady, NEW_SEL_SQL } from './selection.js';
@@ -28,9 +30,11 @@ export function appRoutes(app) {
   collectionRoutes(app);
   agendaRoutes(app);
   habitsRoutes(app);
+  googleRoutes(app);
 
   /* ----- Entrar ----- */
-  app.get('/entrar', async (c) => (await currentUser(c)) ? go('/galerias') : html(authPage({ mode: 'login' })));
+  const GERR = { google: 'No se ha podido entrar con Google. Inténtalo de nuevo.', cerrado: 'El registro está cerrado por ahora.' };
+  app.get('/entrar', async (c) => (await currentUser(c)) ? go('/galerias') : html(authPage({ mode: 'login', google: googleOn(c.env), error: GERR[c.req.query('e')] || '' })));
 
   app.post('/entrar', async (c) => {
     const f = await c.req.formData();
@@ -39,36 +43,29 @@ export function appRoutes(app) {
     const user = await c.env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
     // Se calcula siempre el hash para que no se note si el correo existe.
     const ok = user ? await checkPassword(user, password) : (await hashPassword(password, '00'.repeat(16)), false);
-    if (!ok) return html(authPage({ mode: 'login', email, error: 'Correo o contraseña incorrectos.' }), 401);
+    if (!ok) return html(authPage({ mode: 'login', email, google: googleOn(c.env), error: 'Correo o contraseña incorrectos.' }), 401);
     return go('/galerias', { 'set-cookie': await startSession(c.env.DB, user.id) });
   });
 
   /* ----- Crear cuenta ----- */
   app.get('/registro', async (c) => {
     if (await currentUser(c)) return go('/galerias');
-    const first = (await userCount(c.env.DB)) === 0;
-    if (!first && !c.env.SIGNUP_CODE) return html(authPage({ mode: 'login', error: 'El registro está cerrado. Pide una invitación.' }), 403);
-    return html(authPage({ mode: 'signup', needCode: !first && Boolean(c.env.SIGNUP_CODE), firstUser: first }));
+    if (!(await signupOpen(c.env))) return html(authPage({ mode: 'login', error: GERR.cerrado }), 403);
+    return html(authPage({ mode: 'signup', google: googleOn(c.env) }));
   });
 
   app.post('/registro', async (c) => {
-    const first = (await userCount(c.env.DB)) === 0;
-    const needCode = !first && Boolean(c.env.SIGNUP_CODE);
     const f = await c.req.formData();
     const name = String(f.get('name') || '').trim().slice(0, 80);
     const email = String(f.get('email') || '').trim().toLowerCase();
     const password = String(f.get('password') || '').slice(0, 200);
-    const back = (error, status = 400) => html(authPage({ mode: 'signup', error, name, email, needCode, firstUser: first }), status);
-    if (!first && !c.env.SIGNUP_CODE) return back('El registro está cerrado.', 403);
-    if (needCode && String(f.get('code') || '').trim() !== c.env.SIGNUP_CODE) return back('Código de invitación incorrecto.', 403);
+    const back = (error, status = 400) => html(authPage({ mode: 'signup', error, name, email, google: googleOn(c.env) }), status);
+    if (!(await signupOpen(c.env))) return back(GERR.cerrado, 403);
     if (!name) return back('Escribe tu nombre.');
     if (!validEmail(email)) return back('Ese correo no parece correcto.');
     if (password.length < 8) return back('La contraseña debe tener al menos 8 caracteres.');
     if (await c.env.DB.prepare('SELECT 1 FROM users WHERE email = ?').bind(email).first()) return back('Ya existe una cuenta con ese correo.', 409);
-    const id = randomHex(8);
-    const salt = randomHex(16);
-    await c.env.DB.prepare('INSERT INTO users (id, email, name, pass_salt, pass_hash, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(id, email, name, salt, await hashPassword(password, salt), Date.now()).run();
+    const id = await createUser(c.env.DB, { name, email, password });
     return go('/galerias', { 'set-cookie': await startSession(c.env.DB, id) });
   });
 
