@@ -36,13 +36,24 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   ok(await m.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'sin scroll horizontal en móvil');
   await m.screenshot({ path: '/tmp/picfy_shots/midia_semana.png' }); await m.click('.mdtabs button:has-text("Lista")');
   await m.screenshot({ path: '/tmp/picfy_shots/midia.png' });
+  // subida de un archivo desde la tarea
+  const fs = require('fs'); const img = process.cwd() + '/tests/img/p00.jpg'; ok(fs.existsSync(img), 'imagen de prueba');
+  await m.click('.mdtabs button:has-text("Lista")');
+  await m.setInputFiles('.mdt >> nth=0 >> input[type=file]', img); await m.waitForSelector('.mdfiles li', { timeout: 30000 });
+  ok(/p00\.jpg/.test(await m.textContent('.mdfiles')), 'el archivo aparece en la tarea');
+  await m.reload(); await m.waitForSelector('.mdfiles li'); ok((await m.$$('.mdfiles li')).length === 1, 'el archivo sigue tras recargar');
+  await m.setInputFiles('.mdt >> nth=1 >> input[type=file]', { name: 'doc.txt', mimeType: 'text/plain', buffer: Buffer.from('hola') }); await m.waitForSelector('.mdup.err', { timeout: 10000 });
   const bad = await m.goto(B + '/t/' + 'a'.repeat(24)); ok(bad.status() === 404, 'enlace falso da 404');
   // el hub ve quién la hizo
   await p.reload(); await p.waitForSelector('.ttasks li');
   ok(/Hecha por Marta/.test(await p.textContent('.tsede')), 'el hub ve quién la hizo');
+  await p.click('.tfiles'); const href = await p.getAttribute('.tfl a', 'href');
+  const st = await p.evaluate(async (h) => { const r = await fetch(h); return [r.status, r.headers.get('content-type'), (await r.arrayBuffer()).byteLength]; }, href);
+  ok(st[0] === 200 && /image/.test(st[1]) && st[2] > 1000, 'el hub puede abrir el archivo ' + st);
+  const rg = await p.evaluate(async (h) => { const r = await fetch(h, { headers: { range: 'bytes=0-9' } }); return [r.status, (await r.arrayBuffer()).byteLength]; }, href); ok(rg[0] === 206 && rg[1] === 10, 'admite rangos (vídeo) ' + rg);
   // el otro hub no accede
   const o = await (await b.newContext()).newPage(); await o.goto(B + '/registro'); await o.fill('input[name=name]', 'O'); await o.fill('input[name=email]', `o${Date.now()}@t.es`); await o.fill('input[name=password]', 'clave12345'); await o.click('.au-submit'); await o.waitForURL('**/inicio');
-  const rs = await o.evaluate(async (id) => (await fetch('/api/torneos/' + id)).status, url.split('/').pop()); ok(rs === 404, 'otra cuenta no ve el torneo ' + rs);
+  const rs = await o.evaluate(async (id) => (await fetch('/api/torneos/' + id)).status, url.split('/').pop()); ok(rs === 404, 'otra cuenta no ve el torneo ' + rs); const rf = await o.evaluate(async (h) => (await fetch(h)).status, href); ok(rf === 404, 'otra cuenta no ve el archivo ' + rf);
   await p.screenshot({ path: '/tmp/picfy_shots/torneo.png' });
   ok(errs.length + merrs.length === 0, 'errores JS: ' + errs.concat(merrs).join(';'));
   console.log('ALL OK'); await b.close();

@@ -11,6 +11,17 @@ export async function torneosReady(db) {
   return st.v;
 }
 
+let se = { v: null, t: 0 };
+export async function entregasReady(db) {
+  if (se.v === true || (se.v === false && Date.now() - se.t < 30000)) return se.v;
+  try { await db.prepare('SELECT id, upload_id FROM entregas_torneo LIMIT 1').first(); se = { v: true, t: Date.now() }; }
+  catch { se = { v: false, t: Date.now() }; }
+  return se.v;
+}
+const MAX_BYTES = 1024 * 1024 * 1024, PART = 10 * 1024 * 1024;
+const okType = (m) => /^(image|video)\//.test(String(m || ''));
+const keyOf = (e) => `torneo/${e.sede_id}/${e.id}`;
+
 const reDate = /^\d{4}-\d{2}-\d{2}$/;
 const reTime = /^([01]\d|2[0-3]):[0-5]\d$/;
 const clip = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
@@ -26,6 +37,16 @@ export function torneosRoutes(app) {
   }
   const ownTorneo = (c, user, id) => isHex(id, 16) ? c.env.DB.prepare('SELECT * FROM torneos WHERE id = ? AND owner_id = ?').bind(id, user.id).first() : null;
   const ownSede = (c, user, id) => isHex(id, 16) ? c.env.DB.prepare('SELECT s.* FROM sedes s JOIN torneos t ON t.id = s.torneo_id WHERE s.id = ? AND t.owner_id = ?').bind(id, user.id).first() : null;
+
+  // Borra de R2 y de la base los archivos de las tareas / sedes indicadas
+  async function purge(c, col, ids) {
+    if (!ids.length || !(await entregasReady(c.env.DB))) return;
+    const rows = (await c.env.DB.prepare(`SELECT id, sede_id, upload_id, state FROM entregas_torneo WHERE ${col} IN (${ids.map(() => '?').join(',')})`).bind(...ids).all()).results;
+    for (const r of rows) {
+      try { if (r.state === 'uploading' && r.upload_id) await c.env.PHOTOS.resumeMultipartUpload(keyOf(r), r.upload_id).abort(); else await c.env.PHOTOS.delete(keyOf(r)); } catch { /* ya no está */ }
+    }
+    await c.env.DB.prepare(`DELETE FROM entregas_torneo WHERE ${col} IN (${ids.map(() => '?').join(',')})`).bind(...ids).run();
+  }
 
   /* ----- Páginas del hub ----- */
   app.get('/torneo', async (c) => {
@@ -65,6 +86,7 @@ export function torneosRoutes(app) {
     const t = await ownTorneo(c, a.user, c.req.param('id'));
     if (t) {
       const ids = (await c.env.DB.prepare('SELECT id FROM sedes WHERE torneo_id = ?').bind(t.id).all()).results.map((r) => r.id);
+      await purge(c, 'sede_id', ids);
       const st2 = [];
       for (const s of ids) st2.push(c.env.DB.prepare('DELETE FROM tareas_torneo WHERE sede_id = ?').bind(s), c.env.DB.prepare('DELETE FROM creadores WHERE sede_id = ?').bind(s));
       st2.push(c.env.DB.prepare('DELETE FROM sedes WHERE torneo_id = ?').bind(t.id), c.env.DB.prepare('DELETE FROM torneos WHERE id = ?').bind(t.id));
@@ -83,7 +105,8 @@ export function torneosRoutes(app) {
     const q = (sql) => ids.length ? c.env.DB.prepare(sql.replace('?', ids.map(() => '?').join(','))).bind(...ids).all().then((r) => r.results) : [];
     const creadores = await q('SELECT id, sede_id, name, token FROM creadores WHERE sede_id IN (?) ORDER BY created_at');
     const tareas = await q("SELECT id, sede_id, creador_id, kind, title, date, time, notes, done, done_at, done_by FROM tareas_torneo WHERE sede_id IN (?) ORDER BY date, COALESCE(time, '99:99'), created_at");
-    return json({ sedes: sedes.map((s) => ({ ...s, creadores: creadores.filter((x) => x.sede_id === s.id), tareas: tareas.filter((x) => x.sede_id === s.id) })) });
+    const entregas = (await entregasReady(c.env.DB)) ? await q("SELECT id, sede_id, tarea_id, creador_id, filename, mime, size FROM entregas_torneo WHERE state = 'ok' AND sede_id IN (?) ORDER BY created_at") : [];
+    return json({ sedes: sedes.map((s) => ({ ...s, creadores: creadores.filter((x) => x.sede_id === s.id), tareas: tareas.filter((x) => x.sede_id === s.id).map((t) => ({ ...t, entregas: entregas.filter((e) => e.tarea_id === t.id) })) })) });
   });
 
   app.post('/api/torneos/:id/sedes', async (c) => {
@@ -101,6 +124,7 @@ export function torneosRoutes(app) {
     const a = await auth(c); if (a.err) return a.err;
     const s = await ownSede(c, a.user, c.req.param('id'));
     if (!s) return json({ error: 'nf' }, 404);
+    await purge(c, 'sede_id', [s.id]);
     await c.env.DB.batch([c.env.DB.prepare('DELETE FROM tareas_torneo WHERE sede_id = ?').bind(s.id), c.env.DB.prepare('DELETE FROM creadores WHERE sede_id = ?').bind(s.id), c.env.DB.prepare('DELETE FROM sedes WHERE id = ?').bind(s.id)]);
     return json({ ok: true });
   });
@@ -168,6 +192,7 @@ export function torneosRoutes(app) {
     const a = await auth(c); if (a.err) return a.err;
     const cur = await ownTask(c, a.user, c.req.param('id'));
     if (!cur) return json({ error: 'nf' }, 404);
+    await purge(c, 'tarea_id', [cur.id]);
     await c.env.DB.prepare('DELETE FROM tareas_torneo WHERE id = ?').bind(cur.id).run();
     return json({ ok: true });
   });
@@ -189,7 +214,9 @@ export function torneosRoutes(app) {
     const me = await byToken(c);
     if (!me) return json({ error: 'nf' }, 404);
     const rows = (await c.env.DB.prepare("SELECT id, kind, title, date, time, notes, done FROM tareas_torneo WHERE sede_id = ? AND (creador_id IS NULL OR creador_id = ?) ORDER BY date, COALESCE(time, '99:99'), created_at LIMIT 1000").bind(me.sede_id, me.id).all()).results;
-    return json({ tareas: rows });
+    const up = await entregasReady(c.env.DB);
+    const ent = up ? (await c.env.DB.prepare("SELECT id, tarea_id, filename, mime, size FROM entregas_torneo WHERE sede_id = ? AND creador_id = ? AND state = 'ok' ORDER BY created_at LIMIT 3000").bind(me.sede_id, me.id).all()).results : [];
+    return json({ subida: up, max: MAX_BYTES, part: PART, tareas: rows.map((t) => ({ ...t, entregas: ent.filter((e) => e.tarea_id === t.id) })) });
   });
 
   app.put('/api/t/:token/tareas/:id', async (c) => {
@@ -201,6 +228,103 @@ export function torneosRoutes(app) {
     if (!cur) return json({ error: 'nf' }, 404);
     const done = Number((await c.req.json().catch(() => ({}))).done) ? 1 : 0;
     await c.env.DB.prepare('UPDATE tareas_torneo SET done = ?2, done_at = ?3, done_by = ?4 WHERE id = ?1').bind(id, done, done ? Date.now() : null, done ? me.name : null).run();
+    return json({ ok: true });
+  });
+  /* ----- Subida de archivos por tarea (creadores, por trozos) ----- */
+  async function upCtx(c) {
+    const me = await byToken(c);
+    if (!me || !(await entregasReady(c.env.DB))) return null;
+    return me;
+  }
+  const ownEntrega = (c, me, id) => isHex(id, 16) ? c.env.DB.prepare('SELECT * FROM entregas_torneo WHERE id = ? AND sede_id = ? AND creador_id = ?').bind(id, me.sede_id, me.id).first() : null;
+
+  app.post('/api/t/:token/tareas/:tid/entregas', async (c) => {
+    const me = await upCtx(c);
+    if (!me) return json({ error: 'nf' }, 404);
+    const tid = c.req.param('tid');
+    if (!isHex(tid, 16)) return json({ error: 'nf' }, 404);
+    const t = await c.env.DB.prepare('SELECT id FROM tareas_torneo WHERE id = ? AND sede_id = ? AND (creador_id IS NULL OR creador_id = ?)').bind(tid, me.sede_id, me.id).first();
+    if (!t) return json({ error: 'nf' }, 404);
+    const b = await c.req.json().catch(() => ({}));
+    const size = Math.round(Number(b.size));
+    const mime = clip(b.mime, 100) || 'application/octet-stream';
+    if (!Number.isFinite(size) || size < 1) return json({ error: 'size' }, 400);
+    if (size > MAX_BYTES) return json({ error: 'big' }, 413);
+    if (!okType(mime)) return json({ error: 'type' }, 415);
+    const id = randomHex(8);
+    const e = { id, sede_id: me.sede_id };
+    const up = await c.env.PHOTOS.createMultipartUpload(keyOf(e), { httpMetadata: { contentType: mime } });
+    await c.env.DB.prepare('INSERT INTO entregas_torneo (id, tarea_id, sede_id, creador_id, filename, mime, size, upload_id, state, created_at) VALUES (?,?,?,?,?,?,?,?,\'uploading\',?)')
+      .bind(id, tid, me.sede_id, me.id, clip(b.filename, 160) || 'archivo', mime, size, up.uploadId, Date.now()).run();
+    return json({ id, part: PART });
+  });
+
+  app.put('/api/t/:token/entregas/:id/parte/:n', async (c) => {
+    const me = await upCtx(c);
+    if (!me) return json({ error: 'nf' }, 404);
+    const e = await ownEntrega(c, me, c.req.param('id'));
+    const n = Number(c.req.param('n'));
+    if (!e || e.state !== 'uploading' || !Number.isInteger(n) || n < 1 || n > 10000) return json({ error: 'nf' }, 404);
+    const body = await c.req.arrayBuffer();
+    if (!body.byteLength || body.byteLength > PART + 1024) return json({ error: 'size' }, 413);
+    const part = await c.env.PHOTOS.resumeMultipartUpload(keyOf(e), e.upload_id).uploadPart(n, body);
+    return json({ partNumber: part.partNumber, etag: part.etag });
+  });
+
+  app.post('/api/t/:token/entregas/:id/fin', async (c) => {
+    const me = await upCtx(c);
+    if (!me) return json({ error: 'nf' }, 404);
+    const e = await ownEntrega(c, me, c.req.param('id'));
+    if (!e || e.state !== 'uploading') return json({ error: 'nf' }, 404);
+    const parts = ((await c.req.json().catch(() => ({}))).partes || []).map((p) => ({ partNumber: Number(p.partNumber), etag: String(p.etag) })).sort((a, b) => a.partNumber - b.partNumber);
+    if (!parts.length) return json({ error: 'parts' }, 400);
+    const obj = await c.env.PHOTOS.resumeMultipartUpload(keyOf(e), e.upload_id).complete(parts);
+    await c.env.DB.prepare("UPDATE entregas_torneo SET state = 'ok', upload_id = NULL, size = ?2 WHERE id = ?1").bind(e.id, obj.size).run();
+    return json({ entrega: { id: e.id, tarea_id: e.tarea_id, filename: e.filename, mime: e.mime, size: obj.size } });
+  });
+
+  app.delete('/api/t/:token/entregas/:id', async (c) => {
+    const me = await upCtx(c);
+    if (!me) return json({ error: 'nf' }, 404);
+    const e = await ownEntrega(c, me, c.req.param('id'));
+    if (!e) return json({ error: 'nf' }, 404);
+    await purge(c, 'id', [e.id]);
+    return json({ ok: true });
+  });
+
+  /* ----- El hub ve, descarga y borra los archivos ----- */
+  async function hubEntrega(c, user, id) {
+    if (!isHex(id, 16) || !(await entregasReady(c.env.DB))) return null;
+    return c.env.DB.prepare("SELECT e.* FROM entregas_torneo e JOIN sedes s ON s.id = e.sede_id JOIN torneos t ON t.id = s.torneo_id WHERE e.id = ? AND t.owner_id = ? AND e.state = 'ok'").bind(id, user.id).first();
+  }
+
+  app.get('/api/entregas/:id/archivo', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return new Response('', { status: 401 });
+    const e = await hubEntrega(c, user, c.req.param('id'));
+    if (!e) return new Response('', { status: 404 });
+    const range = c.req.header('range');
+    const m = range && /^bytes=(\d*)-(\d*)$/.exec(range);
+    let opts, status = 200, headers = new Headers({ 'content-type': e.mime, 'accept-ranges': 'bytes', 'cache-control': 'private, max-age=600' });
+    if (m && (m[1] || m[2])) {
+      const start = m[1] ? Number(m[1]) : Math.max(0, e.size - Number(m[2]));
+      const end = m[1] && m[2] ? Math.min(Number(m[2]), e.size - 1) : e.size - 1;
+      if (start > end || start >= e.size) return new Response('', { status: 416, headers: { 'content-range': `bytes */${e.size}` } });
+      opts = { range: { offset: start, length: end - start + 1 } }; status = 206;
+      headers.set('content-range', `bytes ${start}-${end}/${e.size}`); headers.set('content-length', String(end - start + 1));
+    } else headers.set('content-length', String(e.size));
+    const obj = await c.env.PHOTOS.get(keyOf(e), opts);
+    if (!obj) return new Response('', { status: 404 });
+    if (c.req.query('dl')) headers.set('content-disposition', `attachment; filename="${e.filename.replace(/[^\w.\- ]+/g, '_')}"`);
+    return new Response(obj.body, { status, headers });
+  });
+
+  app.delete('/api/entregas/:id', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return json({ error: 'auth' }, 401);
+    const e = await hubEntrega(c, user, c.req.param('id'));
+    if (!e) return json({ error: 'nf' }, 404);
+    await purge(c, 'id', [e.id]);
     return json({ ok: true });
   });
 }

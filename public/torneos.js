@@ -17,6 +17,7 @@
   const KEY = 'picfy_sedes_cerradas';
   const closed = (() => { try { return new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch (e) { return new Set(); } })();
   const saveClosed = () => { try { localStorage.setItem(KEY, JSON.stringify([...closed])); } catch (e) {} };
+  const bytes = (b) => (b >= 1048576 ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB');
   const PAL = ['#e5604f', '#2f9e6f', '#4a63d6', '#c9376e', '#1f9fb3', '#8e5bd6', '#e5964c', '#6b7280'];
 
   function taskList(list, names) {
@@ -28,7 +29,12 @@
         h('span', { class: 'tkind', style: `--c:${k.color}` }, k.label),
         h('span', { class: 't' }, t.title, t.time ? h('small', {}, ' · ' + t.time) : null),
         t.done && t.done_by ? h('span', { class: 'by' }, t.done_by === 'hub' ? 'Hecha' : 'Hecha por ' + t.done_by) : null,
-        h('button', { class: 'tx', type: 'button', title: 'Borrar tarea', 'aria-label': 'Borrar tarea', onclick: async () => { await api('DELETE', '/api/tareas/' + t.id); load(); } }, '×'));
+        (t.entregas || []).length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => { const ul = e.target.closest('li').querySelector('.tfl'); ul.hidden = !ul.hidden; } }, `${t.entregas.length} ${t.entregas.length === 1 ? 'archivo' : 'archivos'}`) : null,
+        h('button', { class: 'tx', type: 'button', title: 'Borrar tarea', 'aria-label': 'Borrar tarea', onclick: async () => { await api('DELETE', '/api/tareas/' + t.id); load(); } }, '×'),
+        (t.entregas || []).length ? h('ul', { class: 'tfl', hidden: true }, t.entregas.map((f) => h('li', {},
+          h('a', { href: `/api/entregas/${f.id}/archivo`, target: '_blank', rel: 'noopener' }, f.filename), h('small', {}, bytes(f.size)),
+          h('a', { href: `/api/entregas/${f.id}/archivo?dl=1`, class: 'tdl' }, 'Descargar'),
+          h('button', { type: 'button', class: 'tx', 'aria-label': 'Borrar archivo', onclick: async () => { if (confirm('¿Borrar ' + f.filename + '?')) { await api('DELETE', '/api/entregas/' + f.id); load(); } } }, '×')))) : null);
     }))));
   }
 
