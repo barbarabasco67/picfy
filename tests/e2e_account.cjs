@@ -10,7 +10,7 @@ const assert = (c, m) => { if (!c) { console.error('FALLO:', m); process.exitCod
   await p.fill('[name=name]', 'Ana'); await p.fill('[name=email]', email); await p.fill('[name=password]', 'clave-12345');
   if (await p.$('[name=code]')) await p.fill('[name=code]', 'codigo');
   await Promise.all([p.waitForNavigation(), p.click('button[type=submit]')]); await p.goto(B + '/galerias');
-  await p.click('a.avatar'); await p.waitForURL('**/cuenta/datos'); await Promise.all([p.waitForURL('**/galerias'), p.click('.backlink')]); await p.click('a.avatar'); await p.waitForURL('**/cuenta/datos');
+  await p.click('a.avatar'); await p.waitForURL('**/cuenta/datos'); await Promise.all([p.waitForURL('**/inicio'), p.click('.backlink')]); await p.click('a.avatar'); await p.waitForURL('**/cuenta/datos');
   await p.fill('[name=surname]', 'García'); await p.fill('[name=username]', 'ana.g' + (Date.now() % 100000)); await p.click('form[action="/cuenta/datos"] button');
   await p.waitForSelector('.notice.ok:not(.hidden)'); assert((await p.inputValue('[name=surname]')) === 'García', 'apellidos'); assert(/^@ana\.g/.test(await p.textContent('.handle')), 'usuario bajo el nombre'); assert(!(await p.textContent('.prof-id')).includes('@e.es') && !(await p.textContent('.prof-id')).includes('@ejemplo'), 'sin correo');
   // foto de perfil

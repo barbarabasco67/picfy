@@ -492,7 +492,7 @@ export function accountPage({ user, section = 'datos', ok = '', error = '', defa
     body: shell({
       user, active: 'cuenta', noside: true,
       crumbs: '<a href="/galerias">Galerías</a><span class="sep">/</span><b>Mi cuenta</b>',
-      main: `<a class="backlink" href="/galerias">← Volver a mis galerías</a>
+      main: `<a class="backlink" href="/inicio">← Volver al inicio</a>
 <div class="prof glass">
 <div class="prof-avbox"><span class="prof-av" id="profAv"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</span>
 <label class="avedit" title="Cambiar la foto de perfil" aria-label="Cambiar la foto de perfil">${ICON.up}<input type="file" id="avFile" accept="image/jpeg,image/png,image/webp" hidden></label>
