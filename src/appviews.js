@@ -50,22 +50,23 @@ function shell({ user, active = 'galerias', crumbs = '', main, collapsible = fal
   const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
   const av = `<a class="avatar${active === 'cuenta' ? ' on' : ''}" href="/cuenta" title="Mi cuenta · ${esc(user.email)}" aria-label="Mi cuenta"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</a>`;
   const link = (k, href, label, ic, extra = '') => `<a class="nav${extra} ${active === k ? 'on' : ''}" href="${href}">${ICON[ic]}<span>${label}</span></a>`;
-  return `<div class="frame${collapsible ? ' nav-collapsed' : ''}">
-<aside class="side${collapsible ? ' collapsed' : ''}">
-<div class="side-head"><a class="logo" href="/inicio"><span class="logo-dot"></span><b>Picfy</b></a>${collapsible ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}</div>
+  return `<div class="frame">
+<aside class="side">
+<div class="side-head"><a class="logo" href="/inicio"><span class="logo-dot"></span><b>Picfy</b></a>${true ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}</div>
 <nav class="side-nav">
 ${link('inicio', '/inicio', 'Inicio', 'dash')}${link('galerias', '/galerias', 'Galerías', 'gal')}${link('colecciones', '/colecciones', 'Colecciones', 'coll')}${link('agenda', '/agenda', 'Agenda', 'cal')}
 </nav>
 <div class="side-bot">
-${storage ? spaceBox(storage) : '<div id="spSlot"></div><script src="/sidebox.js" defer></script>'}
+${storage ? spaceBox(storage) : ''}
 ${link('papelera', '/papelera', 'Papelera', 'trash', ' trashnav')}${link('cuenta', '/cuenta', 'Mi cuenta', 'cog')}
 <form method="post" action="/salir"><button class="nav" type="submit">${ICON.out}<span>Salir</span></button></form>
 </div>
 </aside>
 <main class="main">
-${top || `<header class="top"><nav class="crumbs">${crumbs}</nav><span class="spacer"></span>${av}</header>`}
+${top || `<header class="top"><nav class="crumbs"><a href="/inicio">Inicio</a>${crumbs ? '<span>/</span>' : ''}${crumbs}</nav><span class="spacer"></span>${av}</header>`}
 ${main}
 </main>
+<script src="/navtoggle.js" defer></script>
 </div>`;
 }
 
@@ -193,7 +194,6 @@ ${e.new_sel ? `<span class="chip newsel">${e.new_sel === 1 ? 'Selección nueva' 
       main: `${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}<div class="head"><div><h1>Galerías</h1><p class="muted">Aquí ves tus galerías o creas otras nuevas.</p></div>
 <input class="search glass" type="search" id="filter" placeholder="Filtrar" aria-label="Filtrar galerías"></div>
 <button class="btn primary" id="newGal" type="button">${ICON.plus} Crear una nueva galería</button>
-${storageBox(storage)}
 <h2 class="sec">Tus galerías</h2>
 ${events.length ? `<div class="gcards" id="gcards">${cards}</div><p class="muted hidden" id="noMatch">Ninguna galería coincide.</p>` : `<div class="glass emptybox">Todavía no tienes galerías. Crea la primera y comparte el enlace con tus invitados.</div>`}
 <dialog id="newDlg" class="glassdlg wide"><form method="post" action="/galerias" class="dlgbox" data-brand-form="create">
@@ -614,7 +614,7 @@ export function agendaPage({ user, ready, kinds }) {
   const radios = Object.entries(kinds).map(([k, v]) => `<label class="kradio" style="--c:${v.color}"><input type="radio" name="kind" value="${k}"${k === 'tarea' ? ' checked' : ''}><span><i></i>${esc(v.label)}</span></label>`).join('');
   return appPage({
     title: 'Agenda',
-    scripts: ['/app.js', '/navtoggle.js', '/icons.js', '/agenda.js'],
+    scripts: ['/app.js', '/icons.js', '/agenda.js'],
     bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}"`,
     body: shell({
       user, active: 'agenda', crumbs: '<span>Agenda</span>', collapsible: true,

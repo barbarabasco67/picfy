@@ -178,19 +178,6 @@
   }));
 })();
 
-// Menú "Gestiona tus fotos": contraído (solo iconos) por defecto en la galería; la flecha lo abre o cierra
-(() => {
-  const side = document.querySelector('.frame > .side'), btn = document.getElementById('navToggle'); if (!side || !btn) return;
-  const frame = side.parentElement, key = 'picfy_nav';
-  const set = (open) => {
-    side.classList.toggle('collapsed', !open); frame.classList.toggle('nav-collapsed', !open); btn.setAttribute('aria-expanded', String(open));
-    try { localStorage.setItem(key, open ? 'open' : 'closed'); } catch (e) {}
-  };
-  let saved = null; try { saved = localStorage.getItem(key); } catch (e) {}
-  set(saved === 'open');
-  btn.addEventListener('click', () => set(side.classList.contains('collapsed')));
-})();
-
 // Moderación rápida desde el visor: A aprobar, R rechazar, F favorita (y pasa a la siguiente).
 (() => {
   const lb = document.getElementById('lb'), mod = document.getElementById('lbMod'), grid = document.getElementById('sortGrid');

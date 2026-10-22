@@ -164,12 +164,13 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   await gp.goto(pl);
   // panel lateral contraído y flecha
   await p.goto(parentUrl);
-  check('menú contraído por defecto', await p.$eval('.frame > .side', (e) => e.classList.contains('collapsed')));
+  check('menú abierto por defecto', await p.$eval('.frame > .side', (e) => !e.classList.contains('collapsed')));
   check('panel de la galería visible', await p.isVisible('#gside .stats'));
   await p.screenshot({ path: '/tmp/picfy_shots/side_closed.png' });
   await p.click('#navToggle');
-  check('la flecha abre el menú', await p.isVisible('.frame > .side .nav span'));
+  check('la flecha pliega el menú', await p.$eval('.frame > .side', (e) => e.classList.contains('collapsed')));
   await p.click('#navToggle');
+  check('y lo vuelve a abrir', await p.isVisible('.frame > .side .nav span'));
   await p.goto(B + '/galerias');
   check('solo la galería principal en la lista', (await p.$$('#gcards .gcard')).length === 1);
   check('chip de subgalerías', await p.isVisible('.chip.subc:has-text("3 subgalerías")'));
