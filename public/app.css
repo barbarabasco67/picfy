@@ -813,12 +813,12 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 24px); r
 .au-tile{position:absolute;display:block;width:var(--w,190px);aspect-ratio:3/4;border-radius:22px;background:var(--img,none) center/cover no-repeat,var(--g);box-shadow:0 30px 60px -20px rgba(0,0,0,.65),inset 0 0 0 1px rgba(255,255,255,.22);transform:rotate(var(--r,0deg));animation:auFloat 9s ease-in-out infinite;animation-delay:var(--d,0s)}
 .au-tile b{position:absolute;right:12px;bottom:12px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.28);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.4)}
 .au-tile b::after{content:'';position:absolute;inset:8px 7px 7px;background:#fff;opacity:.95;clip-path:path('M8 14S1 9.6 1 5.2A3.3 3.3 0 0 1 8 3.6a3.3 3.3 0 0 1 7 1.6C15 9.6 8 14 8 14z');transform:translate(0,-1px)}
-.au-tile.t1{--w:230px;--r:-8deg;left:12%;top:20%}
-.au-tile.t2{--w:190px;--r:6deg;left:46%;top:12%;--d:-2s}
-.au-tile.t3{--w:170px;--r:-3deg;left:30%;top:50%;--d:-4s}
-.au-tile.t4{--w:210px;--r:9deg;left:60%;top:46%;--d:-1s}
-.au-tile.t5{--w:150px;--r:-12deg;left:6%;top:62%;--d:-6s}
-.au-tile.t6{--w:150px;--r:5deg;left:74%;top:16%;--d:-3s}
+.au-tile.p1{--w:230px;--r:-8deg;left:12%;top:20%}
+.au-tile.p2{--w:190px;--r:6deg;left:46%;top:12%;--d:-2s}
+.au-tile.p3{--w:170px;--r:-3deg;left:30%;top:50%;--d:-4s}
+.au-tile.p4{--w:210px;--r:9deg;left:60%;top:46%;--d:-1s}
+.au-tile.p5{--w:150px;--r:-12deg;left:6%;top:62%;--d:-6s}
+.au-tile.p6{--w:150px;--r:5deg;left:74%;top:16%;--d:-3s}
 @keyframes auFloat{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-14px) rotate(var(--r,0deg))}}
 .au-pane{display:grid;place-items:center;padding:36px 24px;background:linear-gradient(180deg,#fffdf9,#fff)}
 .au-box{width:min(400px,100%)}
@@ -850,3 +850,5 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 24px); r
 @media (prefers-reduced-motion:reduce){.au-tile{animation:none}}
 
 .au-tile::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.35))}
+
+.au-tile{opacity:0;transition:opacity .6s}.au-tile.on{opacity:1}

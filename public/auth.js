@@ -27,4 +27,17 @@
     i.type = hide ? 'password' : 'text'; b.classList.toggle('on', !hide); b.setAttribute('aria-label', hide ? 'Mostrar la contraseña' : 'Ocultar la contraseña');
   });
   first();
+
+  // Fotos del panel: solo se muestran las que cargan (máximo 6) y se colocan en los huecos del collage.
+  const tiles = [...document.querySelectorAll('.au-tile[data-src]')];
+  if (tiles.length) {
+    let n = 0;
+    const done = () => { if (tiles.every((t) => t.dataset.state)) tiles.filter((t) => t.dataset.state === 'bad').forEach((t) => t.remove()); };
+    tiles.forEach((t) => {
+      const im = new Image();
+      im.onload = () => { if (n >= 6) { t.dataset.state = 'bad'; } else { n += 1; t.style.setProperty('--img', `url(${t.dataset.src})`); t.classList.add('p' + n, 'on'); t.dataset.state = 'ok'; } done(); };
+      im.onerror = () => { t.dataset.state = 'bad'; done(); };
+      im.src = t.dataset.src;
+    });
+  }
 })();

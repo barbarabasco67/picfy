@@ -80,8 +80,9 @@ export function authPage({ mode = 'login', error = '', email = '', name = '', go
   const login = mode === 'login';
   const other = login ? 'signup' : 'login';
   const act = { error, email, name }, idle = { error: '', email: '', name: '' };
-  const U = (id) => `url(https://images.unsplash.com/${id}?auto=format&fit=crop&w=520&q=70)`; // Unsplash: uso libre, sin atribución
-  const tile = (cls, g, id) => `<i class="au-tile ${cls}" style="--g:${g};--img:${U(id)}"><b></b></i>`;
+  const U = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=520&q=70`; // Unsplash: uso libre, sin atribución
+  // Candidatas: el navegador comprueba cuáles cargan y se queda con las 6 primeras que funcionen.
+  const tile = (id) => `<i class="au-tile" data-src="${U(id)}"><b></b></i>`;
   return appPage({
     title: login ? 'Entrar' : 'Crear cuenta',
     scripts: ['/auth.js'],
@@ -89,7 +90,7 @@ export function authPage({ mode = 'login', error = '', email = '', name = '', go
 <section class="au-art" aria-hidden="true">
 <a class="au-logo" href="/"><span class="logo-dot"></span>Picfy</a>
 <div class="au-collage">
-${tile('t1', 'linear-gradient(160deg,#f6c27b,#d9703a 55%,#7a2f2a)', 'photo-1504450758481-7338eef7ccf6')}${tile('t2', 'linear-gradient(200deg,#7fb3c9,#3d6a8e 60%,#1d2f4a)', 'photo-1519861531473-9200262188bf')}${tile('t3', 'linear-gradient(150deg,#f3d9b8,#e0a56a 50%,#b46a3a)', 'photo-1608245449230-4ac19066d2d0')}${tile('t4', 'linear-gradient(190deg,#e7a0a8,#b9456a 60%,#4a1f3a)', 'photo-1574623452334-1e0ac2b3ccb4')}${tile('t5', 'linear-gradient(160deg,#9fd3b8,#3f8f73 60%,#173d33)', 'photo-1504450758481-7338eef7ccf6')}${tile('t6', 'linear-gradient(200deg,#cdb8f0,#7b5cc4 60%,#2c1f5c)', 'photo-1515523110800-9415d13b84a8')}
+${tile('photo-1574623452334-1e0ac2b3ccb4')}${tile('photo-1627627256672-027a4613d028')}${tile('photo-1519766304817-4f37bda74a26')}${tile('photo-1612872087720-bb876e2e67d1')}${tile('photo-1505666287802-931dc83948e9')}${tile('photo-1558365849-6ebd8b0454b8')}${tile('photo-1608245449230-4ac19066d2d0')}${tile('photo-1519861531473-9200262188bf')}
 </div>
 </section>
 <section class="au-pane"><div class="au-box">
