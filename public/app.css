@@ -810,7 +810,7 @@ body.app .gguest.list .dlbtn { top: 18px; left: calc(var(--lw, 200px) - 24px); r
 .au-logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:1.25rem;letter-spacing:-.02em;color:inherit;text-decoration:none;position:relative;z-index:2}
 .au-logo.dark{color:var(--ink);display:none;margin-bottom:22px}
 .au-collage{position:absolute;inset:0;z-index:1}
-.au-tile{position:absolute;display:block;width:var(--w,190px);aspect-ratio:3/4;border-radius:22px;background:var(--img,none) center/cover no-repeat,var(--g);box-shadow:0 30px 60px -20px rgba(0,0,0,.65),inset 0 0 0 1px rgba(255,255,255,.22);transform:rotate(var(--r,0deg));animation:auFloat 9s ease-in-out infinite;animation-delay:var(--d,0s)}
+.au-tile{position:absolute;display:block;width:var(--w,190px);aspect-ratio:3/4;border-radius:22px;background:var(--img,none) center/cover no-repeat,var(--g,#2a2118);box-shadow:0 30px 60px -20px rgba(0,0,0,.65),inset 0 0 0 1px rgba(255,255,255,.22);transform:rotate(var(--r,0deg));animation:auFloat 9s ease-in-out infinite;animation-delay:var(--d,0s)}
 .au-tile b{position:absolute;right:12px;bottom:12px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.28);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.4)}
 .au-tile b::after{content:'';position:absolute;inset:8px 7px 7px;background:#fff;opacity:.95;clip-path:path('M8 14S1 9.6 1 5.2A3.3 3.3 0 0 1 8 3.6a3.3 3.3 0 0 1 7 1.6C15 9.6 8 14 8 14z');transform:translate(0,-1px)}
 .au-tile.p1{--w:230px;--r:-8deg;left:12%;top:20%}
