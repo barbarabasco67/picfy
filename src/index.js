@@ -13,6 +13,7 @@ import {
 } from './views.js';
 import { manageRoutes } from './manage.js';
 import { landingPage } from './landing.js';
+import { portfolioPage } from './portfolio.js';
 import { socialRoutes, viewRoutes, countDownload } from './social.js';
 import { selectionRoutes } from './selection.js';
 import { publicCollectionRoute } from './collections.js';
@@ -34,7 +35,9 @@ app.use('*', async (c, next) => {
   await next();
   c.res.headers.set('Referrer-Policy', 'no-referrer');
   c.res.headers.set('X-Content-Type-Options', 'nosniff');
-  c.res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  // el portfolio es público y debe poder aparecer en buscadores; el resto de Picfy no
+  const p = new URL(c.req.url).pathname;
+  c.res.headers.set('X-Robots-Tag', p === '/portfolio' || p.startsWith('/portfolio/') ? 'index, follow' : 'noindex, nofollow');
 });
 
 app.get('/', async (c) => (await currentUser(c)) ? c.redirect('/galerias', 303) : html(landingPage()));
@@ -57,7 +60,10 @@ app.get('/health', async (c) => {
   };
   return json(out);
 });
-app.get('/robots.txt', (c) => new Response('User-agent: *\nDisallow: /\n', { headers: { 'content-type': 'text/plain' } }));
+app.get('/robots.txt', (c) => new Response('User-agent: *\nAllow: /portfolio\nDisallow: /\n', { headers: { 'content-type': 'text/plain' } }));
+// Portfolio público de Pablo y Bárbara (efectos, fotos y vídeos en /public/portfolio/)
+app.get('/portfolio', (c) => html(portfolioPage(), 200, { 'cache-control': 'public, max-age=300' }));
+app.get('/portfolio/', (c) => c.redirect('/portfolio', 301));
 
 /* ---------- Fotos (lectura) ---------- */
 
