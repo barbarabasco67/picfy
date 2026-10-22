@@ -978,3 +978,11 @@ body.app:has(.frame) .glass { box-shadow: 0 2px 14px rgba(20, 33, 61, .07), inse
 .gmain { padding-top: 18px; }
 .gcrumbs { margin-bottom: 12px; }
 @media (max-width: 860px) { .gwrap { grid-template-columns: 1fr; } .gside { height: auto; border-radius: 22px; } .frame:has(.gwrap) > .main { padding-top: 4px; } }
+
+.dlast { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.dlp { position: relative; display: flex; flex-direction: column; gap: 1px; text-decoration: none; min-width: 0; }
+.dlp img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; background: #e9edf5; display: block; }
+.dlp b { position: absolute; left: 5px; top: 5px; background: #edb265; color: #2a1a00; font-size: .62rem; padding: 2px 7px; border-radius: 99px; }
+.dlp span { font-size: .76rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; }
+.dlp em { font-style: normal; font-size: .7rem; color: var(--muted); }
+@media (max-width: 520px) { .dlast { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

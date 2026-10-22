@@ -16,6 +16,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
     await p.fill('#newDlg input[name=name]', 'Final Four'); await p.click('#newDlg button[type=submit], #newDlg .btn.primary[type=submit]');
     await p.waitForURL(/galerias\/\w+/);
     await p.goto(B + '/inicio'); ok((await p.textContent('.dgals')).includes('Final Four'), 'la galería sale en el panel');
+    ok(await p.$('.dlast, .dcard:has-text("Últimas fotos subidas")'), 'tarjeta de últimas fotos');
     await p.fill('#dq', 'zzz'); ok(await p.isVisible('#dnone'), 'buscador sin resultados'); await p.fill('#dq', 'final'); ok(!(await p.isVisible('#dnone')), 'buscador con resultados');
     ok(await p.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'sin scroll horizontal ' + w);
     await p.screenshot({ path: `/tmp/picfy_shots/dash_${w}.png`, fullPage: true });

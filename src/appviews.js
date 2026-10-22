@@ -668,7 +668,7 @@ function miniCal(today, dots) {
   return `<div class="dcal">${cells}</div>`;
 }
 
-export function dashPage({ user, today, galleries, totals, days, perDay, agenda, kinds }) {
+export function dashPage({ user, today, galleries, totals, days, perDay, agenda, kinds, latest = [], month = 0 }) {
   const first = (user.name || user.email).trim().split(/\s+/)[0];
   const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
   const [, m, d] = today.split('-').map(Number);
@@ -680,6 +680,8 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
     const w = DIAS_L[new Date(x + 'T12:00:00Z').getUTCDay()];
     return `<div class="dbar${x === today ? ' now' : ''}" tabindex="0"><span class="dtip">${v} ${v === 1 ? 'foto' : 'fotos'}</span><i style="height:${Math.max(v ? 8 : 3, (v / max) * 100)}%"></i><em>${w}</em></div>`;
   }).join('');
+  const ago = (t) => { const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
+  const lastHtml = latest.map((x) => `<a class="dlp" href="/galerias/${x.eid}" title="${esc(x.ename)}"><img src="/m/${x.id}/m" alt="" loading="lazy">${x.state === 'pending' ? '<b>Por revisar</b>' : ''}<span>${esc(x.ename)}</span><em>${ago(x.t)}</em></a>`).join('');
   const weekTotal = days.reduce((a, x) => a + perDay[x], 0);
   const chip = (it) => {
     const k = kinds[it.kind] || { color: '#999', label: '' };
@@ -703,6 +705,7 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
 <div class="dgrid">
 <div class="dcol">
 <section class="dcard"><header><h2>Fotos subidas</h2><span class="dsub">${weekTotal} esta semana</span></header><div class="dchart">${bars}</div></section>
+<section class="dcard"><header><h2>Últimas fotos subidas</h2><span class="dsub">Hoy ${perDay[today]} · 7 días ${weekTotal} · 30 días ${month}</span></header>${latest.length ? `<div class="dlast">${lastHtml}</div>` : `<p class="dempty">Aún no se ha subido ninguna foto.</p>`}</section>
 <section class="dcard"><header><h2>Tus galerías</h2><a href="/galerias">Ver todas</a></header>${galleries.length ? `<div class="dgals" id="dgals">${cards}</div><p class="dempty hidden" id="dnone">Ninguna galería coincide.</p>` : `<p class="dempty">Todavía no tienes galerías.</p>`}</section>
 <section class="dcard"><header><h2>Próximos eventos</h2><a href="/agenda">Agenda</a></header>${agenda.ready ? list(agenda.events, 'No hay eventos próximos.') : '<p class="dempty">Agenda no disponible.</p>'}</section>
 </div>

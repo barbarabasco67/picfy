@@ -41,6 +41,15 @@ export function dashboardRoutes(app) {
     const perDay = Object.fromEntries(days.map((d) => [d, 0]));
     for (const r of ups) { const d = ymd(new Date(r.t)); if (d in perDay) perDay[d]++; }
 
+    // Últimas fotos subidas y totales por periodo
+    const latest = (await db.prepare(
+      `SELECT p.id, p.uploaded_at AS t, p.state, e.id AS eid, e.name AS ename FROM photos p JOIN events e ON e.id = p.event_id
+       WHERE e.owner_id = ? AND p.state IN ('approved','pending') ORDER BY p.uploaded_at DESC LIMIT 8`,
+    ).bind(user.id).all()).results;
+    const m30 = await db.prepare(
+      `SELECT COUNT(*) AS n FROM photos p JOIN events e ON e.id = p.event_id WHERE e.owner_id = ? AND p.uploaded_at >= ? AND p.state != 'uploading'`,
+    ).bind(user.id, Date.now() - 30 * 86400000).first();
+
     // Agenda
     let agenda = { ready: false, today: [], todo: [], events: [], dots: [] };
     if (await agendaReady(db)) {
