@@ -42,11 +42,14 @@ export function dashboardRoutes(app) {
     const perDay = Object.fromEntries(days.map((d) => [d, 0]));
     for (const r of ups) { const d = ymd(new Date(r.t)); if (d in perDay) perDay[d]++; }
 
-    // Últimas fotos subidas y totales por periodo
-    const latest = (await db.prepare(
-      `SELECT p.id, p.uploaded_at AS t, p.state, e.id AS eid, e.name AS ename FROM photos p JOIN events e ON e.id = p.event_id
-       WHERE e.owner_id = ? AND p.state IN ('approved','pending') ORDER BY p.uploaded_at DESC LIMIT 8`,
-    ).bind(user.id).all()).results;
+    // Visitas y me gusta de las fotos subidas en los últimos 30 días
+    const since30 = Date.now() - 30 * 86400000;
+    let fstats = { today: perDay[today] || 0, views: 0, likes: 0, ready: false };
+    try {
+      fstats.views = (await db.prepare('SELECT COALESCE(SUM(v.n),0) AS n FROM photo_views v JOIN photos p ON p.id = v.photo_id JOIN events e ON e.id = p.event_id WHERE e.owner_id = ? AND p.uploaded_at >= ?').bind(user.id, since30).first()).n;
+      fstats.likes = (await db.prepare('SELECT COUNT(*) AS n FROM photo_likes l JOIN photos p ON p.id = l.photo_id JOIN events e ON e.id = p.event_id WHERE e.owner_id = ? AND p.uploaded_at >= ?').bind(user.id, since30).first()).n;
+      fstats.ready = true;
+    } catch { /* faltan las migraciones de visitas o me gusta */ }
     const m30 = await db.prepare(
       `SELECT COUNT(*) AS n FROM photos p JOIN events e ON e.id = p.event_id WHERE e.owner_id = ? AND p.uploaded_at >= ? AND p.state != 'uploading'`,
     ).bind(user.id, Date.now() - 30 * 86400000).first();
@@ -82,6 +85,6 @@ export function dashboardRoutes(app) {
       };
     }
 
-    return html(dashPage({ user, today, galleries: gal, totals: tot, days, perDay, agenda, kinds: AGENDA_KINDS, latest, month: m30.n, torneos }));
+    return html(dashPage({ user, today, galleries: gal, totals: tot, days, perDay, agenda, kinds: AGENDA_KINDS, fstats, month: m30.n, torneos }));
   });
 }

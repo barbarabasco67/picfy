@@ -1122,3 +1122,12 @@ body.app .dnew { color: #fff; } .dnew svg { width: 15px; height: 15px; }
   .mtop { padding: calc(26px + env(safe-area-inset-top)) 0 10px; }
   .frame > .main { padding-top: 14px; }
 }
+
+/* Panel: las 4 tarjetas ocupan el hueco de las 3 de antes y la tarjeta azul sigue ahí */
+.dstats { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 14px; }
+.dstatgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.dstat { grid-template-columns: 1fr; grid-template-rows: auto auto auto; row-gap: 0; padding: 12px 14px; } .dsi { grid-row: auto; margin-bottom: 8px; } .dstat strong { align-self: auto; }
+.dkpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; } .dkpis > div { background: #f3f5fa; border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; }
+.dkpis b { font-size: 1.35rem; line-height: 1.1; } .dkpis span { color: var(--muted); font-size: .76rem; font-weight: 600; }
+@media (max-width: 1000px) { .dstats { grid-template-columns: 1fr; } .dcta { grid-column: auto; } }
+@media (max-width: 700px) { .dstatgrid { grid-template-columns: 1fr 1fr; } .dkpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

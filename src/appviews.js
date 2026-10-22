@@ -688,7 +688,7 @@ function miniCal(today, dots) {
   return `<div class="dcal">${cells}</div>`;
 }
 
-export function dashPage({ user, today, galleries, totals, days, perDay, agenda, kinds, latest = [], month = 0, torneos = [] }) {
+export function dashPage({ user, today, galleries, totals, days, perDay, agenda, kinds, fstats = { today: 0, views: 0, likes: 0, ready: false }, month = 0, torneos = [] }) {
   const first = (user.name || user.email).trim().split(/\s+/)[0];
   const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
   const [, m, d] = today.split('-').map(Number);
@@ -700,8 +700,6 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
     const w = DIAS_L[new Date(x + 'T12:00:00Z').getUTCDay()];
     return `<div class="dbar${x === today ? ' now' : ''}" tabindex="0"><span class="dtip">${v} ${v === 1 ? 'foto' : 'fotos'}</span><i style="height:${Math.max(v ? 8 : 3, (v / max) * 100)}%"></i><em>${w}</em></div>`;
   }).join('');
-  const ago = (t) => { const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
-  const lastHtml = latest.map((x) => `<a class="dlp" href="/galerias/${x.eid}" title="${esc(x.ename)}"><img src="/m/${x.id}/m" alt="" loading="lazy">${x.state === 'pending' ? '<b>Por revisar</b>' : ''}<span>${esc(x.ename)}</span><em>${ago(x.t)}</em></a>`).join('');
   const torHtml = torneos.slice(0, 3).map((t) => { const pct = t.tareas ? Math.round((t.hechas / t.tareas) * 100) : 0; const c = t.color || '#14213d'; return `<a class="dtor" href="/torneo/${t.id}" style="--tc:${esc(c)}"><div><strong>${esc(t.name)}</strong><span>${t.sedes} ${t.sedes === 1 ? 'sede' : 'sedes'} · ${t.hechas}/${t.tareas} tareas${t.hoy ? ` · ${t.hoy} para hoy` : ''}</span></div><b>${pct}%</b><i><u style="width:${pct}%"></u></i></a>`; }).join('');
   const weekTotal = days.reduce((a, x) => a + perDay[x], 0);
   const chip = (it) => {
@@ -717,16 +715,13 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
     scripts: ['/dash.js'],
     body: shell({ user, active: 'inicio', storage: totals, top: `<header class="dtop"><div><h1>${hi}, ${esc(first)}</h1><p>${DIAS_L[new Date(today + 'T12:00:00Z').getUTCDay()]}, ${d} de ${MES[m - 1]}</p></div>
 <span class="spacer"></span>
-<input class="dsearch" type="search" id="dq" placeholder="Buscar galerías" aria-label="Buscar galerías"><a class="dnew" href="/galerias?nueva=1">${ICON.plus}<span>Crear galería</span></a></header>`, main: `<section class="dstats">
-<a class="dstat" href="/galerias"><span class="dsi">${ICON.gal}</span><strong>${galleries.length}</strong><span>Galerías</span></a>
-<a class="dstat" href="/galerias"><span class="dsi">${ICON.up}</span><strong>${totals.n}</strong><span>Fotos</span></a>
-<a class="dstat" href="/galerias"><span class="dsi">${ICON.eye}</span><strong>${totals.pending}</strong><span>Por revisar</span></a>
-<a class="dstat" href="/torneo"><span class="dsi">${ICON.team}</span><strong>${torneos.length}</strong><span>Torneos</span></a>
+<input class="dsearch" type="search" id="dq" placeholder="Buscar galerías" aria-label="Buscar galerías"></header>`, main: `<section class="dstats"><div class="dstatgrid"><a class="dstat" href="/galerias"><span class="dsi">${ICON.gal}</span><strong>${galleries.length}</strong><span>Galerías</span></a><a class="dstat" href="/galerias"><span class="dsi">${ICON.up}</span><strong>${totals.n}</strong><span>Fotos</span></a><a class="dstat" href="/galerias"><span class="dsi">${ICON.eye}</span><strong>${totals.pending}</strong><span>Por revisar</span></a><a class="dstat" href="/torneo"><span class="dsi">${ICON.team}</span><strong>${torneos.length}</strong><span>Torneos</span></a></div>
+<div class="dcta"><strong>Crea una galería nueva</strong><span>Comparte el enlace y recibe las fotos de tus invitados.</span><a href="/galerias?nueva=1">${ICON.plus} Crear galería</a></div>
 </section>
 <div class="dgrid">
 <div class="dcol">
 <section class="dcard"><header><h2>Fotos subidas</h2><span class="dsub">${weekTotal} esta semana</span></header><div class="dchart">${bars}</div></section>
-<section class="dcard"><header><h2>Últimas fotos subidas</h2><span class="dsub">Hoy ${perDay[today]} · 7 días ${weekTotal} · 30 días ${month}</span></header>${latest.length ? `<div class="dlast">${lastHtml}</div>` : `<p class="dempty">Aún no se ha subido ninguna foto.</p>`}</section>
+<section class="dcard"><header><h2>Últimas fotos subidas</h2><span class="dsub">Últimos 30 días</span></header>${fstats.ready ? `<div class="dkpis"><div><b>${fstats.today}</b><span>Hoy</span></div><div><b>${weekTotal}</b><span>7 días</span></div><div><b>${month}</b><span>30 días</span></div><div><b>${fstats.views}</b><span>Visitas</span></div><div><b>${fstats.likes}</b><span>Me gusta</span></div></div>` : `<div class="dkpis"><div><b>${fstats.today}</b><span>Hoy</span></div><div><b>${weekTotal}</b><span>7 días</span></div><div><b>${month}</b><span>30 días</span></div></div>`}</section>
 <section class="dcard"><header><h2>Tus galerías</h2><a href="/galerias">Ver todas</a></header>${galleries.length ? `<div class="dgals" id="dgals">${cards}</div><p class="dempty hidden" id="dnone">Ninguna galería coincide.</p>` : `<p class="dempty">Todavía no tienes galerías.</p>`}</section>
 <section class="dcard"><header><h2>Próximos eventos</h2><a href="/agenda">Agenda</a></header>${agenda.ready ? list(agenda.events, 'No hay eventos próximos.') : '<p class="dempty">Agenda no disponible.</p>'}</section>
 </div>
