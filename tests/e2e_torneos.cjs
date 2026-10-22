@@ -66,6 +66,17 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   const rg = await p.evaluate(async (h) => { const r = await fetch(h, { headers: { range: 'bytes=0-9' } }); return [r.status, (await r.arrayBuffer()).byteLength]; }, href); ok(rg[0] === 206 && rg[1] === 10, 'admite rangos (vídeo) ' + rg);
   await p.setViewportSize({ width: 390, height: 900 }); await p.evaluate(() => document.querySelectorAll('.tfl .fn').forEach((a) => { a.textContent = 'c5d2280a-0744-4333-b83e-3f9a1c2d4e5f-nombre-muy-largo-del-archivo.mp4'; }));
   await p.screenshot({ path: '/tmp/picfy_shots/hub_movil.png', fullPage: true }); await p.setViewportSize({ width: 1280, height: 900 });
+  // galería de la sede + enviar foto como borrador con editor
+  await p.selectOption('.tgalrow >> nth=0 >> select', 'new'); await p.waitForSelector('.tgalrow >> nth=0 >> .tgalgo'); ok(true, 'subgalería creada');
+  ok((await p.$eval('.tgalbar select', (e) => e.value)) !== '', 'galería del torneo creada a la vez');
+  await p.click('.tsede >> nth=0 >> .tfiles'); await p.waitForSelector('.tsede >> nth=0 >> button[aria-label="Enviar a la galería"]');
+  await p.click('.tsede >> nth=0 >> button[aria-label="Enviar a la galería"]'); await p.waitForSelector('.pedit[open] .pe-view');
+  await p.fill('.pedit input[aria-label="Brillo"]', '40'); await p.dispatchEvent('.pedit input[aria-label="Brillo"]', 'input');
+  await p.click('.pe-chip:has-text("1:1")'); await p.waitForTimeout(300);
+  await p.screenshot({ path: '/tmp/picfy_shots/editor.png' });
+  await p.click('.pedit footer .btn.primary'); await p.waitForSelector('.fsent', { state: 'attached', timeout: 20000 }); ok(true, 'enviada a la galería');
+  const pend = await p.evaluate(async () => { const r = await fetch('/api/torneos/' + document.body.dataset.torneo); const d = await r.json(); return d.sedes[0].event_id; });
+  ok(!!pend, 'la sede tiene galería');
   // devolver una tarea hecha con un comentario
   await p.click('.tsede >> nth=0 >> button[aria-label="Devolver al creador"]'); await p.waitForSelector('#retryDlg[open]');
   await p.fill('#retryForm textarea', 'El saludo se ve movido, repítelo en horizontal'); await p.click('#retryForm button[type=submit]');

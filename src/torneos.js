@@ -1,5 +1,5 @@
 // Torneos: el hub (cuenta) organiza sedes, creadores con enlace de invitación y tareas del día.
-import { randomHex, isHex, html, json } from './util.js';
+import { randomHex, sha256Hex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
 import { torneosPage, torneoPage, miDiaPage } from './appviews.js';
 
@@ -24,6 +24,15 @@ export async function detallesReady(db) {
   try { await db.prepare('SELECT description, start_date, end_date, color, cover_v FROM torneos LIMIT 1').first(); sx = { v: true, t: Date.now() }; }
   catch { sx = { v: false, t: Date.now() }; }
   return sx.v;
+}
+let sg = { v: null, t: 0 };
+export async function galeriaReady(db) {
+  if (sg.v === true || (sg.v === false && Date.now() - sg.t < 30000)) return sg.v;
+  try {
+    await db.prepare('SELECT event_id FROM torneos LIMIT 1').first(); await db.prepare('SELECT event_id FROM sedes LIMIT 1').first(); await db.prepare('SELECT sent_id FROM entregas_torneo LIMIT 1').first();
+    sg = { v: true, t: Date.now() };
+  } catch { sg = { v: false, t: Date.now() }; }
+  return sg.v;
 }
 let sr = { v: null, t: 0 };
 export async function repetirReady(db) {
@@ -171,8 +180,76 @@ export function torneosRoutes(app) {
     const creadores = await q('SELECT id, sede_id, name, token FROM creadores WHERE sede_id IN (?) ORDER BY created_at');
     const rc = (await repetirReady(c.env.DB)) ? ', retry, retry_note' : '';
     const tareas = await q("SELECT id, sede_id, creador_id, kind, title, date, time, notes, done, done_at, done_by" + rc + " FROM tareas_torneo WHERE sede_id IN (?) ORDER BY date, COALESCE(time, '99:99'), created_at");
-    const entregas = (await entregasReady(c.env.DB)) ? await q("SELECT id, sede_id, tarea_id, creador_id, filename, mime, size FROM entregas_torneo WHERE state = 'ok' AND sede_id IN (?) ORDER BY created_at") : [];
-    return json({ sedes: sedes.map((s) => ({ ...s, creadores: creadores.filter((x) => x.sede_id === s.id), tareas: tareas.filter((x) => x.sede_id === s.id).map((t) => ({ ...t, entregas: entregas.filter((e) => e.tarea_id === t.id) })) })) });
+    const gx = await galeriaReady(c.env.DB);
+    const entregas = (await entregasReady(c.env.DB)) ? await q("SELECT id, sede_id, tarea_id, creador_id, filename, mime, size" + (gx ? ', sent_id' : '') + " FROM entregas_torneo WHERE state = 'ok' AND sede_id IN (?) ORDER BY created_at") : [];
+    let galerias = [], sedeEv = {};
+    if (gx) {
+      galerias = (await c.env.DB.prepare('SELECT id, name, parent_id FROM events WHERE owner_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 300').bind(a.user.id).all()).results;
+      if (ids.length) for (const r of (await q('SELECT id, event_id FROM sedes WHERE id IN (?)'))) sedeEv[r.id] = r.event_id;
+    }
+    return json({ galeria: gx ? t.event_id || null : null, galerias, sedes: sedes.map((s) => ({ ...s, event_id: sedeEv[s.id] || null, creadores: creadores.filter((x) => x.sede_id === s.id), tareas: tareas.filter((x) => x.sede_id === s.id).map((t) => ({ ...t, entregas: entregas.filter((e) => e.tarea_id === t.id) })) })) });
+  });
+
+  /* ----- Galerías vinculadas ----- */
+  async function newEvent(c, user, name, parent) {
+    const id = randomHex(8);
+    await c.env.DB.prepare(
+      `INSERT INTO events (id, name, lead, event_date, guest_token, manage_hash, auto_approve, photo_limit, created_at, owner_id, parent_id, accent, cover_v, avatar_v)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(id, name, '', parent ? parent.event_date : null, randomHex(16), await sha256Hex(randomHex(32)), parent ? parent.auto_approve : 1, 0, Date.now(), user.id, parent ? parent.id : null, parent ? parent.accent : null, 0, 0).run();
+    return id;
+  }
+  const ownEv = (c, user, id) => isHex(id, 16) ? c.env.DB.prepare('SELECT * FROM events WHERE id = ? AND owner_id = ? AND deleted_at IS NULL').bind(id, user.id).first() : null;
+
+  app.put('/api/torneos/:id/galeria', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    if (!(await galeriaReady(c.env.DB))) return json({ error: 'setup' }, 503);
+    const t = await ownTorneo(c, a.user, c.req.param('id'));
+    if (!t) return json({ error: 'nf' }, 404);
+    const want = String((await c.req.json().catch(() => ({}))).event_id || '');
+    let ev = null;
+    if (want === 'new') ev = await newEvent(c, a.user, t.name, null);
+    else if (want) { const e = await ownEv(c, a.user, want); if (!e || e.parent_id) return json({ error: 'ev' }, 400); ev = e.id; }
+    await c.env.DB.prepare('UPDATE torneos SET event_id = ? WHERE id = ?').bind(ev, t.id).run();
+    return json({ event_id: ev });
+  });
+
+  app.put('/api/sedes/:id/galeria', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    if (!(await galeriaReady(c.env.DB))) return json({ error: 'setup' }, 503);
+    const s = await ownSede(c, a.user, c.req.param('id'));
+    if (!s) return json({ error: 'nf' }, 404);
+    const want = String((await c.req.json().catch(() => ({}))).event_id || '');
+    let ev = null, parentId = null;
+    if (want === 'new') {
+      const t = await ownTorneo(c, a.user, s.torneo_id);
+      let par = t.event_id ? await ownEv(c, a.user, t.event_id) : null;
+      if (!par) { parentId = await newEvent(c, a.user, t.name, null); await c.env.DB.prepare('UPDATE torneos SET event_id = ? WHERE id = ?').bind(parentId, t.id).run(); par = await ownEv(c, a.user, parentId); }
+      ev = await newEvent(c, a.user, s.name, par); parentId = par.id;
+    } else if (want) { const e = await ownEv(c, a.user, want); if (!e) return json({ error: 'ev' }, 400); ev = e.id; }
+    await c.env.DB.prepare('UPDATE sedes SET event_id = ? WHERE id = ?').bind(ev, s.id).run();
+    return json({ event_id: ev, torneo_event: parentId });
+  });
+
+  // Datos para enviar fotos a la galería de la sede (solo el dueño)
+  app.get('/api/sedes/:id/galeria', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    const s = await ownSede(c, a.user, c.req.param('id'));
+    if (!s || !(await galeriaReady(c.env.DB)) || !s.event_id) return json({ error: 'nf' }, 404);
+    const e = await ownEv(c, a.user, s.event_id);
+    if (!e) return json({ error: 'nf' }, 404);
+    return json({ id: e.id, name: e.name, token: e.guest_token });
+  });
+
+  app.post('/api/entregas/:id/enviada', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    if (!(await galeriaReady(c.env.DB))) return json({ error: 'setup' }, 503);
+    const e = await hubEntrega(c, a.user, c.req.param('id'));
+    if (!e) return json({ error: 'nf' }, 404);
+    const pid = String((await c.req.json().catch(() => ({}))).photo || '');
+    if (!isHex(pid, 32)) return json({ error: 'bad' }, 400);
+    await c.env.DB.prepare('UPDATE entregas_torneo SET sent_id = ? WHERE id = ?').bind(pid, e.id).run();
+    return json({ ok: true });
   });
 
   app.post('/api/torneos/:id/sedes', async (c) => {

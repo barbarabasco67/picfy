@@ -1155,3 +1155,26 @@ body.app .dnew { color: #fff; } .dnew svg { width: 15px; height: 15px; }
 .ttasks .tmain { display: block; }
 .ttasks .tmain .tkind { display: inline-block; margin-right: 8px; vertical-align: middle; }
 .ttasks .tmain .t { display: inline; }
+.tgalbar { padding: 12px 16px; border-radius: 18px; margin-bottom: 4px; } .tgalrow { padding: 0 4px 10px; }
+.tgalsel { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: .85rem; font-weight: 600; color: var(--muted); }
+.tgalsel select { max-width: 100%; min-width: 0; font: inherit; font-weight: 600; color: #14213d; background: #fff; border: 1px solid #e3e6ee; border-radius: 10px; padding: 6px 10px; }
+.tgalgo { font-size: .8rem; font-weight: 700; color: #14213d; text-decoration: underline; }
+.ttasks .tfl li { grid-template-columns: 44px minmax(0,1fr) auto auto auto auto; }
+.fth { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #e6e9f0; display: grid; place-items: center; font-size: .65rem; color: var(--muted); }
+.fsent { font-size: .66rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #14213d; color: #fff; }
+.ttoast { position: fixed; left: 50%; bottom: 110px; transform: translateX(-50%); background: #14213d; color: #fff; padding: 10px 18px; border-radius: 99px; font-weight: 600; font-size: .9rem; z-index: 99999; box-shadow: 0 8px 24px rgba(20,33,61,.3); }
+/* editor de fotos */
+dialog.pedit { width: min(94vw, 880px); max-height: 94vh; padding: 0; overflow: auto; }
+.pedit .dlgbox { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.pedit .pe-name { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pe-stage { background: #0e1626; border-radius: 14px; display: grid; place-items: center; padding: 8px; min-height: 160px; }
+.pe-view { max-width: 100%; max-height: 46vh; touch-action: none; cursor: grab; border-radius: 6px; }
+.pe-tools { display: grid; gap: 8px 22px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .pe-tools { grid-template-columns: 1fr 1fr; } }
+.pe-row, .pe-chips { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.pe-reset { border: 0; background: none; font: inherit; font-size: .82rem; font-weight: 700; text-decoration: underline; color: #14213d; cursor: pointer; margin-left: auto; }
+.pe-chip { border: 1px solid #d5d9e4; background: #fff; border-radius: 99px; padding: 4px 12px; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; } .pe-chip.on { background: #14213d; color: #fff; border-color: #14213d; }
+.pe-sl { display: grid; grid-template-columns: 120px minmax(0,1fr) 34px; align-items: center; gap: 8px; font-size: .84rem; font-weight: 600; } .pe-sl output { font-size: .76rem; color: var(--muted); text-align: right; }
+.pe-sl select { grid-column: 2 / 4; font: inherit; padding: 6px 10px; border-radius: 10px; border: 1px solid #e3e6ee; background: #fff; }
+.pedit footer { display: flex; gap: 8px; align-items: center; }
+.ttasks .tfl li { display: flex; align-items: center; gap: 8px; } .ttasks .tfl li .fn { flex: 1; }

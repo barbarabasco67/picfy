@@ -53,7 +53,8 @@
   const load = async () => { data = await api('GET', '/api/torneos/' + tid); draw(); };
 
   function draw() {
-    root.replaceChildren(...data.sedes.map(sedeCard));
+    const top = data.galerias ? [h('div', { class: 'glass tgalbar' }, galSelect('Galería del torneo', data.galeria, data.galerias.filter((g) => !g.parent_id), (v) => api('PUT', `/api/torneos/${tid}/galeria`, { event_id: v }), 'Crear galería del torneo'))] : [];
+    root.replaceChildren(...top, ...data.sedes.map(sedeCard));
     if (!data.sedes.length) root.append(h('div', { class: 'glass emptybox' }, 'Añade la primera sede.'));
   }
 
@@ -65,6 +66,55 @@
 
   function svgi(path) { const v = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); v.setAttribute('viewBox', '0 0 24 24'); v.setAttribute('fill', 'none'); v.setAttribute('stroke', 'currentColor'); v.setAttribute('stroke-width', '2'); v.setAttribute('stroke-linecap', 'round'); v.setAttribute('stroke-linejoin', 'round'); v.innerHTML = path; return v; }
   function ico(path, label, fn) { const b = h('button', { type: 'button', class: 'ib', title: label, 'aria-label': label, onclick: fn }); b.append(svgi(path)); return b; }
+  /* ----- Galería de la sede: enviar fotos como borrador ----- */
+  const crcT = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  const crc32 = (buf) => { const u = new Uint8Array(buf); let c = 0xffffffff; for (let i = 0; i < u.length; i++) c = crcT[(c ^ u[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  const scaled = (img, side, q) => new Promise((res) => { const k = Math.min(1, side / Math.max(img.naturalWidth, img.naturalHeight)); const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); cv.toBlob(res, 'image/jpeg', q); });
+  const loadImg = (url) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+  const toast = (msg) => { const t = h('div', { class: 'ttoast' }, msg); document.body.append(t); setTimeout(() => t.remove(), 3500); };
+
+  async function sendPhoto(f, sede) {
+    const name = f.filename;
+    const g = await api('GET', `/api/sedes/${sede.id}/galeria`).catch(() => null);
+    if (!g) { toast('Esta sede no tiene galería'); return; }
+    const src = await (await fetch(`/api/entregas/${f.id}/archivo`)).blob();
+    const url = URL.createObjectURL(src);
+    const res = await window.PicfyEdit.open(url, name, 'Enviar como borrador');
+    if (!res) { URL.revokeObjectURL(url); return; }
+    toast('Enviando…');
+    let ou = url;
+    try {
+      const o = res.edited ? res.blob : src;
+      if (res.edited) ou = URL.createObjectURL(o);
+      const im = await loadImg(ou);
+      const [m, l] = await Promise.all([scaled(im, 480, 0.8), scaled(im, 1600, 0.85)]);
+      const buf = await o.arrayBuffer();
+      const rid = f.creador_id || sede.id, key = rid + rid;
+      const creador = sede.creadores.find((c) => c.id === f.creador_id);
+      const base = `/api/e/${g.token}`;
+      const jh = { 'content-type': 'application/json' };
+      const type = res.edited ? 'image/jpeg' : (src.type || 'image/jpeg');
+      const ext = res.edited ? '.jpg' : (name.match(/\.[^.]+$/) || ['.jpg'])[0];
+      const init = await fetch(`${base}/upload/init`, { method: 'POST', headers: jh, body: JSON.stringify({ key, name: creador ? creador.name : sede.name, filename: name.replace(/\.[^.]+$/, '') + ext, type, size: o.size, w: im.naturalWidth, h: im.naturalHeight, crc: crc32(buf), consent: true }) }).then((r) => r.json());
+      if (!init.id) throw new Error('init');
+      for (const [sz, bl] of [['m', m], ['l', l], ['o', o]]) { const r = await fetch(`${base}/upload/${init.id}/${sz}`, { method: 'PUT', headers: { 'x-picfy-key': key }, body: bl }); if (!r.ok) throw new Error(sz); }
+      const done = await fetch(`${base}/upload/${init.id}/commit`, { method: 'POST', headers: jh, body: JSON.stringify({ key, draft: true }) }).then((r) => r.json());
+      if (!done.ok) throw new Error('commit');
+      await api('POST', `/api/entregas/${f.id}/enviada`, { photo: init.id });
+      toast('Enviada a la galería como borrador');
+    } catch (e) { toast('No se pudo enviar la foto'); }
+    if (ou !== url) URL.revokeObjectURL(ou);
+    URL.revokeObjectURL(url);
+    load();
+  }
+
+  function galSelect(label, current, options, onPick, newLabel) {
+    const sel = h('select', { 'aria-label': label, onchange: async (e) => { await onPick(e.target.value); load(); } },
+      h('option', { value: '' }, 'Sin galería'), options.map((o) => h('option', { value: o.id, selected: o.id === current }, (o.parent_id ? '↳ ' : '') + o.name)),
+      h('option', { value: 'new' }, newLabel));
+    return h('label', { class: 'tgalsel' }, h('span', {}, label), sel, current ? h('a', { class: 'tgalgo', href: '/galerias/' + current }, 'Abrir') : null);
+  }
+
   function taskList(list, sede) {
     const days = [...new Set(list.map((t) => t.date))].sort((a, b) => (a || '9').localeCompare(b || '9'));
     return days.map((d) => h('div', { class: 'tdaybox' }, h('h4', { class: 'tday' }, fmt(d)), h('ul', { class: 'ttasks' }, list.filter((t) => t.date === d).map((t) => {
@@ -83,10 +133,16 @@
           t.done ? ico('<path d="M20 11a8 8 0 00-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0014.5 4.5L20 16"/><path d="M20 20v-4h-4"/>', 'Devolver al creador', () => askRetry(t)) : null,
           ico('<path d="M4 20h4L19 9l-4-4L4 16v4z"/>', 'Editar tarea', () => editTask(t, sede)),
           ico('<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>', 'Borrar tarea', async () => { await api('DELETE', '/api/tareas/' + t.id); load(); })),
-        files.length ? h('ul', { class: 'tfl', hidden: true }, files.map((f) => h('li', {},
-          h('a', { href: `/api/entregas/${f.id}/archivo`, target: '_blank', rel: 'noopener', class: 'fn' }, f.filename), h('small', {}, bytes(f.size)),
-          h('a', { href: `/api/entregas/${f.id}/archivo?dl=1`, class: 'ib', title: 'Descargar', 'aria-label': 'Descargar' }, svgi('<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/>')),
-          ico('<path d="M6 6l12 12M18 6L6 18"/>', 'Borrar archivo', async () => { if (confirm('¿Borrar ' + f.filename + '?')) { await api('DELETE', '/api/entregas/' + f.id); load(); } })))) : null);
+        files.length ? h('ul', { class: 'tfl', hidden: true }, files.map((f) => {
+          const isImg = /^image\//.test(f.mime || '');
+          return h('li', {},
+            isImg ? h('img', { class: 'fth', loading: 'lazy', alt: '', src: `/api/entregas/${f.id}/archivo` }) : h('span', { class: 'fth vid' }, 'Vídeo'),
+            h('a', { href: `/api/entregas/${f.id}/archivo`, target: '_blank', rel: 'noopener', class: 'fn' }, f.filename), h('small', {}, bytes(f.size)),
+            isImg && f.sent_id ? h('span', { class: 'fsent', title: 'Enviada a la galería como borrador' }, 'Enviada') : null,
+            isImg && sede.event_id && !f.sent_id ? ico('<path d="M5 12l5 5L20 7"/><path d="M4 20h16"/>', 'Enviar a la galería', () => sendPhoto(f, sede)) : null,
+            h('a', { href: `/api/entregas/${f.id}/archivo?dl=1`, class: 'ib', title: 'Descargar', 'aria-label': 'Descargar' }, svgi('<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/>')),
+            ico('<path d="M6 6l12 12M18 6L6 18"/>', 'Borrar archivo', async () => { if (confirm('¿Borrar ' + f.filename + '?')) { await api('DELETE', '/api/entregas/' + f.id); load(); } }));
+        })) : null);
     }))));
   }
 
@@ -106,6 +162,8 @@
     const sv = fold.firstChild; sv.setAttribute('viewBox', '0 0 24 24'); sv.setAttribute('fill', 'none'); sv.setAttribute('stroke', 'currentColor'); sv.setAttribute('stroke-width', '2.2'); sv.setAttribute('stroke-linecap', 'round'); sv.setAttribute('stroke-linejoin', 'round'); sv.innerHTML = '<path d="M6 9l6 6 6-6"/>';
     card.append(h('header', { class: 'tshead' }, fold,
       h('button', { class: 'iconbtn', type: 'button', title: 'Borrar sede', 'aria-label': 'Borrar sede', onclick: async () => { if (confirm('¿Borrar la sede con sus tareas y creadores?')) { await api('DELETE', '/api/sedes/' + s.id); load(); } } }, '×')));
+
+    if (data.galerias) card.append(h('div', { class: 'tgalrow' }, galSelect('Galería de la sede', s.event_id, data.galerias.slice().sort((x, y) => (y.parent_id ? 1 : 0) - (x.parent_id ? 1 : 0)), (v) => api('PUT', `/api/sedes/${s.id}/galeria`, { event_id: v }), 'Crear subgalería de la sede')));
 
     // Cuadros para añadir (separados de las tareas)
     const cf = h('form', { class: 'tform tnewcreator', onsubmit: async (e) => { e.preventDefault(); const v = e.target.name.value.trim(); if (!v) return; await api('POST', `/api/sedes/${s.id}/creadores`, { name: v }); load(); } },

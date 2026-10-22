@@ -315,7 +315,7 @@ app.post('/api/e/:token/upload/:id/commit', async (c) => {
   if (o.size !== photo.size) return json({ error: 'size_mismatch' }, 409);
   const me = await currentUser(c);
   const isOwner = Boolean(me && event.owner_id && me.id === event.owner_id);
-  const state = event.auto_approve || isOwner ? 'approved' : 'pending';
+  const state = b.draft && isOwner ? 'pending' : event.auto_approve || isOwner ? 'approved' : 'pending';
   const order = await nextSortOrder(c.env.DB, event.id);
   await c.env.DB.prepare(`UPDATE photos SET state = ?, sort_order = ? WHERE id = ? AND state = 'uploading'`).bind(state, order, id).run();
   try { // la foto subió ya con la marca de agua vigente: no hace falta rehacerla

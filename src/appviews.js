@@ -771,7 +771,7 @@ export function torneoPage({ user, torneo, kinds, colors = [] }) {
   const sw = colors.map((c) => `<label class="tsw" style="--c:${c}"><input type="radio" name="color" value="${c}"${c === torneo.color ? ' checked' : ''}><span></span></label>`).join('');
   return appPage({
     title: torneo.name,
-    scripts: ['/torneos.js'],
+    scripts: ['/fotoedit.js', '/torneos.js'],
     bodyAttrs: `data-torneo="${torneo.id}" data-kinds="${esc(JSON.stringify(kinds))}"`,
     body: shell({
       user, active: 'torneos', crumbs: '<a href="/torneo">Torneos</a>',
