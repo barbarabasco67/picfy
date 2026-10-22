@@ -25,6 +25,7 @@ const ICON = {
 };
 ICON.dash = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="9" rx="2"/><rect x="13.5" y="3" width="7.5" height="5.5" rx="2"/><rect x="13.5" y="12" width="7.5" height="9" rx="2"/><rect x="3" y="15.5" width="7.5" height="5.5" rx="2"/></svg>';
 ICON.team = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20v-1a5 5 0 015-5h2a5 5 0 015 5v1"/><circle cx="17.5" cy="9" r="2.4"/><path d="M18 14.2a4 4 0 013 3.8v1"/></svg>';
+ICON.more = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="18.5" cy="12" r="1.9"/></svg>';
 export { ICON };
 
 function appPage({ title, body, scripts = [], bodyAttrs = '' }) {
@@ -55,7 +56,11 @@ function shell({ user, active = 'galerias', crumbs = '', main, collapsible = fal
 <aside class="side">
 <div class="side-head"><a class="logo" href="/inicio"><span class="logo-dot"></span><b>Picfy</b></a>${true ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}</div>
 <nav class="side-nav">
-${link('inicio', '/inicio', 'Inicio', 'dash')}${link('galerias', '/galerias', 'Galerías', 'gal')}${link('colecciones', '/colecciones', 'Colecciones', 'coll')}${link('agenda', '/agenda', 'Agenda', 'cal')}${link('torneos', '/torneo', 'Torneos', 'team')}
+${link('inicio', '/inicio', 'Inicio', 'dash')}
+<p class="side-cat">Fotos</p>
+${link('galerias', '/galerias', 'Galerías', 'gal')}${link('colecciones', '/colecciones', 'Colecciones', 'coll')}
+<p class="side-cat">Organización</p>
+${link('agenda', '/agenda', 'Agenda', 'cal')}${link('torneos', '/torneo', 'Torneos', 'team')}
 </nav>
 <div class="side-bot">
 ${storage ? spaceBox(storage) : ''}
@@ -63,6 +68,20 @@ ${link('papelera', '/papelera', 'Papelera', 'trash', ' trashnav')}<a class="nav 
 <form method="post" action="/salir"><button class="nav" type="submit">${ICON.out}<span>Salir</span></button></form>
 </div>
 </aside>
+<header class="mtop"><a class="logo" href="/inicio"><span class="logo-dot"></span><b>Picfy</b></a></header>
+<nav class="tabbar" aria-label="Menú">
+<a class="tab ${active === 'inicio' ? 'on' : ''}" href="/inicio">${ICON.dash}<span>Inicio</span></a>
+<a class="tab ${active === 'galerias' ? 'on' : ''}" href="/galerias">${ICON.gal}<span>Galerías</span></a>
+<a class="tab ${active === 'agenda' ? 'on' : ''}" href="/agenda">${ICON.cal}<span>Agenda</span></a>
+<a class="tab ${active === 'torneos' ? 'on' : ''}" href="/torneo">${ICON.team}<span>Torneos</span></a>
+<button class="tab ${['colecciones', 'papelera', 'cuenta'].includes(active) ? 'on' : ''}" type="button" id="tabMore" aria-expanded="false">${ICON.more}<span>Más</span></button>
+</nav>
+<div class="moresheet" id="moreSheet" hidden>
+<a class="tab ${active === 'colecciones' ? 'on' : ''}" href="/colecciones">${ICON.coll}<span>Colecciones</span></a>
+<a class="tab ${active === 'papelera' ? 'on' : ''}" href="/papelera">${ICON.trash}<span>Papelera</span></a>
+<a class="tab ${active === 'cuenta' ? 'on' : ''}" href="/cuenta">${av}<span>Mi cuenta</span></a>
+<form method="post" action="/salir"><button class="tab" type="submit">${ICON.out}<span>Salir</span></button></form>
+</div>
 <main class="main">
 ${top || (crumbs ? `<header class="top"><nav class="crumbs">${crumbs}</nav></header>` : '')}
 ${main}

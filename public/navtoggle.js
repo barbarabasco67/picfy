@@ -1,5 +1,14 @@
 // Menú lateral: se pliega a iconos para dar más sitio. Empieza abierto en todas las páginas y recuerda la elección.
 (() => {
+  const more = document.getElementById('tabMore'), sheet = document.getElementById('moreSheet');
+  if (more && sheet) {
+    const close = () => { sheet.hidden = true; more.setAttribute('aria-expanded', 'false'); };
+    more.addEventListener('click', (e) => { e.stopPropagation(); sheet.hidden = !sheet.hidden; more.setAttribute('aria-expanded', String(!sheet.hidden)); });
+    document.addEventListener('click', (e) => { if (!sheet.hidden && !sheet.contains(e.target)) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  }
+})();
+(() => {
   const side = document.querySelector('.frame > .side'), btn = document.getElementById('navToggle'); if (!side || !btn) return;
   const frame = side.parentElement, key = 'picfy_nav';
   const set = (open) => {
