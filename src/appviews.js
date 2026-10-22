@@ -60,27 +60,46 @@ ${side || `<p class="side-h">Gestiona tus fotos</p>
 </div>`;
 }
 
-/* ---------- Entrar / crear cuenta ---------- */
+/* ---------- Entrar / crear cuenta (una sola pantalla con dos pestañas) ---------- */
+
+const GOOGLE_G = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12s3.6-6.5 9.5-6.5S21.5 12 21.5 12 17.9 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+function authForm(mode, { error, email, name }) {
+  const login = mode === 'login';
+  return `<form class="au-form" method="post" action="${login ? '/entrar' : '/registro'}" data-mode="${mode}">
+${error ? `<div class="alert" role="alert">${esc(error)}</div>` : ''}
+${login ? '' : `<label class="au-field"><span>Nombre</span><input type="text" name="name" value="${esc(name)}" maxlength="80" autocomplete="name" required></label>`}
+<label class="au-field"><span>Correo electrónico</span><input type="text" inputmode="email" name="email" value="${esc(email)}" maxlength="254" autocomplete="email" required></label>
+<label class="au-field"><span>Contraseña</span><span class="au-pw"><input type="password" name="password" autocomplete="${login ? 'current-password' : 'new-password'}" minlength="${login ? 1 : 8}" required placeholder="${login ? '' : 'Mínimo 8 caracteres'}"><button type="button" class="au-eye" aria-label="Mostrar la contraseña">${EYE}</button></span></label>
+<button class="au-submit" type="submit">${login ? 'Entrar' : 'Crear cuenta'}</button>
+</form>`;
+}
 
 export function authPage({ mode = 'login', error = '', email = '', name = '', google = false }) {
   const login = mode === 'login';
+  const other = login ? 'signup' : 'login';
+  const act = { error, email, name }, idle = { error: '', email: '', name: '' };
+  const tile = (cls, g) => `<i class="au-tile ${cls}" style="--g:${g}"><b></b></i>`;
   return appPage({
     title: login ? 'Entrar' : 'Crear cuenta',
-    body: `<main class="auth">
-<div class="glass auth-card">
-${logo}
-<h1>${login ? 'Entra en tu espacio' : 'Crea tu cuenta'}</h1>
-<p class="muted">${login ? 'Tus galerías, tus fotos, todo en un sitio.' : 'Crea tu perfil y empieza a compartir tus fotos.'}</p>
-${error ? `<div class="alert">${esc(error)}</div>` : ''}
-${google ? `<a class="btn gbtn-google block" href="/auth/google"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Continuar con Google</a><div class="or"><span>o con tu correo</span></div>` : ''}
-<form method="post" action="${login ? '/entrar' : '/registro'}">
-${login ? '' : `<label class="field"><span>Nombre</span><input type="text" name="name" value="${esc(name)}" maxlength="80" autocomplete="name" required></label>`}
-<label class="field"><span>Correo electrónico</span><input type="text" inputmode="email" name="email" value="${esc(email)}" maxlength="254" autocomplete="email" required ${login ? 'autofocus' : ''}></label>
-<label class="field"><span>Contraseña${login ? '' : ' (mínimo 8 caracteres)'}</span><input type="password" name="password" autocomplete="${login ? 'current-password' : 'new-password'}" minlength="${login ? 1 : 8}" required></label>
-<button class="btn primary block" type="submit">${login ? 'Entrar' : 'Crear cuenta'}</button>
-</form>
-<p class="switch">${login ? '¿Todavía no tienes cuenta? <a href="/registro">Crear cuenta</a>' : '¿Ya tienes cuenta? <a href="/entrar">Entrar</a>'}</p>
-</div></main>`,
+    scripts: ['/auth.js'],
+    body: `<main class="au">
+<section class="au-art" aria-hidden="true">
+<a class="au-logo" href="/"><span class="logo-dot"></span>Picfy</a>
+<div class="au-collage">
+${tile('t1', 'linear-gradient(160deg,#f6c27b,#d9703a 55%,#7a2f2a)')}${tile('t2', 'linear-gradient(200deg,#7fb3c9,#3d6a8e 60%,#1d2f4a)')}${tile('t3', 'linear-gradient(150deg,#f3d9b8,#e0a56a 50%,#b46a3a)')}${tile('t4', 'linear-gradient(190deg,#e7a0a8,#b9456a 60%,#4a1f3a)')}${tile('t5', 'linear-gradient(160deg,#9fd3b8,#3f8f73 60%,#173d33)')}${tile('t6', 'linear-gradient(200deg,#cdb8f0,#7b5cc4 60%,#2c1f5c)')}
+</div>
+</section>
+<section class="au-pane"><div class="au-box">
+<a class="au-logo dark" href="/"><span class="logo-dot"></span>Picfy</a>
+<div class="au-tabs" role="tablist"><a href="/entrar" data-mode="login" role="tab" class="${login ? 'on' : ''}" aria-selected="${login}">Entrar</a><a href="/registro" data-mode="signup" role="tab" class="${login ? '' : 'on'}" aria-selected="${!login}">Crear cuenta</a></div>
+<h1 class="au-h" id="auH" data-login="Bienvenido de nuevo" data-signup="Crea tu cuenta">${login ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}</h1>
+${google ? `<a class="au-google" href="/auth/google">${GOOGLE_G}Continuar con Google</a><div class="au-or"><span>o</span></div>` : ''}
+<div id="auForms">${authForm(mode, act)}</div>
+<template id="auOther" data-mode="${other}">${authForm(other, idle)}</template>
+</div></section>
+</main>`,
   });
 }
 
