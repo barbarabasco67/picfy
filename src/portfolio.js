@@ -47,10 +47,10 @@ const lines = (arr) => arr.map((l, i) => `<span class="ln"><span style="--i:${i}
 // álbumes de fotografía: [clave, título, fotos [tipo, nº], portadas (posiciones en la lista)]
 const ALB = [
   ['baloncesto', 'Baloncesto', [28, 7, 16, 8, 3, 2, 19, 25, 30, 31, 45, 44, 20, 23, 41, 42, 4, 5, 15, 36, 37].map((n) => ['ph', n]), [0, 2, 8, 6, 11]],
-  ['retrato', 'Retrato', [1, 10, 11, 12, 14, 18, 26, 29, 32, 33, 39, 40, 43].map((n) => ['ph', n]), [3, 1, 10, 7, 12]],
+  ['retrato', 'Retrato', [1, 10, 11, 12, 14, 18, 26, 29, 32, 33, 39, 40, 43, 38].map((n) => ['ph', n]), [3, 1, 10, 13, 12]],
   ['mediaday', 'Media Day', Array.from({ length: 12 }, (_, i) => ['md', i + 1]), [2, 5, 0, 10, 7]],
-  ['espacios', 'Espacios', [21, 13, 9, 17, 38].map((n) => ['ph', n]), [0, 1, 2, 3, 4]],
-  ['eventos', 'Eventos', [27, 34, 35, 46, 24, 22, 6].map((n) => ['ph', n]), [5, 1, 2, 3, 0]],
+  ['espacios', 'Espacios', [21, 13, 9].map((n) => ['ph', n]), [0, 1, 2]],
+  ['eventos', 'Eventos', [27, 34, 35, 46, 24, 22, 6, 17].map((n) => ['ph', n]), [5, 1, 2, 7, 0]],
 ];
 const albumHtml = (a) => {
   const [k, t, items, cov] = a;
@@ -59,7 +59,7 @@ const albumHtml = (a) => {
   const dim = ([ty, n]) => (ty === 'md' ? D.md[n - 1] : D.photos[n - 1]);
   const covers = cov.map((ix) => { const it = items[ix], d = dim(it); return `<img data-ix="${ix}" src="${src(it)}" width="${d.w}" height="${d.h}" alt="${esc(alt(it))}" loading="lazy" decoding="async">`; }).join('');
   return `<article class="album" data-gal="alb-${k}" tabindex="0" role="button" aria-label="Abrir el álbum ${esc(t)}, ${items.length} fotos" data-r>
-    <div class="alb-mos">${covers}</div>
+    <div class="alb-mos${cov.length < 5 ? " m3" : ""}">${covers}</div>
     <div class="alb-cap"><h3>${esc(t)}</h3><span>${items.length} fotos<i aria-hidden="true">→</i></span></div>
     <div hidden aria-hidden="true">${items.map((it) => `<i data-lb="${src(it, true)}" data-alt="${esc(alt(it))}"></i>`).join('')}</div>
   </article>`;
@@ -137,8 +137,8 @@ export function portfolioPage() {
   <div class="wrap hero-in">
     <div class="hero-txt">
       <p class="eb rise">Pablo &amp; Bárbara&nbsp;·&nbsp;Madrid</p>
-      <h1 id="h1" class="mega">${lines(['Todo lo que', 'tu marca', '<em>necesita</em>'])}</h1>
-      <p class="hero-sub rise" style="--i:5">Somos un equipo con ganas y experiencia que digitaliza tu empresa: webs, apps y herramientas a medida, vídeo, fotografía, diseño y contenido para redes.</p>
+      <h1 id="h1" class="mega">${lines(['Hacemos que', 'tu proyecto', '<em>se vea bien</em>'])}</h1>
+      <p class="hero-sub rise" style="--i:5">Somos Pablo y Bárbara: hacemos webs, apps, vídeo, fotografía, diseño y contenido para marcas, clubes y proyectos con ganas de crecer.</p>
       <div class="hero-cta rise" style="--i:6">
         <a class="btn gold" href="#apps"><span>Ver proyectos</span><i aria-hidden="true">→</i></a>
         <a class="btn line" href="${WA_LINK}" target="_blank" rel="noopener"><span>Escríbenos por WhatsApp</span></a>
