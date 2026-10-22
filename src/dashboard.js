@@ -3,6 +3,7 @@ import { html } from './util.js';
 import { currentUser } from './auth.js';
 import { dashPage, spaceBox } from './appviews.js';
 import { agendaReady, AGENDA_KINDS } from './agenda.js';
+import { torneosReady, detallesReady } from './torneos.js';
 
 const go = (to) => new Response(null, { status: 303, headers: { location: to } });
 const TZ = 'Europe/Madrid';
@@ -50,6 +51,20 @@ export function dashboardRoutes(app) {
       `SELECT COUNT(*) AS n FROM photos p JOIN events e ON e.id = p.event_id WHERE e.owner_id = ? AND p.uploaded_at >= ? AND p.state != 'uploading'`,
     ).bind(user.id, Date.now() - 30 * 86400000).first();
 
+    // Torneos (resumen)
+    let torneos = [];
+    if (await torneosReady(db)) {
+      const dx = await detallesReady(db);
+      torneos = (await db.prepare(
+        `SELECT t.id, t.name${dx ? ', t.start_date, t.end_date, t.color' : ''},
+           (SELECT COUNT(*) FROM sedes s WHERE s.torneo_id = t.id) AS sedes,
+           (SELECT COUNT(*) FROM tareas_torneo k JOIN sedes s ON s.id = k.sede_id WHERE s.torneo_id = t.id) AS tareas,
+           (SELECT COUNT(*) FROM tareas_torneo k JOIN sedes s ON s.id = k.sede_id WHERE s.torneo_id = t.id AND k.done = 1) AS hechas,
+           (SELECT COUNT(*) FROM tareas_torneo k JOIN sedes s ON s.id = k.sede_id WHERE s.torneo_id = t.id AND k.done = 0 AND k.date = ?) AS hoy
+         FROM torneos t WHERE t.owner_id = ? ORDER BY t.created_at DESC LIMIT 50`,
+      ).bind(today, user.id).all()).results;
+    }
+
     // Agenda
     let agenda = { ready: false, today: [], todo: [], events: [], dots: [] };
     if (await agendaReady(db)) {
@@ -67,6 +82,6 @@ export function dashboardRoutes(app) {
       };
     }
 
-    return html(dashPage({ user, today, galleries: gal, totals: tot, days, perDay, agenda, kinds: AGENDA_KINDS }));
+    return html(dashPage({ user, today, galleries: gal, totals: tot, days, perDay, agenda, kinds: AGENDA_KINDS, latest, month: m30.n, torneos }));
   });
 }

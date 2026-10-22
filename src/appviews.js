@@ -688,7 +688,7 @@ function miniCal(today, dots) {
   return `<div class="dcal">${cells}</div>`;
 }
 
-export function dashPage({ user, today, galleries, totals, days, perDay, agenda, kinds, latest = [], month = 0 }) {
+export function dashPage({ user, today, galleries, totals, days, perDay, agenda, kinds, latest = [], month = 0, torneos = [] }) {
   const first = (user.name || user.email).trim().split(/\s+/)[0];
   const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
   const [, m, d] = today.split('-').map(Number);
@@ -702,6 +702,7 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
   }).join('');
   const ago = (t) => { const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
   const lastHtml = latest.map((x) => `<a class="dlp" href="/galerias/${x.eid}" title="${esc(x.ename)}"><img src="/m/${x.id}/m" alt="" loading="lazy">${x.state === 'pending' ? '<b>Por revisar</b>' : ''}<span>${esc(x.ename)}</span><em>${ago(x.t)}</em></a>`).join('');
+  const torHtml = torneos.slice(0, 3).map((t) => { const pct = t.tareas ? Math.round((t.hechas / t.tareas) * 100) : 0; const c = t.color || '#14213d'; return `<a class="dtor" href="/torneo/${t.id}" style="--tc:${esc(c)}"><div><strong>${esc(t.name)}</strong><span>${t.sedes} ${t.sedes === 1 ? 'sede' : 'sedes'} · ${t.hechas}/${t.tareas} tareas${t.hoy ? ` · ${t.hoy} para hoy` : ''}</span></div><b>${pct}%</b><i><u style="width:${pct}%"></u></i></a>`; }).join('');
   const weekTotal = days.reduce((a, x) => a + perDay[x], 0);
   const chip = (it) => {
     const k = kinds[it.kind] || { color: '#999', label: '' };
@@ -716,11 +717,11 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
     scripts: ['/dash.js'],
     body: shell({ user, active: 'inicio', storage: totals, top: `<header class="dtop"><div><h1>${hi}, ${esc(first)}</h1><p>${DIAS_L[new Date(today + 'T12:00:00Z').getUTCDay()]}, ${d} de ${MES[m - 1]}</p></div>
 <span class="spacer"></span>
-<input class="dsearch" type="search" id="dq" placeholder="Buscar galerías" aria-label="Buscar galerías"></header>`, main: `<section class="dstats">
+<input class="dsearch" type="search" id="dq" placeholder="Buscar galerías" aria-label="Buscar galerías"><a class="dnew" href="/galerias?nueva=1">${ICON.plus}<span>Crear galería</span></a></header>`, main: `<section class="dstats">
 <a class="dstat" href="/galerias"><span class="dsi">${ICON.gal}</span><strong>${galleries.length}</strong><span>Galerías</span></a>
 <a class="dstat" href="/galerias"><span class="dsi">${ICON.up}</span><strong>${totals.n}</strong><span>Fotos</span></a>
 <a class="dstat" href="/galerias"><span class="dsi">${ICON.eye}</span><strong>${totals.pending}</strong><span>Por revisar</span></a>
-<div class="dcta"><strong>Crea una galería nueva</strong><span>Comparte el enlace y recibe las fotos de tus invitados.</span><a href="/galerias?nueva=1">${ICON.plus} Crear galería</a></div>
+<a class="dstat" href="/torneo"><span class="dsi">${ICON.team}</span><strong>${torneos.length}</strong><span>Torneos</span></a>
 </section>
 <div class="dgrid">
 <div class="dcol">
@@ -730,6 +731,7 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
 <section class="dcard"><header><h2>Próximos eventos</h2><a href="/agenda">Agenda</a></header>${agenda.ready ? list(agenda.events, 'No hay eventos próximos.') : '<p class="dempty">Agenda no disponible.</p>'}</section>
 </div>
 <div class="dcol">
+<section class="dcard"><header><h2>Torneos</h2><a href="/torneo">Ver todos</a></header>${torneos.length ? `<div class="dtors">${torHtml}</div>` : `<p class="dempty">Aún no hay torneos.</p>`}</section>
 <section class="dcard"><header><h2>Hoy</h2><a href="/agenda">Agenda</a></header>${agenda.ready ? list(agenda.today, 'Nada para hoy.') : '<p class="dempty">Agenda no disponible.</p>'}</section>
 <section class="dcard"><header><h2>${MES[m - 1][0].toUpperCase() + MES[m - 1].slice(1)}</h2><a href="/agenda">Calendario</a></header>${miniCal(today, agenda.dots)}</section>
 <section class="dcard"><header><h2>Por hacer</h2><a href="/agenda">Ver</a></header>${agenda.ready ? list(agenda.todo, 'Todo al día.') : ''}</section>
