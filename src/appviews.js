@@ -89,7 +89,7 @@ export function authPage({ mode = 'login', error = '', email = '', name = '', go
 <section class="au-art" aria-hidden="true">
 <a class="au-logo" href="/"><span class="logo-dot"></span>Picfy</a>
 <div class="au-collage">
-${tile('t1', 'linear-gradient(160deg,#f6c27b,#d9703a 55%,#7a2f2a)', 'photo-1506744038136-46273834b3fb')}${tile('t2', 'linear-gradient(200deg,#7fb3c9,#3d6a8e 60%,#1d2f4a)', 'photo-1470229722913-7c0e2dbbafd3')}${tile('t3', 'linear-gradient(150deg,#f3d9b8,#e0a56a 50%,#b46a3a)', 'photo-1519741497674-611481863552')}${tile('t4', 'linear-gradient(190deg,#e7a0a8,#b9456a 60%,#4a1f3a)', 'photo-1543466835-00a7907e9de1')}${tile('t5', 'linear-gradient(160deg,#9fd3b8,#3f8f73 60%,#173d33)', 'photo-1546519638-68e109498ffc')}${tile('t6', 'linear-gradient(200deg,#cdb8f0,#7b5cc4 60%,#2c1f5c)', 'photo-1501785888041-af3ef285b470')}
+${tile('t1', 'linear-gradient(160deg,#f6c27b,#d9703a 55%,#7a2f2a)', 'photo-1504450758481-7338eef7ccf6')}${tile('t2', 'linear-gradient(200deg,#7fb3c9,#3d6a8e 60%,#1d2f4a)', 'photo-1519861531473-9200262188bf')}${tile('t3', 'linear-gradient(150deg,#f3d9b8,#e0a56a 50%,#b46a3a)', 'photo-1608245449230-4ac19066d2d0')}${tile('t4', 'linear-gradient(190deg,#e7a0a8,#b9456a 60%,#4a1f3a)', 'photo-1574623452334-1e0ac2b3ccb4')}${tile('t5', 'linear-gradient(160deg,#9fd3b8,#3f8f73 60%,#173d33)', 'photo-1504450758481-7338eef7ccf6')}${tile('t6', 'linear-gradient(200deg,#cdb8f0,#7b5cc4 60%,#2c1f5c)', 'photo-1515523110800-9415d13b84a8')}
 </div>
 </section>
 <section class="au-pane"><div class="au-box">
