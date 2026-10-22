@@ -23,6 +23,7 @@ const ICON = {
   cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
   lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>',
 };
+ICON.dash = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="9" rx="2"/><rect x="13.5" y="3" width="7.5" height="5.5" rx="2"/><rect x="13.5" y="12" width="7.5" height="9" rx="2"/><rect x="3" y="15.5" width="7.5" height="5.5" rx="2"/></svg>';
 export { ICON };
 
 function appPage({ title, body, scripts = [], bodyAttrs = '' }) {
@@ -36,27 +37,35 @@ function appPage({ title, body, scripts = [], bodyAttrs = '' }) {
 
 const logo = `<a class="logo" href="/inicio"><span class="logo-dot"></span>Picfy</a>`;
 
-// Marco con barra superior y lateral de cristal
-function shell({ user, active = 'galerias', crumbs = '', main, collapsible = false, side = '', noside = false }) {
+// Caja pequeña de espacio ocupado (barra lateral)
+export function spaceBox(st) {
+  const used = sizeOf(st.bytes, st.n);
+  const pct = Math.min(100, (used / FREE_BYTES) * 100);
+  const cls = used > FREE_BYTES ? ' over' : pct >= 80 ? ' warn' : '';
+  return `<a class="spbox${cls}" href="/galerias" title="${st.n} fotos"><span>Espacio ocupado</span><b>${fmtSize(used)} <small>/ ${fmtSize(FREE_BYTES)}</small></b><i><u style="width:${Math.max(pct, used ? 3 : 0).toFixed(1)}%"></u></i></a>`;
+}
+
+// Marco: barra lateral azul flotante + contenido
+function shell({ user, active = 'galerias', crumbs = '', main, collapsible = false, top = '', storage = null }) {
   const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
-  return `<header class="top glass">
-${logo}
-<nav class="crumbs">${crumbs}</nav>
-<span class="spacer"></span>
-<div class="who"><a class="avatar${active === 'cuenta' ? ' on' : ''}" href="/cuenta" title="Mi cuenta · ${esc(user.email)}" aria-label="Mi cuenta"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</a>
-<form method="post" action="/salir"><button class="iconbtn" type="submit" title="Salir" aria-label="Salir">${ICON.out}</button></form></div>
-</header>
-<div class="frame${collapsible ? ' nav-collapsed' : ''}${noside ? ' no-side' : ''}">
-${noside ? '' : `<aside class="side glass${collapsible ? ' collapsed' : ''}">
-${collapsible ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}
-${side || `<p class="side-h">Gestiona tus fotos</p>
-<a class="nav ${active === 'galerias' ? 'on' : ''}" href="/galerias">${ICON.gal}<span>Galerías</span></a>
-<a class="nav ${active === 'colecciones' ? 'on' : ''}" href="/colecciones">${ICON.coll}<span>Colecciones</span></a>
-<p class="side-h" style="margin-top:14px">Tu trabajo</p>
-<a class="nav ${active === 'agenda' ? 'on' : ''}" href="/agenda">${ICON.cal}<span>Agenda</span></a>
-<a class="nav trashnav ${active === 'papelera' ? 'on' : ''}" href="/papelera">${ICON.trash}<span>Papelera</span></a>`}
-</aside>`}
-<main class="main">${main}</main>
+  const av = `<a class="avatar${active === 'cuenta' ? ' on' : ''}" href="/cuenta" title="Mi cuenta · ${esc(user.email)}" aria-label="Mi cuenta"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</a>`;
+  const link = (k, href, label, ic, extra = '') => `<a class="nav${extra} ${active === k ? 'on' : ''}" href="${href}">${ICON[ic]}<span>${label}</span></a>`;
+  return `<div class="frame${collapsible ? ' nav-collapsed' : ''}">
+<aside class="side${collapsible ? ' collapsed' : ''}">
+<div class="side-head"><a class="logo" href="/inicio"><span class="logo-dot"></span><b>Picfy</b></a>${collapsible ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}</div>
+<nav class="side-nav">
+${link('inicio', '/inicio', 'Inicio', 'dash')}${link('galerias', '/galerias', 'Galerías', 'gal')}${link('colecciones', '/colecciones', 'Colecciones', 'coll')}${link('agenda', '/agenda', 'Agenda', 'cal')}
+</nav>
+<div class="side-bot">
+${storage ? spaceBox(storage) : '<div id="spSlot"></div><script src="/sidebox.js" defer></script>'}
+${link('papelera', '/papelera', 'Papelera', 'trash', ' trashnav')}${link('cuenta', '/cuenta', 'Mi cuenta', 'cog')}
+<form method="post" action="/salir"><button class="nav" type="submit">${ICON.out}<span>Salir</span></button></form>
+</div>
+</aside>
+<main class="main">
+${top || `<header class="top"><nav class="crumbs">${crumbs}</nav><span class="spacer"></span>${av}</header>`}
+${main}
+</main>
 </div>`;
 }
 
@@ -642,14 +651,6 @@ export function agendaPage({ user, ready, kinds }) {
 
 /* ---------- Panel de inicio ---------- */
 
-const DNAV = [
-  ['inicio', '/inicio', 'Inicio', 'dash'],
-  ['galerias', '/galerias', 'Galerías', 'gal'],
-  ['colecciones', '/colecciones', 'Colecciones', 'coll'],
-  ['agenda', '/agenda', 'Agenda', 'cal'],
-  ['papelera', '/papelera', 'Papelera', 'trash'],
-];
-ICON.dash = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="9" rx="2"/><rect x="13.5" y="3" width="7.5" height="5.5" rx="2"/><rect x="13.5" y="12" width="7.5" height="9" rx="2"/><rect x="3" y="15.5" width="7.5" height="5.5" rx="2"/></svg>';
 
 const MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 const DIA3 = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
@@ -674,8 +675,6 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
   const [, m, d] = today.split('-').map(Number);
   const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Madrid', hour: '2-digit', hour12: false }).format(new Date()));
   const hi = hour < 6 ? 'Buenas noches' : hour < 13 ? 'Buenos días' : hour < 21 ? 'Buenas tardes' : 'Buenas noches';
-  const used = sizeOf(totals.bytes, totals.n);
-  const pct = Math.min(100, (used / FREE_BYTES) * 100);
   const max = Math.max(1, ...days.map((x) => perDay[x]));
   const bars = days.map((x) => {
     const v = perDay[x];
@@ -691,23 +690,13 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
   const cards = galleries.slice(0, 3).map((e) => `<a class="dgal" href="/galerias/${e.id}" data-name="${esc(e.name.toLowerCase())}">
 <div class="dcov">${e.cover ? `<img src="/m/${e.cover}/m" alt="" loading="lazy">` : `<span>${ICON.gal}</span>`}${e.pending ? `<b class="dwarn">${e.pending} por revisar</b>` : ''}</div>
 <strong>${esc(e.name)}</strong><span>${e.approved} fotos${e.event_date ? ' · ' + esc(fmtDate(e.event_date)) : ''}</span></a>`).join('');
-  const nav = DNAV.map(([k, href, label, ic]) => `<a class="dnav${k === 'inicio' ? ' on' : ''}" href="${href}">${ICON[ic]}<span>${label}</span></a>`).join('');
   return appPage({
     title: 'Inicio',
     scripts: ['/dash.js'],
-    body: `<div class="dash">
-<aside class="dside">
-<a class="dlogo" href="/inicio"><span class="logo-dot"></span>Picfy</a>
-<nav class="dnavs">${nav}</nav>
-<div class="dpromo"><span class="dpl">Espacio ocupado</span><strong>${fmtSize(used)}</strong><span class="dps">de ${fmtSize(FREE_BYTES)} gratis</span><div class="dbarp"><i style="width:${Math.max(pct, used ? 2 : 0).toFixed(1)}%"></i></div><a class="dpbtn" href="/galerias?nueva=1">Nueva galería</a></div>
-<div class="dfoot"><a href="/cuenta">${ICON.cog}<span>Mi cuenta</span></a><form method="post" action="/salir"><button type="submit">${ICON.out}<span>Salir</span></button></form></div>
-</aside>
-<main class="dmain">
-<header class="dtop"><div><h1>${hi}, ${esc(first)}</h1><p>${DIAS_L[new Date(today + 'T12:00:00Z').getUTCDay()]}, ${d} de ${MES[m - 1]}</p></div>
+    body: shell({ user, active: 'inicio', storage: totals, top: `<header class="dtop"><div><h1>${hi}, ${esc(first)}</h1><p>${DIAS_L[new Date(today + 'T12:00:00Z').getUTCDay()]}, ${d} de ${MES[m - 1]}</p></div>
 <span class="spacer"></span>
 <input class="dsearch" type="search" id="dq" placeholder="Buscar galerías" aria-label="Buscar galerías">
-<a class="avatar" href="/cuenta" aria-label="Mi cuenta"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</a></header>
-<section class="dstats">
+<a class="avatar" href="/cuenta" aria-label="Mi cuenta"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</a></header>`, main: `<section class="dstats">
 <a class="dstat" href="/galerias"><span class="dsi">${ICON.gal}</span><strong>${galleries.length}</strong><span>Galerías</span></a>
 <a class="dstat" href="/galerias"><span class="dsi">${ICON.up}</span><strong>${totals.n}</strong><span>Fotos</span></a>
 <a class="dstat" href="/galerias"><span class="dsi">${ICON.eye}</span><strong>${totals.pending}</strong><span>Por revisar</span></a>
@@ -725,7 +714,7 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
 <section class="dcard"><header><h2>Por hacer</h2><a href="/agenda">Ver</a></header>${agenda.ready ? list(agenda.todo, 'Todo al día.') : ''}</section>
 </div>
 </div>
-</main>
-</div>`,
+`,
+    }),
   });
 }

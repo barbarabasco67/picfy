@@ -1,7 +1,7 @@
 // Panel de inicio (picfy.es/inicio): resumen del trabajo del usuario.
 import { html } from './util.js';
 import { currentUser } from './auth.js';
-import { dashPage } from './appviews.js';
+import { dashPage, spaceBox } from './appviews.js';
 import { agendaReady, AGENDA_KINDS } from './agenda.js';
 
 const go = (to) => new Response(null, { status: 303, headers: { location: to } });
@@ -10,6 +10,13 @@ const ymd = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numer
 const addDays = (s, n) => { const d = new Date(s + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 
 export function dashboardRoutes(app) {
+  app.get('/api/espacio', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return new Response('', { status: 401 });
+    const tot = await c.env.DB.prepare('SELECT COALESCE(SUM(p.size),0) AS bytes, COUNT(*) AS n FROM photos p JOIN events e ON e.id = p.event_id WHERE e.owner_id = ?').bind(user.id).first();
+    return new Response(spaceBox(tot), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
+  });
+
   app.get('/inicio', async (c) => {
     const user = await currentUser(c);
     if (!user) return go('/entrar');

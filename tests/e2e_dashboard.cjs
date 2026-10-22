@@ -10,7 +10,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
     await p.goto(B + '/registro'); await p.fill('input[name=name]', 'Pablo Gómez'); await p.fill('input[name=email]', `d${Date.now()}${w}@t.es`); await p.fill('input[name=password]', 'clave12345');
     await p.click('.au-submit'); await p.waitForURL('**/inicio');
     ok(/Pablo/.test(await p.textContent('.dtop h1')), 'saludo con el nombre');
-    ok(await p.$('.dside') && await p.$('.dstats') && await p.$('.dchart') && await p.$('.dcal'), 'bloques del panel');
+    ok(await p.$('.side .spbox + .trashnav') && await p.$('.dstats') && await p.$('.dchart') && await p.$('.dcal'), 'bloques del panel');
     // crear galería desde el panel
     await p.goto(B + '/galerias?nueva=1'); await p.waitForSelector('#newDlg[open]'); ok(new URL(p.url()).search === '', 'abre el diálogo y limpia la URL');
     await p.fill('#newDlg input[name=name]', 'Final Four'); await p.click('#newDlg button[type=submit], #newDlg .btn.primary[type=submit]');
