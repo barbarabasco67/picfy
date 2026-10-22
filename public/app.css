@@ -965,3 +965,8 @@ body.app:has(.frame) .glass { box-shadow: 0 2px 14px rgba(20, 33, 61, .07), inse
   .side.collapsed .nav { justify-content: flex-start; }
   .frame > .main { padding-top: 4px; }
 }
+
+.side .av { width: 24px; height: 24px; border-radius: 50%; background: #edb265 center / cover; color: #2a1a00; display: grid; place-items: center; font-size: .7rem; font-weight: 800; flex: none; }
+.side .nav.on .av { background-color: #14213d; color: #fff; }
+.frame > .main > .top { margin-bottom: 14px; }
+.dtop { margin-bottom: 18px; }

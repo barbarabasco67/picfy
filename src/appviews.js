@@ -48,7 +48,7 @@ export function spaceBox(st) {
 // Marco: barra lateral azul flotante + contenido
 function shell({ user, active = 'galerias', crumbs = '', main, collapsible = false, top = '', storage = null }) {
   const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
-  const av = `<a class="avatar${active === 'cuenta' ? ' on' : ''}" href="/cuenta" title="Mi cuenta · ${esc(user.email)}" aria-label="Mi cuenta"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</a>`;
+  const av = `<span class="av"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials.slice(0, 1))}</span>`;
   const link = (k, href, label, ic, extra = '') => `<a class="nav${extra} ${active === k ? 'on' : ''}" href="${href}">${ICON[ic]}<span>${label}</span></a>`;
   return `<div class="frame">
 <aside class="side">
@@ -58,12 +58,12 @@ ${link('inicio', '/inicio', 'Inicio', 'dash')}${link('galerias', '/galerias', 'G
 </nav>
 <div class="side-bot">
 ${storage ? spaceBox(storage) : ''}
-${link('papelera', '/papelera', 'Papelera', 'trash', ' trashnav')}${link('cuenta', '/cuenta', 'Mi cuenta', 'cog')}
+${link('papelera', '/papelera', 'Papelera', 'trash', ' trashnav')}<a class="nav acc ${active === 'cuenta' ? 'on' : ''}" href="/cuenta" title="${esc(user.email)}">${av}<span>Mi cuenta</span></a>
 <form method="post" action="/salir"><button class="nav" type="submit">${ICON.out}<span>Salir</span></button></form>
 </div>
 </aside>
 <main class="main">
-${top || `<header class="top"><nav class="crumbs"><a href="/inicio">Inicio</a>${crumbs ? '<span>/</span>' : ''}${crumbs}</nav><span class="spacer"></span>${av}</header>`}
+${top || (crumbs ? `<header class="top"><nav class="crumbs">${crumbs}</nav></header>` : '')}
 ${main}
 </main>
 <script src="/navtoggle.js" defer></script>
@@ -300,7 +300,7 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
     body: shell({
       user,
       collapsible: true,
-      crumbs: `<a href="/galerias">Galerías</a><span>/</span>${parent ? `<a href="/galerias/${parent.id}">${esc(parent.name)}</a><span>/</span>` : ''}<b>${esc(event.name)}</b>`,
+      crumbs: parent ? `<a href="/galerias">Galerías</a><span>/</span><a href="/galerias/${parent.id}">${esc(parent.name)}</a>` : '',
       main: `${note ? `<div class="alert ok">${esc(note)}</div>` : ''}${expiryBanner(event)}
 <div class="gwrap">
 <aside class="gside glass" id="gside">
@@ -500,7 +500,7 @@ export function accountPage({ user, section = 'datos', ok = '', error = '', defa
     scripts: ['/account.js'],
     body: shell({
       user, active: 'cuenta', noside: true,
-      crumbs: '<a href="/galerias">Galerías</a><span class="sep">/</span><b>Mi cuenta</b>',
+      crumbs: '',
       main: `<a class="backlink" href="/inicio">← Volver al inicio</a>
 <div class="prof glass">
 <div class="prof-avbox"><span class="prof-av" id="profAv"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</span>
@@ -529,7 +529,7 @@ export function trashPage({ user, galleries = [], photos = [], ready = true, ok 
   return appPage({
     title: 'Papelera',
     body: shell({
-      user, active: 'papelera', crumbs: '<a href="/galerias">Galerías</a><span>/</span><b>Papelera</b>',
+      user, active: 'papelera', crumbs: '',
       main: `<div class="head"><div><h1>Papelera</h1><p class="muted">Las fotos que borras se guardan aquí 7 días y las galerías enteras 30. Pasado ese tiempo se eliminan para siempre.</p></div></div>
 ${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}
 ${!ready ? '<div class="alert">Falta la actualización de la base de datos (migración 0014) para usar la papelera.</div>' : ''}
@@ -557,7 +557,7 @@ export function collectionsPage({ user, collections = [], ready = true, ok = '' 
     title: 'Colecciones',
     scripts: ['/app.js', '/colecciones.js'],
     body: shell({
-      user, active: 'colecciones', crumbs: '<b>Colecciones</b>',
+      user, active: 'colecciones', crumbs: '',
       main: `${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}${ready ? '' : noTables}<div class="head"><div><h1>Colecciones</h1><p class="muted">Agrupa varias galerías de un mismo cliente y compártelas con un único enlace.</p></div></div>
 ${ready ? `<button class="btn primary" type="button" data-open="newCol">${ICON.plus} Crear una colección</button>` : ''}
 <h2 class="sec">Tus colecciones</h2>
@@ -587,7 +587,7 @@ export function collectionPage({ user, col, items = [], available = [], origin, 
     title: col.name,
     scripts: ['/app.js', '/colecciones.js'],
     body: shell({
-      user, active: 'colecciones', crumbs: `<a href="/colecciones">Colecciones</a><span>/</span><b>${esc(col.name)}</b>`,
+      user, active: 'colecciones', crumbs: `<a href="/colecciones">Colecciones</a>`,
       main: `${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}<div class="head"><div><h1>${esc(col.name)}</h1>${col.lead ? `<p class="muted">${esc(col.lead)}</p>` : ''}</div></div>
 <div class="glass colshare"><span class="muted small">Enlace para tu cliente</span><div class="linkbox" id="colLink">${esc(url)}</div>
 <div class="colbtns"><button class="btn primary" type="button" id="copyCol">Copiar enlace</button><a class="btn" href="/col/${col.token}" target="_blank" rel="noopener">${ICON.eye} Vista previa</a><button class="btn" type="button" data-open="editCol">Editar nombre</button></div></div>
@@ -617,7 +617,7 @@ export function agendaPage({ user, ready, kinds }) {
     scripts: ['/app.js', '/icons.js', '/agenda.js'],
     bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}"`,
     body: shell({
-      user, active: 'agenda', crumbs: '<span>Agenda</span>', collapsible: true,
+      user, active: 'agenda', crumbs: '', collapsible: true,
       main: !ready ? `<div class="head"><div><h1>Agenda</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar la agenda.</div>` : `<div class="head"><div><h1>Agenda</h1></div>
 <button class="btn primary" type="button" id="agAdd">${ICON.plus} Añadir</button></div>
 <form class="glass agquick" id="agQuick" autocomplete="off"><input type="text" id="agQuickT" maxlength="160" placeholder="Nueva tarea… (escribe y pulsa Intro)" aria-label="Nueva tarea"><button class="btn primary" type="submit">Añadir tarea</button></form>
@@ -695,8 +695,7 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
     scripts: ['/dash.js'],
     body: shell({ user, active: 'inicio', storage: totals, top: `<header class="dtop"><div><h1>${hi}, ${esc(first)}</h1><p>${DIAS_L[new Date(today + 'T12:00:00Z').getUTCDay()]}, ${d} de ${MES[m - 1]}</p></div>
 <span class="spacer"></span>
-<input class="dsearch" type="search" id="dq" placeholder="Buscar galerías" aria-label="Buscar galerías">
-<a class="avatar" href="/cuenta" aria-label="Mi cuenta"${user.avatar_v ? ` style="background-image:url('/cuenta/foto?v=${user.avatar_v}')"` : ''}>${user.avatar_v ? '' : esc(initials)}</a></header>`, main: `<section class="dstats">
+<input class="dsearch" type="search" id="dq" placeholder="Buscar galerías" aria-label="Buscar galerías"></header>`, main: `<section class="dstats">
 <a class="dstat" href="/galerias"><span class="dsi">${ICON.gal}</span><strong>${galleries.length}</strong><span>Galerías</span></a>
 <a class="dstat" href="/galerias"><span class="dsi">${ICON.up}</span><strong>${totals.n}</strong><span>Fotos</span></a>
 <a class="dstat" href="/galerias"><span class="dsi">${ICON.eye}</span><strong>${totals.pending}</strong><span>Por revisar</span></a>

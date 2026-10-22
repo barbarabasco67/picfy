@@ -10,17 +10,17 @@ const assert = (c, m) => { if (!c) { console.error('FALLO:', m); process.exitCod
   await p.fill('[name=name]', 'Ana'); await p.fill('[name=email]', email); await p.fill('[name=password]', 'clave-12345');
   if (await p.$('[name=code]')) await p.fill('[name=code]', 'codigo');
   await Promise.all([p.waitForNavigation(), p.click('button[type=submit]')]); await p.goto(B + '/galerias');
-  await p.click('a.avatar'); await p.waitForURL('**/cuenta/datos'); await Promise.all([p.waitForURL('**/inicio'), p.click('.backlink')]); await p.click('a.avatar'); await p.waitForURL('**/cuenta/datos');
+  await p.click('.side a.acc'); await p.waitForURL('**/cuenta/datos'); await Promise.all([p.waitForURL('**/inicio'), p.click('.backlink')]); await p.click('.side a.acc'); await p.waitForURL('**/cuenta/datos');
   await p.fill('[name=surname]', 'García'); await p.fill('[name=username]', 'ana.g' + (Date.now() % 100000)); await p.click('form[action="/cuenta/datos"] button');
   await p.waitForSelector('.notice.ok:not(.hidden)'); assert((await p.inputValue('[name=surname]')) === 'García', 'apellidos'); assert(/^@ana\.g/.test(await p.textContent('.handle')), 'usuario bajo el nombre'); assert(!(await p.textContent('.prof-id')).includes('@e.es') && !(await p.textContent('.prof-id')).includes('@ejemplo'), 'sin correo');
   // foto de perfil
   const fs = require('fs'); const img = 'tests/img/' + fs.readdirSync('tests/img').find((f) => /\.jpe?g$/.test(f));
   await p.setInputFiles('#avFile', img); await p.waitForLoadState('load'); await p.waitForSelector('#avDel');
-  assert(/cuenta\/foto/.test(await p.getAttribute('a.avatar', 'style')), 'foto en la cabecera');
-  await p.goto(B + '/galerias'); assert(/cuenta\/foto/.test(await p.getAttribute('a.avatar', 'style')), 'foto en galerías');
-  const st = await p.evaluate(async () => (await fetch(document.querySelector('a.avatar').style.backgroundImage.slice(5, -2))).status); assert(st === 200, 'imagen servida');
+  assert(/cuenta\/foto/.test(await p.getAttribute('.side .av', 'style')), 'foto en la cabecera');
+  await p.goto(B + '/galerias'); assert(/cuenta\/foto/.test(await p.getAttribute('.side .av', 'style')), 'foto en galerías');
+  const st = await p.evaluate(async () => (await fetch(document.querySelector('.side .av').style.backgroundImage.slice(5, -2))).status); assert(st === 200, 'imagen servida');
   await p.goto(B + '/cuenta/datos'); await p.click('#avDel'); await p.waitForSelector('#avFile', { state: 'attached' }); await p.waitForTimeout(300);
-  assert(!(await p.getAttribute('a.avatar', 'style')), 'foto quitada');
+  assert(!(await p.getAttribute('.side .av', 'style')), 'foto quitada');
   await p.setInputFiles('#avFile', img); await p.waitForSelector('#avDel');
   // contraseña
   await p.goto(B + '/cuenta/password');

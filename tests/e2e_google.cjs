@@ -37,7 +37,7 @@ async function fresh(b) { const p = await (await b.newContext()).newPage(); p.on
   const email = `g${Date.now()}@gmail.com`;
   global.__who = `${email}|Ana Pérez`;
   await p.click('a[href="/auth/google"]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
-  check('entra con Google y crea el perfil', /Ana/.test(await p.textContent('header .avatar')) || (await p.$('header .avatar')) !== null);
+  check('entra con Google y crea el perfil', /Ana/.test(await p.textContent('.side .av')) || (await p.$('.side .av')) !== null);
   const me = await p.evaluate(async () => (await fetch('/cuenta')).status);
   check('sesión abierta', me === 200);
   // sale y vuelve a entrar: misma cuenta
