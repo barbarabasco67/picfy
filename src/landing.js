@@ -81,7 +81,14 @@ h2{font-size:clamp(2rem,4.4vw,3.4rem)}
 .door:nth-child(2){background:#0b1426}
 .door .ph-bg{z-index:-2;transition:opacity 1.2s,transform 1.2s}
 .door::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,rgba(11,20,38,.96) 8%,rgba(11,20,38,.45) 70%,rgba(11,20,38,.2))}
-.door:hover .ph-bg{transform:scale(1.06)}
+.door .ph-bg{animation:dz 16s ease-in-out infinite alternate}
+.door:nth-child(2) .ph-bg{animation-direction:alternate-reverse}
+@keyframes dz{from{transform:scale(1.04) translate3d(-1.5%,0,0)}to{transform:scale(1.16) translate3d(1.5%,-1.5%,0)}}
+.door::after{content:"";position:absolute;inset:-20%;z-index:-1;pointer-events:none;background:radial-gradient(420px circle at 50% 50%,rgba(237,178,101,.28),transparent 65%);mix-blend-mode:screen;animation:glw 9s ease-in-out infinite alternate}
+.door:nth-child(1)::after{animation-name:glwl}.door:nth-child(2)::after{animation-name:glwr}
+@keyframes glwl{from{transform:translate(-18%,-6%);opacity:.5}to{transform:translate(8%,10%);opacity:1}}
+@keyframes glwr{from{transform:translate(18%,-6%);opacity:.5}to{transform:translate(-8%,10%);opacity:1}}
+@media (prefers-reduced-motion:reduce){.door .ph-bg,.door::after{animation:none}}
 .door .label{margin-bottom:12px}
 .door h3{font-size:clamp(1.8rem,3.4vw,2.7rem);line-height:1.05}
 .door p{margin-top:14px;color:rgba(255,255,255,.8);max-width:26em}
@@ -183,7 +190,7 @@ const JS = `(function(){
   ids.forEach(function(id,n){var im=new Image();im.onload=function(){ok[n+1]='/landing/'+id;fin()};im.onerror=fin;im.src='/landing/'+id});
   function fin(){if(--left)return;var ks=Object.keys(ok);if(!ks.length)return;
     document.querySelectorAll('.ph-bg').forEach(function(s,i){var u=ok[s.getAttribute('data-ph')]||ok[ks[i%ks.length]];s.style.backgroundImage='url('+u+')';s.classList.add('on');});
-    var ed=document.querySelector('.edmock .pic');if(ed)ed.style.setProperty('--bgimg','url('+(ok[2]||ok[ks[0]])+')');}
+    var ed=document.querySelector('.edmock .pic');if(ed)ed.style.setProperty('--bgimg','url('+(ok[5]||ok[ks[0]])+')');}
   // movimiento 3D de la portada según el puntero
   if(!rm&&matchMedia('(hover:hover)').matches){var tx=0,ty=0,cx=0,cy=0,raf=0;
     function tick(){cx+=(tx-cx)*.08;cy+=(ty-cy)*.08;hero.style.setProperty('--mx',cx.toFixed(3));hero.style.setProperty('--my',cy.toFixed(3));raf=(Math.abs(tx-cx)+Math.abs(ty-cy)>.002)?requestAnimationFrame(tick):0}
@@ -251,8 +258,8 @@ export function landingPage(user = null) {
 
 <div class="over">
 <div class="two">
-  <a class="door" href="#album"><div class="ph-bg" data-ph="2" aria-hidden="true"></div><span class="label">Para torneos y eventos</span><h3>Álbum colaborativo</h3><p>Para torneos, campus y eventos: un enlace y un QR para que suba fotos todo el que esté allí.</p><span class="go">Ver el álbum</span></a>
-  <a class="door" href="#pro"><div class="ph-bg" data-ph="3" aria-hidden="true"></div><span class="label">Para profesionales</span><h3>Fotógrafos y organizadores</h3><p>Galerías por sede, revisión de fotos, selección de clubes, creadores con tareas y editor.</p><span class="go">Ver herramientas</span></a>
+  <a class="door" href="#album"><div class="ph-bg" data-ph="6" aria-hidden="true"></div><span class="label">Para torneos y eventos</span><h3>Álbum colaborativo</h3><p>Para torneos, campus y eventos: un enlace y un QR para que suba fotos todo el que esté allí.</p><span class="go">Ver el álbum</span></a>
+  <a class="door" href="#pro"><div class="ph-bg" data-ph="5" aria-hidden="true"></div><span class="label">Para profesionales</span><h3>Fotógrafos y organizadores</h3><p>Galerías por sede, revisión de fotos, selección de clubes, creadores con tareas y editor.</p><span class="go">Ver herramientas</span></a>
 </div>
 
 <section class="s album" id="album"><div class="wrap">
@@ -294,7 +301,7 @@ export function landingPage(user = null) {
     <div class="tabs reveal" role="tablist"><button class="tab" type="button" role="tab">Sedes</button><button class="tab" type="button" role="tab">Creadores</button><button class="tab" type="button" role="tab">Revisar y repetir</button><button class="tab" type="button" role="tab">Editar y publicar</button><button class="tab" type="button" role="tab">Tu panel</button></div>
     <div class="track reveal">
       <article class="slide"><div><h3>Sedes con su equipo y su calendario</h3><p>Crea el torneo con fechas, color y portada, añade las sedes y deja cada una con sus creadores y sus tareas. Ves de un vistazo lo que lleva hecho cada una.</p><ul><li>Cada sede, vinculada a su subgalería de fotos</li><li>Se pliegan las que no necesitas</li><li>Resumen del torneo en tu panel</li></ul></div><div class="vis"><div class="phone">${L('app-sedes.webp', 'Sedes de un torneo: Madrid, Sabadell, Mallorca y Valencia', 585, 1266)}</div></div></article>
-      <article class="slide"><div><h3>Cada creador, con su enlace y su día</h3><p>Pasas un enlace a cada creador, sin cuenta y sin app. Ve sus tareas del día o de la semana (story, vídeo o foto) y sube sus archivos, de hasta 1 GB, desde el móvil.</p><ul><li>Vista de lista y de semana</li><li>Subida con barra de progreso</li><li>Cada creador con su color en el hub</li></ul></div><div class="vis"><div class="phone">${L('app-midia.webp', 'Mi día: las tareas del creador con sus archivos subidos', 585, 1266)}</div></div></article>
+      <article class="slide"><div><h3>Cada creador con su calendario y tareas del día</h3><p>Pasas un enlace a cada creador, sin cuenta y sin app. Ve sus tareas del día o de la semana (story, vídeo o foto) y sube sus archivos, de hasta 1 GB, desde el móvil.</p><ul><li>Vista de lista y de semana</li><li>Subida con barra de progreso</li><li>Cada creador con su color en el hub</li></ul></div><div class="vis"><div class="phone">${L('app-midia.webp', 'Mi día: las tareas del creador con sus archivos subidos', 585, 1266)}</div></div></article>
       <article class="slide"><div><h3>Revisa lo entregado y pide repetir</h3><p>Ves quién ha hecho cada tarea y qué ha subido. Si algo no vale, lo devuelves con un comentario y el creador lo ve marcado para repetirlo.</p><ul><li>Abre o descarga cada archivo</li><li>Devuelve la tarea con indicaciones</li><li>Al repetirla, el aviso desaparece</li></ul></div><div class="vis"><div class="phone">${L('app-creadores.webp', 'Hub del torneo con tareas hechas, devolver y archivos subidos', 585, 1266)}</div></div></article>
       <article class="slide"><div><h3>Edita antes de publicar</h3><p>Manda las fotos de un creador a la galería de su sede como borrador. Antes puedes recortar, enderezar, girar y ajustar la luz. El original no se toca y tú publicas cuando quieras.</p><ul><li>Recorte, giro y enderezado</li><li>Brillo, contraste, saturación y sombras</li><li>Entra como borrador hasta que la apruebes</li></ul></div><div class="vis"><div class="edmock"><div class="pic"><u></u></div><div class="r">Enderezar<s style="--v:42%"></s></div><div class="r">Brillo<s style="--v:58%"></s></div><div class="r">Saturación<s style="--v:35%"></s></div><div class="r">Sombras<s style="--v:48%"></s></div><div class="send">Enviar como borrador</div></div></div></article>
       <article class="slide"><div><h3>Tu panel, de un vistazo</h3><p>Galerías, fotos, pendientes de revisar y torneos en una pantalla, con las fotos subidas cada día, visitas y me gusta de las últimas, y la agenda de lo que toca hoy.</p><ul><li>Menú lateral en ordenador, barra inferior en el móvil</li><li>Agenda y tareas pendientes</li></ul></div><div class="vis"><div class="phone">${L('app-panel.webp', 'Panel de inicio de Picfy', 585, 1266)}</div></div></article>
