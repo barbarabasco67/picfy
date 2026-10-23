@@ -199,11 +199,12 @@ export function portfolioPage() {
         <p class="eb" data-r>App web&nbsp;·&nbsp;Fotografía de eventos</p>
         <h3 class="h3" data-r>Picfy</h3>
         <p data-r>Las fotos de tu torneo, en un solo enlace. Una galería por pabellón o evento donde equipos, voluntarios y familias suben y descargan sus fotos, sin crear cuentas.</p>
-        <ul class="ticks" data-r><li>Un enlace por evento</li><li>Subida desde el móvil</li><li>Descarga por equipos</li><li>Gestión para la organización</li></ul>
+        <p data-r>Y ahora también sirve para repartir el trabajo entre creadores y controlar lo que entregan: cada creador tiene su enlace con sus tareas pendientes, sube sus archivos ahí y tú ves de un vistazo qué está hecho.</p>
+        <ul class="ticks" data-r><li>Un enlace por evento</li><li>Subida desde el móvil</li><li>Descarga por equipos</li><li>Gestión para la organización</li><li>Reparto de tareas entre creadores</li><li>Control de lo que entregan</li></ul>
         <a class="btn gold" data-r href="/?landing"><span>picfy.es</span><i aria-hidden="true">↗</i></a>
       </div>
       <div class="app-vis" aria-label="Capturas de Picfy en el móvil">
-        <div class="ph-s p1" data-speed="0.04" data-r="zoom">${ui('pf1', 'Página de inicio de Picfy en el móvil', `data-lb="${P}/ui/pf1.webp?v=${v}" data-alt="Página de inicio de Picfy en el móvil"`)}</div>
+        <div class="ph-s p1" data-speed="0.04" data-r="zoom">${ui('pf1', 'Reparto de tareas entre creadores y control de entregas en Picfy', `data-lb="${P}/ui/pf1.webp?v=${v}" data-alt="Reparto de tareas entre creadores y control de entregas en Picfy"`)}</div>
         <div class="ph-s p2" data-speed="0.22" data-r="zoom" style="--d:.1s">${ui('pf2', 'Galería de un torneo en Picfy', `data-lb="${P}/ui/pf2.webp?v=${v}" data-alt="Galería de un torneo en Picfy"`)}</div>
         <div class="ph-s p3" data-speed="0.08" data-r="zoom" style="--d:.2s">${ui('pf3', 'Fotos compartidas en Picfy', `data-lb="${P}/ui/pf3.webp?v=${v}" data-alt="Fotos compartidas en Picfy"`)}</div>
         <div class="ph-s p4" data-speed="0.3" data-r="zoom" style="--d:.3s">${ui('pf4', 'Gestión de la galería en Picfy', `data-lb="${P}/ui/pf4.webp?v=${v}" data-alt="Gestión de la galería en Picfy"`)}</div>
