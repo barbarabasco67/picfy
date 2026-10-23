@@ -133,7 +133,7 @@ export function portfolioPage() {
 <!-- HERO -->
 <section class="hero" aria-labelledby="h1">
   <div class="hero-bg" aria-hidden="true"></div>
-  <div class="hero-person" aria-hidden="true"><div class="hp-halo"></div><div class="hp-tilt"><img src="${P}/ph/person.webp?v=${v}" alt="" width="668" height="859" fetchpriority="high" decoding="async"></div></div>
+  <div class="hero-person" aria-hidden="true"><div class="hp-halo"></div><div class="hp-tilt"><img src="${P}/ph/person.webp?v=${v}" alt="" width="1358" height="904" fetchpriority="high" decoding="async"></div></div>
   <div class="wrap hero-in">
     <div class="hero-txt">
       <p class="eb rise">Pablo &amp; Bárbara&nbsp;·&nbsp;Madrid</p>
