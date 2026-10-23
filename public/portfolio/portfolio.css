@@ -78,9 +78,9 @@ main,footer,.nav{position:relative;z-index:1}
 .btn:hover i{transform:translate(4px,-3px)}
 
 /* HERO */
-.hero{position:relative;min-height:100svh;padding:clamp(110px,14vh,150px) 0 40px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;isolation:isolate}
+.hero{position:relative;min-height:100svh;padding:clamp(150px,21vh,220px) 0 40px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;isolation:isolate}
 .hero-bg{position:absolute;inset:0;z-index:-2;background:radial-gradient(60% 70% at 22% 55%,rgba(214,173,120,.13),transparent 70%),linear-gradient(180deg,rgba(214,173,120,.1),transparent 30%)}
-.hero-person{position:absolute;right:-2vw;bottom:auto;top:3vh;width:min(66vw,1180px);z-index:-1;pointer-events:none;perspective:1400px}
+.hero-person{position:absolute;right:-2vw;bottom:auto;top:10vh;width:min(66vw,1180px);z-index:-1;pointer-events:none;perspective:1400px}
 .hp-halo{position:absolute;right:8%;top:14%;width:70%;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,rgba(242,211,162,.34),rgba(214,173,120,.1) 55%,transparent);filter:blur(24px);translate:calc(var(--ry,0)*6px) calc(var(--sy,0)*-.06px)}
 .hp-tilt{position:relative;padding:90px 90px 0;margin:-90px -90px 0;transform-style:preserve-3d;transform:rotateY(calc(var(--ry,0)*-1deg)) rotateZ(calc(var(--rz,0)*1deg)) translate3d(calc(var(--ry,0)*4px),calc(var(--sy,0)*-.1px),0);transform-origin:50% 80%;will-change:transform;}
 .hp-tilt img{display:block;width:100%;height:auto;filter:drop-shadow(0 0 1.5px rgba(242,211,162,.75)) drop-shadow(-14px 8px 26px rgba(0,0,0,.65)) drop-shadow(0 0 60px rgba(214,173,120,.22)) contrast(1.08) brightness(1.25)}
