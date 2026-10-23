@@ -49,7 +49,7 @@ const lines = (arr) => arr.map((l, i) => `<span class="ln"><span style="--i:${i}
 
 // álbumes de fotografía: [clave, título, fotos [tipo, nº], portadas (posiciones en la lista)]
 const ALB = [
-  ['torneos', 'Torneos', [16, 8, 2, 19, 30, 45, 44, 20, 41, 42, 5, 15, 36, 69, 71, 72, 73, 74, 75, 76, 84, 85, 86, 87].map((n) => ['ph', n]), [0, 4, 3, 6, 17]],
+  ['torneos', 'Torneos', [16, 8, 2, 19, 30, 45, 44, 20, 41, 42, 5, 15, 36, 69, 71, 72, 73, 74, 76, 84, 86, 87].map((n) => ['ph', n]), [0, 4, 3, 6, 17]],
   ['tecnificaciones', 'Tecnificaciones y combines', [77, 78, 79, 28, 3, 31, 23, 4, 37, 70, 88, 89, 90, 91].map((n) => ['ph', n]), [3, 0, 7, 4, 8]],
   ['retrato', 'Retrato', [1, 10, 11, 12, 14, 18, 26, 29, 32, 33, 39, 40, 43, 38, 47, 48, 49, 50, 51, 52, 7, 92, 93, 94, 95].map((n) => ['ph', n]), [3, 1, 10, 13, 12]],
   ['mediaday', 'Media Day', Array.from({ length: 24 }, (_, i) => ['md', i + 1]), [2, 5, 0, 10, 7]],
