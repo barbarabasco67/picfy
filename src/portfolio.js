@@ -15,7 +15,10 @@ const PH_ALT = ["Jugador con el balón frente a una pared de colores", "Equipo d
 
 const MD_ALT = ['Jugadora de Las Rozas 3x3 con el balón sobre el hombro', 'Jugador con el balón de 3x3 en fondo de estudio', 'Jugador de Las Rozas 3x3 girando el balón', 'Niño de espaldas con el balón',
   'Jugador con el balón bajo el brazo', 'Jugadora con el balón de 3x3 junto a la cara', 'Jugadora con dos balones', 'Jugador señalando a cámara',
-  'Jugadora haciendo girar el balón', 'Niño con el balón en la mano', 'Tres jugadores jóvenes posando', 'Tres jugadores con las manos en la cara'];
+  'Jugadora haciendo girar el balón', 'Niño con el balón en la mano', 'Tres jugadores jóvenes posando', 'Tres jugadores con las manos en la cara',
+  'Dos jóvenes jugadores espalda con espalda con gafas de sol', 'Pareja de jugadores de 3x3 posando con el balón', 'Jugadora sonriente con el balón 3x3', 'Jugadora tapándose la cara con el balón 3x3',
+  'Jugadora de espaldas con el balón bajo el brazo', 'Dos jugadoras riendo con el balón entre ambas', 'Entrenador con el balón en fondo oscuro', 'Jugadora de Las Rozas 3x3 con el balón sobre el hombro',
+  'Jugadora sonriente con el balón en fondo oscuro', 'Niño señalando a cámara con el balón', 'Joven jugador señalando a cámara', 'Jugador girando el balón en el dedo'];
 const DS_ALT = ['Cartel de jugador Shanghai Future Stars 2026', 'Roster U12 de La Roda Future Stars', 'Cartel Campeonas de la liga de invierno 3x3', 'Cartel de convocatoria con jugadores de Las Rozas 3x3',
   'Cartel Champions Shanghai Future Stars', 'Cartel de roster U12 con camisetas', 'Cartel Masterclass Bike de Scream', 'Cartel Masterclass Body Combat Halloween',
   'Cartel Masterclass Bike de Saw', 'Cartel del curso de liderazgo de Behind the Bench Institute', 'Cartel de La Roda U12W Future Stars', 'Ficha de jugador PBL Elite Combine',
@@ -48,7 +51,7 @@ const lines = (arr) => arr.map((l, i) => `<span class="ln"><span style="--i:${i}
 const ALB = [
   ['baloncesto', 'Baloncesto', [28, 7, 16, 8, 3, 2, 19, 25, 30, 31, 45, 44, 20, 23, 41, 42, 4, 5, 15, 36, 37].map((n) => ['ph', n]), [0, 2, 8, 6, 11]],
   ['retrato', 'Retrato', [1, 10, 11, 12, 14, 18, 26, 29, 32, 33, 39, 40, 43, 38].map((n) => ['ph', n]), [3, 1, 10, 13, 12]],
-  ['mediaday', 'Media Day', Array.from({ length: 12 }, (_, i) => ['md', i + 1]), [2, 5, 0, 10, 7]],
+  ['mediaday', 'Media Day', Array.from({ length: 24 }, (_, i) => ['md', i + 1]), [2, 5, 0, 10, 7]],
   ['espacios', 'Espacios', [21, 13, 9].map((n) => ['ph', n]), [0, 1, 2]],
   ['eventos', 'Eventos', [27, 34, 35, 46, 24, 22, 6, 17].map((n) => ['ph', n]), [5, 1, 2, 7, 0]],
 ];
