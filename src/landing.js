@@ -61,6 +61,12 @@ h2{font-size:clamp(2rem,4.4vw,3.4rem)}
 .crop.a{left:-14px;top:-14px;border-right:0;border-bottom:0}.crop.b{right:-14px;top:-14px;border-left:0;border-bottom:0}.crop.c{left:-14px;bottom:-14px;border-right:0;border-top:0}.crop.d{right:-14px;bottom:-14px;border-left:0;border-top:0}
 .scroll{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5)}
 
+.over{position:relative;z-index:2;background:var(--paper)}
+@media (min-width:921px) and (min-height:700px){
+  .hero{position:sticky;top:0;height:100svh;min-height:0;z-index:0}
+  .over{border-radius:32px 32px 0 0;overflow:hidden;box-shadow:0 -30px 60px rgba(0,0,0,.35)}
+}
+.hero .wrap{opacity:calc(1 - var(--hp,0)*.95);transform:translateY(calc(var(--hp,0)*-50px))}
 /* dos vertientes */
 .two{display:grid;grid-template-columns:1fr 1fr;min-height:520px}
 .door{position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(28px,4vw,56px);color:#fff;overflow:hidden;isolation:isolate;background:var(--navy);transition:flex .3s}
@@ -142,7 +148,7 @@ section.s{padding:clamp(80px,11vw,150px) 0}
 .end h2 em{font-style:normal;color:var(--amber)}
 .end p{margin:22px auto 0;max-width:34em;font-size:1.15rem;color:rgba(255,255,255,.82)}
 .end .cta{justify-content:center}
-footer{background:var(--deep);color:rgba(255,255,255,.6);padding:34px 0 44px}
+footer{position:relative;z-index:2;background:var(--deep);color:rgba(255,255,255,.6);padding:34px 0 44px}
 footer .wrap{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;font-weight:600}
 footer .links{display:flex;gap:22px}footer .links a:hover{color:#fff}
 
@@ -159,7 +165,7 @@ footer .links{display:flex;gap:22px}footer .links a:hover{color:#fff}
 const JS = `(function(){
   var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
   var top=document.querySelector('.top');
-  function sc(){top.classList.toggle('solid',scrollY>40)}
+  var hero=document.querySelector('.hero');function sc(){top.classList.toggle('solid',scrollY>40);hero.style.setProperty('--hp',Math.min(1,scrollY/(innerHeight*.9)).toFixed(3))}
   addEventListener('scroll',sc,{passive:true});sc();
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.12});
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
@@ -231,6 +237,7 @@ export function landingPage(user = null) {
   <span class="scroll" aria-hidden="true">Desliza</span>
 </section>
 
+<div class="over">
 <div class="two">
   <a class="door" href="#album"><div class="ph-bg" aria-hidden="true"></div><span class="label">Para torneos y eventos</span><h3>Álbum colaborativo</h3><p>Para torneos, campus y eventos: un enlace y un QR para que suba fotos todo el que esté allí.</p><span class="go">Ver el álbum</span></a>
   <a class="door" href="#pro"><div class="ph-bg" aria-hidden="true"></div><span class="label">Para profesionales</span><h3>Fotógrafos y organizadores</h3><p>Galerías por sede, revisión de fotos, selección de clubes, creadores con tareas y editor.</p><span class="go">Ver herramientas</span></a>
@@ -288,6 +295,7 @@ export function landingPage(user = null) {
   <p>En un minuto tienes el enlace y el QR para compartir con quien estuvo allí.</p>
   <div class="cta"><a class="btn primary" href="${goHref}">${goText}</a>${user ? '' : '<a class="btn line" href="/registro">Crear cuenta</a>'}</div></div>
 </section>
+</div>
 </main>
 
 <footer><div class="wrap">
