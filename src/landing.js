@@ -1,10 +1,10 @@
 // Página de inicio pública de Picfy (picfy.es): dos vertientes, álbum participativo para todos y herramienta profesional para fotógrafos y torneos.
-// Las fotos de baloncesto se piden a Unsplash (uso libre) desde el navegador y se usan solo las que cargan.
+// Las fotos de baloncesto son propias (public/landing/baloncesto-N.jpg); si no existen, se ve el fondo azul con las líneas de pista.
 import { ASSET_V } from './version.js';
 
 const L = (f, alt, w, h, extra = '') => `<img src="/landing/${f}?v=${ASSET_V}" alt="${alt}" width="${w}" height="${h}" loading="lazy" decoding="async" ${extra}>`;
 const T = (f, alt, w, h, extra = '') => `<img src="/torneos/${f}?v=${ASSET_V}" alt="${alt}" width="${w}" height="${h}" loading="lazy" decoding="async" ${extra}>`;
-const PHOTOS = ['photo-1574623452334-1e0ac2b3ccb4', 'photo-1627627256672-027a4613d028', 'photo-1519766304817-4f37bda74a26', 'photo-1612872087720-bb876e2e67d1', 'photo-1505666287802-931dc83948e9', 'photo-1558365849-6ebd8b0454b8', 'photo-1608245449230-4ac19066d2d0', 'photo-1519861531473-9200262188bf'];
+const PHOTOS = ['baloncesto-1.jpg', 'baloncesto-2.jpg', 'baloncesto-3.jpg', 'baloncesto-4.jpg', 'baloncesto-5.jpg', 'baloncesto-6.jpg']; // fotos propias en public/landing/; solo se usan las que existen
 
 const CSS = `
 @font-face{font-family:"Bricolage";font-style:normal;font-weight:200 800;font-display:swap;src:url(/vendor/fonts/bricolage-grotesque-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215}
@@ -18,7 +18,7 @@ a{color:inherit;text-decoration:none}
 .wrap{width:min(1200px,100% - 40px);margin-inline:auto}
 .label{font-size:.78rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--amber2)}
 h1,h2,h3{font-weight:800;line-height:.98;letter-spacing:-.035em}
-h2{font-size:clamp(2.1rem,5vw,4rem);text-transform:uppercase}
+h2{font-size:clamp(2rem,4.4vw,3.4rem)}
 .btn{display:inline-flex;align-items:center;justify-content:center;font:inherit;font-weight:700;font-size:1rem;padding:.85em 1.7em;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:transform .2s,background .2s,color .2s}
 .btn.primary{background:var(--amber);color:var(--navy)}.btn.primary:hover{background:#f6c27f;transform:translateY(-2px)}
 .btn.line{border-color:rgba(255,255,255,.5);color:#fff}.btn.line:hover{background:#fff;color:var(--navy)}
@@ -37,7 +37,7 @@ h2{font-size:clamp(2.1rem,5vw,4rem);text-transform:uppercase}
 .top .btn{padding:.55em 1.3em;font-size:.92rem}
 
 /* portada */
-.hero{position:relative;min-height:100svh;background:var(--deep);color:#fff;display:flex;align-items:center;overflow:hidden;isolation:isolate;padding:110px 0 70px}
+.hero{position:relative;min-height:100svh;background:var(--deep);color:#fff;display:flex;align-items:center;overflow:hidden;isolation:isolate;padding:150px 0 90px}
 .ph-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.4s;z-index:-3}
 .ph-bg.on{opacity:1}
 .hero .ph-bg{animation:kb 26s ease-in-out infinite alternate;transform-origin:60% 40%}
@@ -47,7 +47,7 @@ h2{font-size:clamp(2.1rem,5vw,4rem);text-transform:uppercase}
 .court *{fill:none;stroke:rgba(237,178,101,.35);stroke-width:2;stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 3.4s .3s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
 .hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center}
-.hero h1{font-size:clamp(2.6rem,6vw,5rem);text-transform:uppercase;line-height:.92}
+.hero h1{font-size:clamp(2.5rem,5.4vw,4.6rem);line-height:1}
 .hero h1 em{font-style:normal;color:var(--amber)}
 .hero p.lead{margin-top:26px;font-size:clamp(1.05rem,1.5vw,1.28rem);color:rgba(255,255,255,.82);max-width:30em}
 .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
@@ -69,7 +69,7 @@ h2{font-size:clamp(2.1rem,5vw,4rem);text-transform:uppercase}
 .door::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,rgba(11,20,38,.96) 8%,rgba(11,20,38,.45) 70%,rgba(11,20,38,.2))}
 .door:hover .ph-bg{transform:scale(1.06)}
 .door .label{margin-bottom:12px}
-.door h3{font-size:clamp(2rem,4vw,3.2rem);text-transform:uppercase}
+.door h3{font-size:clamp(1.8rem,3.4vw,2.7rem);line-height:1.05}
 .door p{margin-top:14px;color:rgba(255,255,255,.8);max-width:26em}
 .door .go{margin-top:22px;font-weight:700;color:var(--amber);display:inline-flex;gap:10px;align-items:center}
 .door .go::after{content:"→";transition:transform .25s}.door:hover .go::after{transform:translateX(6px)}
@@ -98,9 +98,9 @@ section.s{padding:clamp(80px,11vw,150px) 0}
 /* profesional */
 .pro{background:var(--deep);color:#fff}
 .pro .sub{color:rgba(255,255,255,.7)}
-.row{display:grid;grid-template-columns:1fr 1.25fr;gap:clamp(30px,6vw,80px);align-items:center;margin-top:clamp(70px,9vw,120px)}
+.row{display:grid;grid-template-columns:1fr 1.25fr;gap:clamp(30px,6vw,80px);align-items:center;margin-top:clamp(70px,9vw,120px)}.row.first{margin-top:0}
 .row.flip{grid-template-columns:1.25fr 1fr}.row.flip .txt{order:2}
-.row h3{font-size:clamp(1.7rem,3vw,2.5rem);text-transform:uppercase}
+.row h3{font-size:clamp(1.6rem,2.8vw,2.2rem);line-height:1.08}
 .row p{margin-top:16px;color:rgba(255,255,255,.72);font-size:1.05rem;max-width:30em}
 .fig{position:relative}
 .fig .win{border-radius:10px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.12)}
@@ -117,7 +117,7 @@ section.s{padding:clamp(80px,11vw,150px) 0}
 .track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin-top:40px}
 .track::-webkit-scrollbar{display:none}
 .slide{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,6vw,90px);align-items:center}
-.slide h3{font-size:clamp(1.7rem,3.2vw,2.6rem);text-transform:uppercase}
+.slide h3{font-size:clamp(1.6rem,2.9vw,2.3rem);line-height:1.08}
 .slide p{margin-top:16px;color:rgba(255,255,255,.72);font-size:1.05rem;max-width:30em}
 .slide ul{list-style:none;padding:0;margin-top:22px;display:grid;gap:10px}
 .slide li{padding-left:22px;position:relative;font-weight:600}
@@ -147,7 +147,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-con
 footer .links{display:flex;gap:22px}footer .links a:hover{color:#fff}
 
 @media (max-width:920px){
-  .hero{padding:96px 0 60px;align-items:flex-start}.hero .wrap{grid-template-columns:1fr}.phones{height:520px;margin-top:20px}
+  .hero{padding:120px 0 60px;align-items:flex-start}.hero .wrap{grid-template-columns:1fr}.phones{height:520px;margin-top:20px}
   .two{grid-template-columns:1fr}.door{min-height:420px}
   .album .head,.show,.row,.row.flip,.slide{grid-template-columns:1fr}.row.flip .txt{order:0}
   .steps{grid-template-columns:1fr}.step{border-right:0;border-bottom:1px solid var(--line);padding:24px 0}.step+.step{padding-left:0}
@@ -164,10 +164,10 @@ const JS = `(function(){
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.12});
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
 
-  // fotos de baloncesto: se usan solo las que cargan; la más apaisada va a la portada
+  // fotos de baloncesto propias: se usan solo las que existen
   var ids=JSON.parse(document.getElementById('phs').textContent),ok=[],left=ids.length;
-  ids.forEach(function(id){var im=new Image();im.onload=function(){ok.push({u:im.src,r:im.naturalWidth/im.naturalHeight});fin()};im.onerror=fin;im.src='https://images.unsplash.com/'+id+'?auto=format&fit=crop&w=1800&q=72'});
-  function fin(){if(--left)return;if(!ok.length)return;ok.sort(function(a,b){return b.r-a.r});
+  ids.forEach(function(id){var im=new Image();im.onload=function(){ok.push({u:im.src,r:im.naturalWidth/im.naturalHeight});fin()};im.onerror=fin;im.src='/landing/'+id});
+  function fin(){if(--left)return;if(!ok.length)return;
     var slots=[].slice.call(document.querySelectorAll('.ph-bg'));
     slots.forEach(function(s,i){var p=ok[i===0?0:1+((i-1)%Math.max(1,ok.length-1))]||ok[0];s.style.backgroundImage='url('+p.u+')';s.classList.add('on');});
     var ed=document.querySelector('.edmock .pic');if(ed)ed.style.setProperty('--bgimg','url('+ok[ok.length-1].u+')');}
@@ -208,7 +208,7 @@ export function landingPage(user = null) {
 <body>
 <header class="top"><div class="wrap">
   <a class="logo" href="/"><i aria-hidden="true"></i>Picfy</a>
-  <nav aria-label="Principal"><a href="#album">Álbum para todos</a><a href="#pro">Fotógrafos y torneos</a><a class="btn primary" href="${goHref}">${goText}</a></nav>
+  <nav aria-label="Principal"><a href="#album">Álbum colaborativo</a><a href="#pro">Fotógrafos y organizadores</a><a class="btn primary" href="${goHref}">${goText}</a></nav>
 </div></header>
 
 <main>
@@ -218,8 +218,8 @@ export function landingPage(user = null) {
   <div class="wrap">
     <div>
       <p class="label">Álbumes de fotos para torneos y eventos</p>
-      <h1 style="margin-top:18px">Todas las fotos del partido. <em>Un solo enlace.</em></h1>
-      <p class="lead">Crea el álbum de tu torneo, campus o evento y comparte un enlace o un QR: suben fotos jugadores, familias, aficionados y fotógrafos, sin app y sin cuenta. Tú revisas y todos las ven y las descargan.</p>
+      <h1 style="margin-top:18px">Las fotos de tu torneo, <em>en un solo enlace</em></h1>
+      <p class="lead">Crea el álbum de tu torneo, campus o evento y comparte el enlace o el código QR. Jugadores, familias, aficionados y fotógrafos suben sus fotos desde el móvil, sin app y sin cuenta.</p>
       <div class="cta"><a class="btn primary" href="${goHref}">${goText}</a>${user ? '' : '<a class="btn line" href="/registro">Crear cuenta</a>'}</div>
       <p class="fine">¿Te han pasado el enlace de un álbum? Ábrelo directamente, no necesitas cuenta.</p>
     </div>
@@ -232,36 +232,33 @@ export function landingPage(user = null) {
 </section>
 
 <div class="two">
-  <a class="door" href="#album"><div class="ph-bg" aria-hidden="true"></div><span class="label">Para todos</span><h3>El álbum que llenan todos</h3><p>Un torneo, un campus, un partido de empresa, una boda. Un enlace y un QR para que suban fotos los que están allí.</p><span class="go">Ver cómo funciona</span></a>
-  <a class="door" href="#pro"><div class="ph-bg" aria-hidden="true"></div><span class="label">Para fotógrafos y organizadores</span><h3>Tu estudio, en cada pabellón</h3><p>Galerías por sede, revisión, selección de clubes, creadores con tareas y editor, todo bajo el mismo torneo.</p><span class="go">Ver herramientas</span></a>
+  <a class="door" href="#album"><div class="ph-bg" aria-hidden="true"></div><span class="label">Para torneos y eventos</span><h3>Álbum colaborativo</h3><p>Para torneos, campus y eventos: un enlace y un QR para que suba fotos todo el que esté allí.</p><span class="go">Ver el álbum</span></a>
+  <a class="door" href="#pro"><div class="ph-bg" aria-hidden="true"></div><span class="label">Para profesionales</span><h3>Fotógrafos y organizadores</h3><p>Galerías por sede, revisión de fotos, selección de clubes, creadores con tareas y editor.</p><span class="go">Ver herramientas</span></a>
 </div>
 
 <section class="s album" id="album"><div class="wrap">
-  <div class="head reveal"><div><span class="label">Álbum para todos</span><h2 style="margin-top:14px">Que suba fotos todo el mundo</h2></div>
-  <p class="sub" style="margin-top:0">La mejor foto del partido casi nunca la hace el fotógrafo: la hace el padre de la grada, la jugadora del banquillo, el amigo del último. Picfy las junta todas en el mismo sitio.</p></div>
+  <div class="head reveal"><div><span class="label">Álbum colaborativo</span><h2 style="margin-top:14px">Todas las fotos del evento, en un mismo álbum</h2></div>
+  <p class="sub" style="margin-top:0">No todas las buenas fotos las hace el fotógrafo. También las hacen las familias, los jugadores y los aficionados. Con Picfy las reúnes todas en un solo sitio.</p></div>
   <div class="steps">
-    <div class="step reveal"><b>01</b><h3>Crea el álbum</h3><p>Pon el nombre del torneo o del evento, su fecha y su portada. Ya tienes enlace y QR.</p></div>
-    <div class="step reveal" style="--d:.1s"><b>02</b><h3>Compártelo donde está la gente</h3><p>El QR en el pabellón o en la entrada, el enlace en el grupo de WhatsApp de los equipos.</p></div>
-    <div class="step reveal" style="--d:.2s"><b>03</b><h3>Todos suben desde el móvil</h3><p>Escriben su nombre y suben sus fotos. Tú aprobarás lo que se publica, o dejas que salga directamente.</p></div>
+    <div class="step reveal"><b>01</b><h3>Crea el álbum</h3><p>Ponle nombre, fecha y portada. Ya tienes un enlace y un código QR.</p></div>
+    <div class="step reveal" style="--d:.1s"><b>02</b><h3>Comparte el enlace o el QR</h3><p>El QR en la entrada del pabellón, el enlace en el grupo de WhatsApp de los equipos.</p></div>
+    <div class="step reveal" style="--d:.2s"><b>03</b><h3>Todos suben sus fotos</h3><p>Desde el móvil, sin instalar nada. Tú revisas lo que se publica o lo dejas salir directamente.</p></div>
   </div>
   <div class="show">
-    <div class="reveal"><span class="label">Pensado para animar a participar</span><h2 style="font-size:clamp(1.8rem,3.4vw,2.8rem);margin-top:12px">Dar gusto subir, y dar gusto mirar</h2>
+    <div class="reveal"><span class="label">Qué pueden hacer los invitados</span><h2 style="font-size:clamp(1.7rem,3vw,2.5rem);margin-top:12px">Subir, mirar y descargar, sin complicaciones</h2>
       <ul class="facts">
         <li><b>Sin app y sin cuenta</b><span>Se abre en el navegador, desde el enlace o el QR.</span></li>
-        <li><b>Me gusta y comentarios</b><span>Cada foto se puede ver a pantalla completa, puntuar y comentar.</span></li>
+        <li><b>Dar me gusta y comentar</b><span>Cada foto se abre a pantalla completa, con sus me gusta y sus comentarios.</span></li>
         <li><b>Descarga en calidad original</b><span>Una a una, una selección o todo el álbum en ZIP.</span></li>
-        <li><b>Privado cuando hace falta</b><span>Contraseña, aviso de consentimiento si juegan menores y fecha de caducidad.</span></li>
+        <li><b>Tú controlas la privacidad</b><span>Contraseña, aviso de consentimiento si juegan menores y fecha de caducidad.</span></li>
       </ul></div>
     <div class="shots reveal" style="--d:.1s"><div class="phone">${T('guest-phone.webp', 'Álbum del torneo con sus sedes en el móvil', 560, 1212)}</div><div class="phone">${T('upload-phone.webp', 'Ventana de subida de fotos en el móvil', 560, 1212)}</div></div>
   </div>
 </div></section>
 
 <section class="s pro" id="pro"><div class="wrap">
-  <div class="reveal"><span class="label">Para fotógrafos y organizadores</span><h2 style="margin-top:14px;max-width:11em">La herramienta de quien vive de las fotos</h2>
-  <p class="sub">Lo mismo del álbum, con el control que necesitas para entregar un torneo entero: una galería por sede, tus reglas y tu criterio.</p></div>
-
-  <div class="row">
-    <div class="txt reveal"><h3>Una galería por sede, bajo un solo torneo</h3><p>Cada pabellón tiene su enlace, su revisión y su descarga. La página del torneo las enseña como tarjetas y cada club entra en la suya. Duplica el torneo para la próxima edición.</p></div>
+  <div class="row first">
+    <div class="txt reveal"><span class="label">Fotógrafos y organizadores</span><h2 style="margin-top:14px">Una galería por sede, todas bajo el mismo torneo</h2><p>Cada pabellón tiene su enlace, su revisión y su descarga. La página del torneo las enseña como tarjetas y cada club entra en la suya. Y para la próxima edición, duplicas el torneo con sus sedes y ajustes.</p></div>
     <figure class="fig reveal" style="--d:.1s"><div class="win">${T('admin-parent.webp', 'Panel de un torneo con sus sedes como subgalerías', 1700, 1062)}</div><figcaption>El torneo y sus sedes</figcaption></figure>
   </div>
   <div class="row flip">
@@ -274,28 +271,28 @@ export function landingPage(user = null) {
   </div>
 
   <div class="tor">
-    <div class="reveal"><span class="label">Torneos con sedes y creadores</span><h2 style="margin-top:14px;max-width:12em">Reparte el trabajo y controla la entrega</h2></div>
+    <div class="reveal"><span class="label">Torneos con varias sedes</span><h2 style="margin-top:14px;max-width:14em">Reparte el trabajo entre creadores y controla lo que entregan</h2></div>
     <div class="tabs reveal" role="tablist"><button class="tab" type="button" role="tab">Sedes</button><button class="tab" type="button" role="tab">Creadores</button><button class="tab" type="button" role="tab">Revisar y repetir</button><button class="tab" type="button" role="tab">Editar y publicar</button><button class="tab" type="button" role="tab">Tu panel</button></div>
     <div class="track reveal">
-      <article class="slide"><div><h3>Sedes con su equipo y su calendario</h3><p>Crea el torneo con fechas, color y portada, añade las sedes y deja cada una con sus creadores y sus tareas. Ves de un vistazo lo que lleva hecho cada una.</p><ul><li>Cada sede, vinculada a su subgalería de fotos</li><li>Se pliegan las que no necesitas</li><li>Resumen del torneo en tu panel</li></ul></div><div class="vis"><div class="phone">${L('app-sedes.webp', 'Sedes de un torneo: Madrid, Sabadell, Mallorca y Valencia', 620, 1057)}</div></div></article>
-      <article class="slide"><div><h3>Cada creador, con su enlace y su día</h3><p>Pasas un enlace a cada creador, sin cuenta y sin app. Ve sus tareas del día o de la semana (story, vídeo o foto) y sube sus archivos, de hasta 1 GB, desde el móvil.</p><ul><li>Vista de lista y de semana</li><li>Subida con barra de progreso</li><li>Cada creador con su color en el hub</li></ul></div><div class="vis"><div class="phone">${L('app-midia.webp', 'Mi día: las tareas del creador con sus archivos subidos', 620, 1057)}</div></div></article>
-      <article class="slide"><div><h3>Revisa lo entregado y pide repetir</h3><p>Ves quién ha hecho cada tarea y qué ha subido. Si algo no vale, lo devuelves con un comentario y el creador lo ve marcado para repetirlo.</p><ul><li>Abre o descarga cada archivo</li><li>Devuelve la tarea con indicaciones</li><li>Al repetirla, el aviso desaparece</li></ul></div><div class="vis"><div class="phone">${L('app-creadores.webp', 'Hub del torneo con tareas hechas, devolver y archivos subidos', 620, 1057)}</div></div></article>
+      <article class="slide"><div><h3>Sedes con su equipo y su calendario</h3><p>Crea el torneo con fechas, color y portada, añade las sedes y deja cada una con sus creadores y sus tareas. Ves de un vistazo lo que lleva hecho cada una.</p><ul><li>Cada sede, vinculada a su subgalería de fotos</li><li>Se pliegan las que no necesitas</li><li>Resumen del torneo en tu panel</li></ul></div><div class="vis"><div class="phone">${L('app-sedes.webp', 'Sedes de un torneo: Madrid, Sabadell, Mallorca y Valencia', 620, 1285)}</div></div></article>
+      <article class="slide"><div><h3>Cada creador, con su enlace y su día</h3><p>Pasas un enlace a cada creador, sin cuenta y sin app. Ve sus tareas del día o de la semana (story, vídeo o foto) y sube sus archivos, de hasta 1 GB, desde el móvil.</p><ul><li>Vista de lista y de semana</li><li>Subida con barra de progreso</li><li>Cada creador con su color en el hub</li></ul></div><div class="vis"><div class="phone">${L('app-midia.webp', 'Mi día: las tareas del creador con sus archivos subidos', 620, 1285)}</div></div></article>
+      <article class="slide"><div><h3>Revisa lo entregado y pide repetir</h3><p>Ves quién ha hecho cada tarea y qué ha subido. Si algo no vale, lo devuelves con un comentario y el creador lo ve marcado para repetirlo.</p><ul><li>Abre o descarga cada archivo</li><li>Devuelve la tarea con indicaciones</li><li>Al repetirla, el aviso desaparece</li></ul></div><div class="vis"><div class="phone">${L('app-creadores.webp', 'Hub del torneo con tareas hechas, devolver y archivos subidos', 620, 1285)}</div></div></article>
       <article class="slide"><div><h3>Edita antes de publicar</h3><p>Manda las fotos de un creador a la galería de su sede como borrador. Antes puedes recortar, enderezar, girar y ajustar la luz. El original no se toca y tú publicas cuando quieras.</p><ul><li>Recorte, giro y enderezado</li><li>Brillo, contraste, saturación y sombras</li><li>Entra como borrador hasta que la apruebes</li></ul></div><div class="vis"><div class="edmock"><div class="pic"><u></u></div><div class="r">Enderezar<s style="--v:42%"></s></div><div class="r">Brillo<s style="--v:58%"></s></div><div class="r">Saturación<s style="--v:35%"></s></div><div class="r">Sombras<s style="--v:48%"></s></div><div class="send">Enviar como borrador</div></div></div></article>
-      <article class="slide"><div><h3>Tu panel, de un vistazo</h3><p>Galerías, fotos, pendientes de revisar y torneos en una pantalla, con las fotos subidas cada día, visitas y me gusta de las últimas, y la agenda de lo que toca hoy.</p><ul><li>Menú lateral en ordenador, barra inferior en el móvil</li><li>Agenda y tareas pendientes</li></ul></div><div class="vis"><div class="phone">${L('app-panel.webp', 'Panel de inicio de Picfy', 620, 1057)}</div></div></article>
+      <article class="slide"><div><h3>Tu panel, de un vistazo</h3><p>Galerías, fotos, pendientes de revisar y torneos en una pantalla, con las fotos subidas cada día, visitas y me gusta de las últimas, y la agenda de lo que toca hoy.</p><ul><li>Menú lateral en ordenador, barra inferior en el móvil</li><li>Agenda y tareas pendientes</li></ul></div><div class="vis"><div class="phone">${L('app-panel.webp', 'Panel de inicio de Picfy', 620, 1285)}</div></div></article>
     </div>
   </div>
 </div></section>
 
 <section class="end"><div class="ph-bg" aria-hidden="true"></div>
-  <div class="reveal"><h2>Que no se pierda <em>ni una foto</em></h2>
-  <p>Crea tu primer álbum en un minuto y comparte el enlace con quien estuvo allí.</p>
+  <div class="reveal"><h2>Crea el álbum de tu próximo <em>torneo o evento</em></h2>
+  <p>En un minuto tienes el enlace y el QR para compartir con quien estuvo allí.</p>
   <div class="cta"><a class="btn primary" href="${goHref}">${goText}</a>${user ? '' : '<a class="btn line" href="/registro">Crear cuenta</a>'}</div></div>
 </section>
 </main>
 
 <footer><div class="wrap">
   <a class="logo" href="/"><i aria-hidden="true"></i>Picfy</a>
-  <div class="links"><a href="#album">Álbum para todos</a><a href="#pro">Fotógrafos y torneos</a><a href="${goHref}">${goText}</a></div>
+  <div class="links"><a href="#album">Álbum colaborativo</a><a href="#pro">Fotógrafos y organizadores</a><a href="${goHref}">${goText}</a></div>
 </div></footer>
 <script type="application/json" id="phs">${JSON.stringify(PHOTOS)}</script>
 <script>${JS}</script>
