@@ -180,7 +180,7 @@ const JS = `(function(){
 
   // fotos de baloncesto propias: se usan solo las que existen
   var ids=JSON.parse(document.getElementById('phs').textContent),ok={},left=ids.length;
-  ids.forEach(function(id,n){var im=new Image();im.onload=function(){ok[n+1]=im.src;fin()};im.onerror=fin;im.src='/landing/'+id});
+  ids.forEach(function(id,n){var im=new Image();im.onload=function(){ok[n+1]='/landing/'+id;fin()};im.onerror=fin;im.src='/landing/'+id});
   function fin(){if(--left)return;var ks=Object.keys(ok);if(!ks.length)return;
     document.querySelectorAll('.ph-bg').forEach(function(s,i){var u=ok[s.getAttribute('data-ph')]||ok[ks[i%ks.length]];s.style.backgroundImage='url('+u+')';s.classList.add('on');});
     var ed=document.querySelector('.edmock .pic');if(ed)ed.style.setProperty('--bgimg','url('+(ok[2]||ok[ks[0]])+')');}
