@@ -177,7 +177,7 @@ export function portfolioPage() {
   <div class="wrap">
     <div class="head">
       <p class="eb" data-r>01&nbsp;—&nbsp;Apps y herramientas</p>
-      <h2 class="h2" id="app-t">${lines(['Hechas por nosotros,', 'para quien las usa'])}</h2>
+      <h2 class="h2" id="app-t">${lines(['Hechas para', 'el baloncesto'])}</h2>
       <p class="lead" data-r>Además de webs, desarrollamos apps y herramientas propias o a medida. Estas son dos que creamos, mantenemos y usamos a diario.</p>
     </div>
 
