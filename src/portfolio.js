@@ -133,7 +133,7 @@ export function portfolioPage() {
 <!-- HERO -->
 <section class="hero" aria-labelledby="h1">
   <div class="hero-bg" aria-hidden="true"></div>
-  <div class="hero-person" aria-hidden="true"><div class="hp-halo"></div><div class="hp-tilt"><img src="${P}/ph/person.webp?v=${v}" alt="" width="1332" height="1456" fetchpriority="high" decoding="async"></div></div>
+  <div class="hero-person" aria-hidden="true"><div class="hp-halo"></div><div class="hp-tilt"><img src="${P}/ph/person.webp?v=${v}" alt="" width="668" height="859" fetchpriority="high" decoding="async"></div></div>
   <div class="wrap hero-in">
     <div class="hero-txt">
       <p class="eb rise">Pablo &amp; Bárbara&nbsp;·&nbsp;Madrid</p>
@@ -196,10 +196,10 @@ export function portfolioPage() {
 
     <article class="app pcf">
       <div class="app-txt">
-        <p class="eb" data-r>App web&nbsp;·&nbsp;Fotografía de eventos</p>
+        <p class="eb" data-r>App web&nbsp;·&nbsp;Fotografía de eventos y organización de creadores</p>
         <h3 class="h3" data-r>Picfy</h3>
         <p data-r>Las fotos de tu torneo, en un solo enlace. Una galería por pabellón o evento donde equipos, voluntarios y familias suben y descargan sus fotos, sin crear cuentas.</p>
-        <p data-r>Y ahora también sirve para repartir el trabajo entre creadores y controlar lo que entregan: cada creador tiene su enlace con sus tareas pendientes, sube sus archivos ahí y tú ves de un vistazo qué está hecho.</p>
+        <p data-r>Y también para organizar a tu equipo de creadores: reparte el trabajo entre ellos y controla lo que entregan. Cada creador tiene su enlace con sus tareas (story, vídeo, foto…), marca lo que va terminando y sube ahí sus archivos, y tú ves de un vistazo qué está hecho y qué falta.</p>
         <ul class="ticks" data-r><li>Un enlace por evento</li><li>Subida desde el móvil</li><li>Descarga por equipos</li><li>Gestión para la organización</li><li>Reparto de tareas entre creadores</li><li>Control de lo que entregan</li></ul>
         <a class="btn gold" data-r href="/?landing"><span>picfy.es</span><i aria-hidden="true">↗</i></a>
       </div>
