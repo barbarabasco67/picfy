@@ -1,0 +1,6 @@
+ALTER TABLE users ADD COLUMN plan TEXT NOT NULL DEFAULT 'libre';
+ALTER TABLE users ADD COLUMN stripe_customer TEXT;
+ALTER TABLE users ADD COLUMN stripe_sub TEXT;
+ALTER TABLE users ADD COLUMN plan_until INTEGER;
+CREATE TABLE IF NOT EXISTS pases (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_pases_user ON pases(user_id);

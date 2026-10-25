@@ -217,6 +217,7 @@
   const errText = (e) => {
     if (e instanceof HttpErr) {
       const code = e.body && e.body.error;
+      if (code === 'space') return e.body.owner ? 'Has llegado al límite de espacio de tu plan. Mejora tu plan en Mi cuenta.' : 'Esta galería se ha quedado sin espacio. Avisa a quien la organiza.';
       if (code === 'limit') return 'Has llegado al máximo de fotos permitido en este evento.';
       if (code === 'consent') return 'Marca la casilla de consentimiento para subir.';
       if (code === 'access') return 'Esta galería ya no admite fotos.';
@@ -272,7 +273,7 @@
         try { await uploadOne(it); }
         catch (e) {
           it.state = 'err'; setStatus(it, errText(e), 'err');
-          if (e instanceof HttpErr && e.body && ['limit', 'closed', 'consent', 'access'].includes(e.body.error)) fatal = e;
+          if (e instanceof HttpErr && e.body && ['limit', 'closed', 'consent', 'access', 'space'].includes(e.body.error)) fatal = e;
         }
       }
     }

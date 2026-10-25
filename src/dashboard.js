@@ -1,6 +1,7 @@
 // Panel de inicio (picfy.es/inicio): resumen del trabajo del usuario.
 import { html } from './util.js';
 import { currentUser } from './auth.js';
+import { withLimit } from './billing.js';
 import { dashPage, spaceBox } from './appviews.js';
 import { agendaReady, AGENDA_KINDS } from './agenda.js';
 import { torneosReady, detallesReady } from './torneos.js';
@@ -85,6 +86,6 @@ export function dashboardRoutes(app) {
       };
     }
 
-    return html(dashPage({ user, today, galleries: gal, totals: tot, days, perDay, agenda, kinds: AGENDA_KINDS, fstats, month: m30.n, torneos }));
+    return html(dashPage({ user, today, galleries: gal, totals: await withLimit(db, user.id, tot), days, perDay, agenda, kinds: AGENDA_KINDS, fstats, month: m30.n, torneos }));
   });
 }

@@ -6,6 +6,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   const p = await (await b.newContext({ viewport: { width: 1440, height: 900 } })).newPage(); const errs = []; p.on('pageerror', (e) => errs.push(e.message));
   await p.goto(B + '/registro'); await p.fill('input[name=name]', 'Hub'); await p.fill('input[name=email]', `t${Date.now()}@t.es`); await p.fill('input[name=password]', 'clave12345');
   await p.click('.au-submit'); await p.waitForURL('**/inicio');
+  const em = await (async () => { await p.goto(B + '/cuenta/datos'); return p.inputValue('input[name=email]'); })(); require('child_process').execSync(`npx wrangler d1 execute picfy --local --persist-to .wrangler/state --command "UPDATE users SET plan='libre' WHERE email='${em}'"`, { stdio: 'ignore' }); await p.goto(B + '/inicio');
   await p.click('.side a[href="/torneo"]'); await p.waitForURL('**/torneo');
   await p.fill('.tnew input[name=name]', 'Torneo Final'); await p.click('.tnew button'); await p.waitForURL(/torneo\/\w{16}/);
   const url = p.url();

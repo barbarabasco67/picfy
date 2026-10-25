@@ -9,7 +9,7 @@ let ok = true; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAI
   if (await p.$('input[name=code]')) await p.fill('input[name=code]', 'codigo');
   await p.click('button[type=submit]'); await p.waitForURL('**/inicio'); await p.goto(B + '/galerias');
   check('galerías ya no lleva la caja grande', !(await p.$('.storage')));
-  await p.goto(B + '/inicio'); check('vacía: 0 KB en la barra', /Espacio ocupado/.test(await p.textContent('.spbox')) && /0 KB/.test(await p.textContent('.spbox')), await p.textContent('.spbox'));
+  await p.goto(B + '/inicio'); check('vacía: 0 KB en la barra', /Plan Gratis/.test(await p.textContent('.spbox')) && /0 KB/.test(await p.textContent('.spbox')), await p.textContent('.spbox'));
   await p.goto(B + '/galerias'); check('sin caja de espacio fuera del panel', !(await p.$('.spbox')));
   await p.click('#newGal'); await p.fill('#newDlg input[name=name]', 'Pesada'); await p.click('#newDlg button[type=submit]');
   await p.waitForURL(/galerias\/[0-9a-f]{16}/);
@@ -17,7 +17,7 @@ let ok = true; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAI
   await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 3); await p.click('#upStart'); await p.waitForSelector('.toast', { timeout: 60000 });
   await p.goto(B + '/inicio');
   const box = await p.textContent('.spbox');
-  check('total con 3 fotos', /10,0 GB|10 GB/.test(box) && !/\b0 KB\b/.test(box) && /3/.test(await p.textContent('.dstats')), box);
+  check('total con 3 fotos', /2,0 GB|2 GB/.test(box) && !/\b0 KB\b/.test(box) && /3/.test(await p.textContent('.dstats')), box);
   await p.goto(B + '/galerias');
   const card = await p.textContent('.gcard .gdate');
   check('tamaño en la tarjeta', /(KB|MB)/.test(card), card);

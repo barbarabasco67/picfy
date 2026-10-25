@@ -2,6 +2,7 @@
 
 import { esc, glink } from './util.js';
 import { layout, fmtDate, lightbox, uploadDialog, DEFAULT_CONSENT } from './views.js';
+import { PLANES, PASE, fmtGB, fmtEur } from './plans.js';
 
 const ICON = {
   gal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></svg>',
@@ -42,9 +43,10 @@ const logo = `<a class="logo" href="/inicio"><span class="logo-dot"></span>Picfy
 // Caja pequeña de espacio ocupado (barra lateral)
 export function spaceBox(st) {
   const used = sizeOf(st.bytes, st.n);
-  const pct = Math.min(100, (used / FREE_BYTES) * 100);
-  const cls = used > FREE_BYTES ? ' over' : pct >= 80 ? ' warn' : '';
-  return `<a class="spbox${cls}" href="/galerias" title="${st.n} fotos"><span>Espacio ocupado</span><b>${fmtSize(used)} <small>/ ${fmtSize(FREE_BYTES)}</small></b><i><u style="width:${Math.max(pct, used ? 3 : 0).toFixed(1)}%"></u></i></a>`;
+  const lim = st.limit || FREE_BYTES;
+  const pct = Math.min(100, (used / lim) * 100);
+  const cls = used > lim ? ' over' : pct >= 80 ? ' warn' : '';
+  return `<a class="spbox${cls}" href="/planes" title="${st.n} fotos${st.plan ? ' · Plan ' + esc(st.plan) : ''}"><span>${st.plan ? 'Plan ' + esc(st.plan) : 'Espacio ocupado'}</span><b>${fmtSize(used)} <small>/ ${fmtSize(lim)}</small></b><i><u style="width:${Math.max(pct, used ? 3 : 0).toFixed(1)}%"></u></i></a>`;
 }
 
 // Marco: barra lateral azul flotante + contenido
@@ -530,7 +532,7 @@ ${user.avatar_v ? '<button class="avdel" type="button" id="avDel" title="Quitar 
 <div class="prof-act"><form method="post" action="/salir"><button class="btn" type="submit">${ICON.out} Cerrar sesión</button></form></div>
 </div>
 <div class="notice err hidden" id="avMsg"></div>
-<nav class="tabs" aria-label="Mi cuenta">${tab('datos', 'Datos y correo')}${tab('password', 'Contraseña')}${tab('galerias', 'Galerías nuevas')}</nav>
+<nav class="tabs" aria-label="Mi cuenta">${tab('datos', 'Datos y correo')}${tab('password', 'Contraseña')}${tab('galerias', 'Galerías nuevas')}<a class="tab" href="/planes">Plan y espacio</a></nav>
 ${msg}<div class="accgrid">${forms[section] || forms.datos}</div>`,
     }),
   });
@@ -812,4 +814,32 @@ export function miDiaPage({ me, token = '', kinds = {} }) {
     body: `<main class="mdia"><header class="mdhead"><a class="logo" href="/"><span class="logo-dot"></span><b>Picfy</b></a></header>
 ${me ? `<h1>Hola, ${esc(me.name)}</h1><p class="mdsub">${esc(me.torneo)} · ${esc(me.sede)}</p><div id="mdList"></div>` : `<h1>Enlace no válido</h1><p class="mdsub">Pide un enlace nuevo a quien organiza el torneo.</p>`}</main>`,
   });
+}
+
+
+/* ---------- Planes ---------- */
+
+export function planesPage({ user, plan, usage, stripeOn = true, aviso = '', ok = '' }) {
+  const avisos = { galerias: 'Has llegado al máximo de galerías de tu plan. Elige un plan con más galerías o compra un pase por evento.', espacio: 'Te has quedado sin espacio. Elige un plan con más espacio o compra un pase por evento.', torneos: 'Los torneos con sedes están en el plan Organizador y en el pase por evento.' };
+  const oks = { plan: 'Plan activado. Gracias por confiar en Picfy.', cambio: 'Plan cambiado. El ajuste del precio se verá en tu próxima factura.', pase: 'Pase por evento activado. Ya tienes más espacio y una galería más.' };
+  const msg = `${avisos[aviso] ? `<div class="notice err">${esc(avisos[aviso])}</div>` : ''}${oks[ok] ? `<div class="notice ok">${esc(oks[ok])}</div>` : ''}${stripeOn ? '' : '<div class="notice">Los pagos se activarán muy pronto.</div>'}`;
+  const libre = plan.key === 'libre';
+  const pctB = isFinite(plan.bytes) ? Math.min(100, (usage.bytes / plan.bytes) * 100) : 0;
+  const pctG = isFinite(plan.galerias) ? Math.min(100, (usage.galerias / plan.galerias) * 100) : 0;
+  const lim = (n, f) => (isFinite(n) ? f(n) : 'sin límite');
+  const uso = `<section class="glass plan-uso"><div class="plan-uh"><div><span class="muted small">Tu plan</span><h2>${esc(plan.nombre)}</h2></div>${plan.sub ? '<button class="btn" type="button" id="portalBtn">Gestionar suscripción</button>' : ''}</div>
+<div class="plan-meters"><div><div class="plan-m"><span>Espacio</span><b>${fmtSize(usage.bytes)} <small>/ ${lim(plan.bytes, fmtGB)}</small></b></div><div class="stbar${pctB >= 100 ? ' over' : pctB >= 80 ? ' warn' : ''}"><i style="width:${Math.max(pctB, usage.bytes ? 1.5 : 0).toFixed(1)}%"></i></div></div>
+<div><div class="plan-m"><span>Galerías</span><b>${usage.galerias} <small>/ ${lim(plan.galerias, String)}</small></b></div><div class="stbar${pctG >= 100 ? ' over' : pctG >= 80 ? ' warn' : ''}"><i style="width:${Math.max(pctG, usage.galerias ? 1.5 : 0).toFixed(1)}%"></i></div></div></div>
+${plan.pases ? `<p class="muted small" style="margin:12px 0 0">${plan.pases === 1 ? 'Tienes 1 pase por evento activo' : `Tienes ${plan.pases} pases por evento activos`}${plan.paseHasta ? ` (el próximo termina el ${esc(new Date(plan.paseHasta).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }))})` : ''}. Cuando termina un pase no se borra nada: tus fotos se conservan, solo dejas de poder subir más si te pasas del espacio.</p>` : ''}
+${plan.sub && plan.until ? `<p class="muted small" style="margin:12px 0 0">Próxima renovación: ${esc(new Date(plan.until).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }))}.</p>` : ''}</section>`;
+  const feats = (p) => [`${p.galerias} galerías`, `${fmtGB(p.bytes)} de espacio`, p.torneos ? 'Torneos con sedes, creadores y tareas' : 'Galerías, selección de clientes y descargas'];
+  const card = (k) => {
+    const p = PLANES[k]; const mine = plan.key === k;
+    const btn = k === 'gratis' ? `<button class="btn" type="button" disabled>${mine ? 'Tu plan' : 'Incluido'}</button>`
+      : mine ? '<button class="btn" type="button" disabled>Tu plan</button>'
+      : `<button class="btn primary" type="button" data-plan="${k}"${stripeOn && !libre ? '' : ' disabled'}>${plan.sub ? 'Cambiar a este plan' : 'Elegir ' + esc(p.nombre)}</button>`;
+    return `<article class="glass plan-card${mine ? ' mine' : ''}${k === 'organizador' ? ' hot' : ''}"><h3>${esc(p.nombre)}</h3><p class="plan-price"><b>${p.precio ? fmtEur(p.precio) : '0 €'}</b>${p.precio ? '<span> al mes</span>' : ''}</p><ul>${feats(p).map((f) => `<li>${esc(f)}</li>`).join('')}</ul>${btn}</article>`;
+  };
+  const pase = `<article class="glass plan-pase"><div><h3>${esc(PASE.nombre)}</h3><p class="plan-price"><b>${fmtEur(PASE.precio)}</b><span> pago único</span></p><p class="muted">Para un torneo o un evento suelto, sin suscripción: sumas ${PASE.galerias} galería (con sus subgalerías o un torneo completo con sedes) y ${fmtGB(PASE.bytes)} de espacio durante ${PASE.meses} meses.</p></div><button class="btn primary" type="button" data-plan="pase"${stripeOn && !libre ? '' : ' disabled'}>Comprar pase</button></article>`;
+  return appPage({ title: 'Planes', scripts: ['/planes.js'], body: shell({ user, active: 'cuenta', main: `<a class="backlink" href="/inicio">← Volver al inicio</a><h1>Planes</h1>${msg}<div class="notice err hidden" id="planMsg"></div>${uso}<div class="plan-grid">${['gratis', 'fotografo', 'organizador'].map(card).join('')}</div>${pase}` }) });
 }

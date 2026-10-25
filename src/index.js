@@ -18,6 +18,7 @@ import { socialRoutes, viewRoutes, countDownload } from './social.js';
 import { selectionRoutes } from './selection.js';
 import { publicCollectionRoute } from './collections.js';
 import { appRoutes } from './app.js';
+import { billingRoutes, hasSpace } from './billing.js';
 import { currentUser, hashPassword } from './auth.js';
 import { getWm, wmAttr } from './watermark.js';
 import { getBest } from './best.js';
@@ -263,6 +264,7 @@ app.post('/api/e/:token/upload/init', async (c) => {
   const me = await currentUser(c);
   const isOwner = Boolean(me && event.owner_id && me.id === event.owner_id);
   if (event.consent && !isOwner && b.consent !== true) return json({ error: 'consent' }, 400);
+  if (!(await hasSpace(c.env.DB, event.owner_id, size))) return json({ error: 'space', owner: isOwner }, 402);
   if (event.consent && b.consent === true) { try { await c.env.DB.prepare('UPDATE guests SET consent_at = ? WHERE id = ? AND consent_at IS NULL').bind(Date.now(), guest.id).run(); } catch { /* migración 0013 */ } }
   const limit = isOwner ? 100000 : event.photo_limit > 0 ? event.photo_limit : HARD_GUEST_CAP;
   if (cnt.n >= limit) return json({ error: 'limit', limit }, 403);
@@ -426,6 +428,7 @@ manageRoutes(app);
 
 /* ---------- Plataforma: cuentas y galerías ---------- */
 appRoutes(app);
+billingRoutes(app);
 
 app.notFound((c) => (c.req.header('accept') || '').includes('text/html') ? html(notFoundPage(), 404) : c.text('Not found', 404));
 app.onError((err, c) => {

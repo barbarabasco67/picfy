@@ -1,6 +1,7 @@
 // Página de inicio pública de Picfy (picfy.es): dos vertientes, álbum participativo para todos y herramienta profesional para fotógrafos y torneos.
 // Las fotos de baloncesto son propias (public/landing/baloncesto-N.jpg); si no existen, se ve el fondo azul con las líneas de pista.
 import { ASSET_V } from './version.js';
+import { PLANES, PASE, fmtGB, fmtEur } from './plans.js';
 
 const L = (f, alt, w, h, extra = '') => `<img src="/landing/${f}?v=${ASSET_V}" alt="${alt}" width="${w}" height="${h}" loading="lazy" decoding="async" ${extra}>`;
 const T = (f, alt, w, h, extra = '') => `<img src="/torneos/${f}?v=${ASSET_V}" alt="${alt}" width="${w}" height="${h}" loading="lazy" decoding="async" ${extra}>`;
@@ -157,6 +158,17 @@ section.s{padding:clamp(80px,11vw,150px) 0}
 .edmock .send{margin-top:14px;text-align:center;background:var(--navy);color:#fff;border-radius:6px;padding:10px;font-weight:700;font-size:.88rem}
 
 /* cierre */
+.plans{padding:clamp(60px,9vw,120px) 0;background:var(--paper)}
+.plans h2{font-size:clamp(2rem,4.4vw,3.4rem);line-height:1.05;max-width:16em}
+.plans .sub{margin-top:14px;color:var(--muted);max-width:36em}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:38px}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:26px;display:flex;flex-direction:column;gap:14px}
+.pcard.hot{background:var(--deep);color:#fff;border-color:var(--deep);box-shadow:0 24px 50px rgba(11,20,38,.25)}
+.pcard h3{font-size:1.15rem}.pcard .pr{font-size:2.2rem;font-weight:800;line-height:1}.pcard .pr span{font-size:.95rem;font-weight:500;opacity:.65}
+.pcard ul{list-style:none;padding:0;margin:0;display:grid;gap:8px;flex:1;font-size:.95rem}
+.pcard li{padding-left:20px;position:relative}.pcard li::before{content:"";position:absolute;left:1px;top:.5em;width:9px;height:5px;border-left:2px solid var(--amber2);border-bottom:2px solid var(--amber2);transform:rotate(-45deg)}
+.pcard .btn{width:100%}.btn.line2{border-color:var(--navy);color:var(--navy)}.btn.line2:hover{background:var(--navy);color:#fff}
+@media (max-width:980px){.pgrid{grid-template-columns:1fr 1fr}}@media (max-width:560px){.pgrid{grid-template-columns:1fr}}
 .end{position:relative;min-height:70vh;display:grid;place-items:center;text-align:center;color:#fff;background:var(--navy);overflow:hidden;isolation:isolate;padding:100px 20px}
 .end::before{content:"";position:absolute;inset:0;z-index:-1;background:rgba(11,20,38,.7)}
 .end h2{font-size:clamp(2.4rem,7vw,5.6rem);max-width:12em;margin:0 auto}
@@ -233,7 +245,7 @@ export function landingPage(user = null) {
 <body>
 <header class="top"><div class="wrap">
   <a class="logo" href="/"><i aria-hidden="true"></i>Picfy</a>
-  <nav aria-label="Principal"><a href="#album">Álbum colaborativo</a><a href="#pro">Fotógrafos y organizadores</a><a class="btn primary" href="${goHref}">${goText}</a></nav>
+  <nav aria-label="Principal"><a href="#album">Álbum colaborativo</a><a href="#pro">Fotógrafos y organizadores</a><a href="#planes">Planes</a><a class="btn primary" href="${goHref}">${goText}</a></nav>
 </div></header>
 
 <main>
@@ -309,6 +321,14 @@ export function landingPage(user = null) {
   </div>
 </div></section>
 
+<section class="plans" id="planes"><div class="wrap">
+  <p class="label">Planes</p><h2 class="reveal">Empieza gratis. Paga cuando lo necesites</h2>
+  <p class="sub reveal">Elige un plan mensual o compra un pase para un solo evento, sin suscripción.</p>
+  <div class="pgrid reveal" style="--d:.1s">
+    ${['gratis', 'fotografo', 'organizador'].map((k) => { const p = PLANES[k]; return `<article class="pcard${k === 'organizador' ? ' hot' : ''}"><h3>${p.nombre}</h3><p class="pr">${p.precio ? fmtEur(p.precio) : '0 €'}${p.precio ? '<span> al mes</span>' : ''}</p><ul><li>${p.galerias} galerías</li><li>${fmtGB(p.bytes)} de espacio</li><li>${p.torneos ? 'Torneos con sedes, creadores y tareas' : 'Selección de clientes, descargas y marca de agua'}</li></ul><a class="btn ${k === 'organizador' ? 'primary' : 'line2'}" href="${goHref === '/inicio' ? '/planes' : '/registro'}">${p.precio ? 'Elegir ' + p.nombre : 'Crear cuenta gratis'}</a></article>`; }).join('')}
+    <article class="pcard"><h3>${PASE.nombre}</h3><p class="pr">${fmtEur(PASE.precio)}<span> pago único</span></p><ul><li>${PASE.galerias} galería con sus subgalerías o un torneo completo</li><li>${fmtGB(PASE.bytes)} de espacio</li><li>${PASE.meses} meses activo</li></ul><a class="btn line2" href="${goHref === '/inicio' ? '/planes' : '/registro'}">Comprar pase</a></article>
+  </div></div></section>
+
 <section class="end"><div class="ph-bg" data-ph="4" aria-hidden="true"></div>
   <div class="reveal"><h2>Crea el álbum de tu próximo <em>torneo o evento</em></h2>
   <p>En un minuto tienes el enlace y el QR para compartir con quien estuvo allí.</p>
@@ -319,7 +339,7 @@ export function landingPage(user = null) {
 
 <footer><div class="wrap">
   <a class="logo" href="/"><i aria-hidden="true"></i>Picfy</a>
-  <div class="links"><a href="#album">Álbum colaborativo</a><a href="#pro">Fotógrafos y organizadores</a><a href="${goHref}">${goText}</a></div>
+  <div class="links"><a href="#album">Álbum colaborativo</a><a href="#pro">Fotógrafos y organizadores</a><a href="#planes">Planes</a><a href="${goHref}">${goText}</a></div>
 </div></footer>
 <script type="application/json" id="phs">${JSON.stringify(PHOTOS)}</script>
 <script>${JS}</script>

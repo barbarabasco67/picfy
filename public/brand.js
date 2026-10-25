@@ -89,6 +89,7 @@
         if (mode === 'create') {
           const fd = new FormData(form);
           const r = await fetch(form.action, { method: 'POST', body: fd, headers: { accept: 'application/json' } });
+          if (r.status === 402) { const lj = await r.json().catch(() => ({})); if (lj.url) { location.href = lj.url; return; } }
           if (!r.ok) throw new Error('create');
           const j = await r.json();
           await sendImages(`/api/g/${j.id}`).catch(() => {});

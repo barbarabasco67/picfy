@@ -1,6 +1,7 @@
 // Torneos: el hub (cuenta) organiza sedes, creadores con enlace de invitación y tareas del día.
 import { randomHex, sha256Hex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
+import { canCreateTorneo } from './billing.js';
 import { torneosPage, torneoPage, miDiaPage } from './appviews.js';
 
 let st = { v: null, t: 0 };
@@ -93,6 +94,7 @@ export function torneosRoutes(app) {
     const f = await c.req.formData().catch(() => null);
     const name = clip(f && f.get('name'), 120);
     if (!name) return go('/torneo');
+    if (!(await canCreateTorneo(c.env.DB, a.user.id))) return go('/planes?limite=torneos');
     const id = randomHex(8);
     await c.env.DB.prepare('INSERT INTO torneos (id, owner_id, name, created_at) VALUES (?,?,?,?)').bind(id, a.user.id, name, Date.now()).run();
     return go('/torneo/' + id);

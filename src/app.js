@@ -18,6 +18,7 @@ import { createUser, signupOpen } from './accounts.js';
 import { splitParts } from './zip.js';
 import { socialReady, loadStats, viewsReady } from './social.js';
 import { loadSelections, selSeenReady, NEW_SEL_SQL } from './selection.js';
+import { withLimit, canCreateGallery } from './billing.js';
 
 const go = (to, headers = {}) => new Response(null, { status: 303, headers: { location: to, ...headers } });
 
@@ -297,7 +298,7 @@ export function appRoutes(app) {
        FROM events e WHERE e.owner_id = ? AND e.parent_id IS NULL ${(await trashReady(c.env.DB)) ? 'AND e.deleted_at IS NULL' : ''} ORDER BY e.created_at DESC`,
     ).bind(user.id).all();
     const tot = await c.env.DB.prepare('SELECT COALESCE(SUM(p.size), 0) AS bytes, COUNT(*) AS n FROM photos p JOIN events e ON e.id = p.event_id WHERE e.owner_id = ?').bind(user.id).first();
-    return html(galleriesPage({ user, events: rows.results, storage: tot, origin: new URL(c.req.url).origin, defaults: await userDefaults(c.env.DB, user.id), ok: c.req.query('ok') || '' }));
+    return html(galleriesPage({ user, events: rows.results, storage: await withLimit(c.env.DB, user.id, tot), origin: new URL(c.req.url).origin, defaults: await userDefaults(c.env.DB, user.id), ok: c.req.query('ok') || '' }));
   });
 
   // El organizador abre sus selecciones: se marcan como vistas.
@@ -316,6 +317,7 @@ export function appRoutes(app) {
     const f = await c.req.formData();
     const name = String(f.get('name') || '').trim().slice(0, 120);
     if (!name) return go('/galerias');
+    if (!(await canCreateGallery(c.env.DB, user.id))) return (c.req.header('accept') || '').includes('application/json') ? json({ error: 'limit', url: '/planes?limite=galerias' }, 402) : go('/planes?limite=galerias');
     const date = /^\d{4}-\d{2}-\d{2}$/.test(String(f.get('event_date') || '')) ? String(f.get('event_date')) : null;
     const limit = Math.max(0, Math.min(2000, parseInt(String(f.get('photo_limit') || '0'), 10) || 0));
     const lead = String(f.get('lead') || '').trim().slice(0, 400);
