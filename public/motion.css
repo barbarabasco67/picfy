@@ -1,0 +1,84 @@
+/* Movimiento de la app: suave, corto y con sentido. Se desactiva con "reducir movimiento". */
+:root { --ease: cubic-bezier(.2, .7, .2, 1); --ease-in: cubic-bezier(.4, 0, 1, 1); }
+
+@keyframes mUp { from { opacity: 0; transform: translateY(10px); } }
+@keyframes mFade { from { opacity: 0; } }
+@keyframes mPop { from { opacity: 0; transform: scale(.94) translateY(8px); } }
+@keyframes mSlideIn { from { opacity: 0; transform: translateX(-14px); } }
+@keyframes mToast { from { opacity: 0; transform: translate(-50%, 14px); } }
+@keyframes mGrow { from { transform: scaleX(0); } }
+@keyframes mCheck { 0% { transform: scale(.4); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@keyframes mRipple { to { transform: scale(1); opacity: 0; } }
+@keyframes mSplashDot { 0% { transform: scale(.2); opacity: 0; } 55% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes mSplashOut { to { opacity: 0; visibility: hidden; } }
+@keyframes mLbIn { from { opacity: 0; } }
+@keyframes mLbOut { to { opacity: 0; } }
+@keyframes mImgIn { from { opacity: 0; transform: scale(.95); } }
+@keyframes mImgNext { from { opacity: 0; transform: translateX(28px); } }
+@keyframes mImgPrev { from { opacity: 0; transform: translateX(-28px); } }
+
+/* Paso suave entre páginas (el menú y la barra superior se quedan quietos) */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; animation-timing-function: ease; }
+.side { view-transition-name: side; }
+.tabbar { view-transition-name: tabbar; }
+
+/* Entrada de página */
+body.app .main, body.app main.wrap, body.app .au-box { animation: mUp .5s var(--ease) backwards; }
+
+/* Tarjetas y fotos entran escalonadas (--i lo pone motion.js) */
+.gcard-wrap, .gcard, .tile, body.app .card, .tcard, .plan-card, .pcard2 { animation: mUp .5s var(--ease) backwards; animation-delay: calc(min(var(--i, 0), 14) * 45ms); }
+.notice { animation: mFade .4s ease backwards; }
+
+/* Botones */
+body.app .btn, body.app button.tab, .nav, .tab { transition: background .18s, border-color .18s, box-shadow .2s, transform .18s var(--ease), color .18s; }
+@media (hover: hover) {
+  body.app .btn:hover { transform: translateY(-1px); }
+  body.app .btn.primary:hover { box-shadow: 0 10px 26px rgba(var(--accent-rgb, 237, 178, 101), .55); }
+  .nav:hover { transform: translateX(3px); }
+  .nav:hover svg { transform: scale(1.12); }
+}
+.nav svg { transition: transform .2s var(--ease); }
+body.app .btn:active, .nav:active { transform: scale(.97); transition-duration: .08s; }
+.btn .ripple { position: absolute; border-radius: 50%; pointer-events: none; background: currentColor; opacity: .22; transform: scale(0); animation: mRipple .55s var(--ease) forwards; }
+.btn.rip { position: relative; overflow: hidden; }
+
+/* Tarjetas de galería y fotos: zoom suave de la imagen */
+.gcard img, .tile img { transition: transform .5s var(--ease), filter .3s; }
+@media (hover: hover) { .gcard:hover img, .tile:hover img { transform: scale(1.05); } }
+.tile.ph.picked .chk { animation: mCheck .32s var(--ease); }
+.gcard, .tile { transition: transform .22s var(--ease), box-shadow .22s; }
+
+/* Barras de espacio y uso: crecen al cargar */
+.spbox u, .plan-uso u, .plan-uso i b { transform-origin: left; animation: mGrow .9s var(--ease) .15s backwards; }
+
+/* Ventanas emergentes, menús y avisos */
+dialog[open] { animation: mPop .28s var(--ease); }
+dialog[open]::backdrop { animation: mFade .28s ease; }
+.menu:not([hidden]) { animation: mPop .18s var(--ease); transform-origin: bottom left; }
+.toast { animation: mToast .3s var(--ease); }
+#moreSheet:not([hidden]) { animation: mUp .25s var(--ease); }
+
+/* Visor de fotos */
+.lb.open { animation: mLbIn .22s ease; }
+.lb.closing { animation: mLbOut .18s ease forwards; pointer-events: none; }
+.lb.open img { animation: mImgIn .32s var(--ease); }
+.lb.open img.nx { animation: mImgNext .3s var(--ease); }
+.lb.open img.pv { animation: mImgPrev .3s var(--ease); }
+.lb.closing img { transform: scale(.96); transition: transform .18s var(--ease-in); }
+.lb button { transition: background .15s, transform .15s var(--ease); }
+@media (hover: hover) { .lb .prev:hover { transform: translateX(-3px); } .lb .next:hover { transform: translateX(3px); } }
+.lb button:active { transform: scale(.92); }
+#lbLike.pop svg { animation: mCheck .38s var(--ease); }
+
+/* Bienvenida al entrar */
+.splash { position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; background: #14213d; pointer-events: none; animation: mSplashOut .45s ease .85s forwards; }
+.splash span { display: flex; align-items: center; gap: 14px; color: #f6f4f0; font: 800 34px/1 system-ui, -apple-system, sans-serif; letter-spacing: -.01em; }
+.splash i { width: 26px; height: 26px; border-radius: 50%; background: #edb265; box-shadow: 0 0 0 0 rgba(237, 178, 101, .5); animation: mSplashDot .6s var(--ease) both; }
+.splash b { font-weight: 800; animation: mFade .5s ease .25s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  .splash { display: none; }
+  @view-transition { navigation: none; }
+}

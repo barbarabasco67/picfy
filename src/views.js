@@ -15,6 +15,7 @@ export function layout({ title, body, scripts = [], bodyAttrs = '', head = '' })
 <title>${esc(title)}</title>
 <link rel="stylesheet" href="/style.css?v=${ASSET_V}">
 <link rel="stylesheet" href="/app.css?v=${ASSET_V}">
+<link rel="stylesheet" href="/motion.css?v=${ASSET_V}">
 <meta name="theme-color" content="#ffffff">
 ${head}
 </head>
@@ -22,6 +23,7 @@ ${head}
 <div class="bgfx" aria-hidden="true"></div>
 ${body}
 ${scripts.map((s) => `<script src="${s}?v=${ASSET_V}" defer></script>`).join('\n')}
+<script src="/motion.js?v=${ASSET_V}" defer></script>
 </body>
 </html>`;
 }

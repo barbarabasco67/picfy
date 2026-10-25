@@ -5,9 +5,15 @@
   const img = lb.querySelector('img');
   let list = [], i = 0;
 
-  function show() { img.src = list[i]; lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); lb.dispatchEvent(new CustomEvent('lbshow', { detail: { i } })); }
-  function close() { lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true'); img.removeAttribute('src'); lb.dispatchEvent(new Event('lbhide')); }
-  function step(d) { if (!list.length) return; i = (i + d + list.length) % list.length; show(); }
+  function show(dir) { img.classList.remove('nx', 'pv'); void img.offsetWidth; if (dir) img.classList.add(dir > 0 ? 'nx' : 'pv'); img.src = list[i]; lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); lb.dispatchEvent(new CustomEvent('lbshow', { detail: { i } })); }
+  const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function close() {
+    if (!lb.classList.contains('open') || lb.classList.contains('closing')) return;
+    const done = () => { lb.classList.remove('open', 'closing'); img.removeAttribute('src'); };
+    lb.setAttribute('aria-hidden', 'true'); lb.dispatchEvent(new Event('lbhide'));
+    if (rm) done(); else { lb.classList.add('closing'); setTimeout(done, 190); }
+  }
+  function step(d) { if (!list.length) return; i = (i + d + list.length) % list.length; show(d); }
 
   lb.querySelector('.x').addEventListener('click', close);
   lb.querySelector('.prev').addEventListener('click', (e) => { e.stopPropagation(); step(-1); });
