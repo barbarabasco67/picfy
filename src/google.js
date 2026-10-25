@@ -58,7 +58,6 @@ export function googleRoutes(app) {
       const name = String(payload.name || payload.given_name || email.split('@')[0]).trim().slice(0, 80);
       user = { id: await createUser(c.env.DB, { name, email }) };
     }
-    const wp = /(?:^|; )picfy_plan=(fotografo|organizador|pase)/.exec(c.req.header('cookie') || '');
-    return new Response(null, { status: 303, headers: [['location', wp ? '/comprar/' + wp[1] : '/inicio'], ['set-cookie', await startSession(c.env.DB, user.id)], ['set-cookie', cookie('', 0)]] });
+    return new Response(null, { status: 303, headers: [['location', '/inicio'], ['set-cookie', await startSession(c.env.DB, user.id)], ['set-cookie', cookie('', 0)]] });
   });
 }

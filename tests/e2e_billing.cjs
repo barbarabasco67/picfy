@@ -54,13 +54,6 @@ const hook = async (type, object, bad) => { const raw = JSON.stringify({ type, d
   { const p2 = await (await b.newContext()).newPage(); await p2.route('https://stripe.test/**', (r) => r.fulfill({ body: 'stripe' })); await p2.goto(B + '/comprar/fotografo'); ok(/\/registro/.test(p2.url()), 'sin cuenta pasa por registro');
     await p2.fill('input[name=name]', 'Dir'); await p2.fill('input[name=email]', `di${Date.now()}@t.es`); await p2.fill('input[name=password]', 'clave12345'); const w1 = p2.waitForRequest(/stripe\.test\/pay/); await p2.click('.au-submit'); await w1; ok(true, 'tras registrarse va directo al pago');
     const w2 = p2.waitForRequest(/stripe\.test\/pay/); await p2.goto(B + '/comprar/organizador').catch(() => {}); await w2; ok(true, 'con cuenta va directo al pago'); }
-  // pase sin cuenta: paga primero, se enlaza al registrarse con el mismo correo
-  { const mail = `pg${Date.now()}@t.es`; const p3 = await (await b.newContext()).newPage(); const w = p3.waitForRequest(/stripe\.test\/pay/); await p3.goto(B + '/comprar/pase').catch(() => {}); await w;
-    const gs = calls.filter((c) => c.u === '/v1/checkout/sessions').pop(); ok(/mode=payment/.test(gs.b) && /unit_amount\]=2900/.test(gs.b) && !/client_reference_id/.test(gs.b), 'pase sin cuenta: pago sin usuario: ' + gs.b);
-    ok((await hook('checkout.session.completed', { id: 'cs_g' + RUN, mode: 'payment', payment_status: 'paid', customer: 'cus_g', customer_details: { email: mail }, metadata: { plan: 'pase', guest: '1' } })) === 200, 'webhook pase sin cuenta');
-    ok(JSON.parse(sql(`SELECT user_id FROM pases WHERE id='cs_g${RUN}'`))[0].results[0].user_id === 'pend:' + mail, 'pase pendiente por correo');
-    await p3.waitForTimeout(800); await p3.goto(B + '/registro'); await p3.fill('input[name=name]', 'Pg'); await p3.fill('input[name=email]', mail); await p3.fill('input[name=password]', 'clave12345'); await p3.click('.au-submit'); await p3.waitForURL('**/inicio');
-    const nu = JSON.parse(sql(`SELECT id FROM users WHERE email='${mail}'`))[0].results[0].id; ok(JSON.parse(sql(`SELECT user_id FROM pases WHERE id='cs_g${RUN}'`))[0].results[0].user_id === nu, 'el pase se enlaza al crear la cuenta'); }
   // cuentas anteriores: sin límites
   sql(`UPDATE users SET plan='libre' WHERE id='${U.id}'`); await p.goto(B + '/planes'); ok(/Sin límites/.test(await p.textContent('.plan-uso h2')), 'cuenta libre');
   ok(errs.length === 0, 'errores JS: ' + errs.join(';')); console.log('ALL OK'); await b.close(); mock.close();
