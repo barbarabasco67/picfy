@@ -13,5 +13,6 @@ export async function createUser(db, { name, email, password }) {
   const hash = await hashPassword(password || randomHex(32), salt);
   await db.prepare('INSERT INTO users (id, email, name, pass_salt, pass_hash, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(id, email, name, salt, hash, Date.now()).run();
   try { await db.prepare("UPDATE users SET plan = 'gratis' WHERE id = ?").bind(id).run(); } catch { /* antes de la migración de planes */ }
+  try { await db.prepare('UPDATE pases SET user_id = ? WHERE user_id = ?').bind(id, 'pend:' + email).run(); } catch { /* antes de la migración de planes */ }
   return id;
 }

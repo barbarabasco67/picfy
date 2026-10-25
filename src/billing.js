@@ -1,6 +1,7 @@
 // Cobro con Stripe: planes mensuales y pase por evento. Sin SDK: se habla con la API directamente.
 // Variables secretas en Cloudflare: STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET.
 import { json, html } from './util.js';
+import { sendMail } from './mail.js';
 import { currentUser } from './auth.js';
 import { trashReady } from './photos.js';
 import { planesPage } from './appviews.js';
@@ -97,6 +98,21 @@ async function onSubscription(db, sub) {
   else await db.prepare("UPDATE users SET plan = 'gratis', stripe_sub = NULL, plan_until = NULL WHERE id = ?").bind(u.id).run();
 }
 
+async function guestPase(c) {
+  if (!c.env.STRIPE_SECRET_KEY || !(await billingReady(c.env.DB))) return { error: 'off', status: 503 };
+  const origin = new URL(c.req.url).origin;
+  try {
+    const product = await productFor(c.env, 'pase');
+    const s = await stripe(c.env, 'POST', '/v1/checkout/sessions', {
+      mode: 'payment', locale: 'es', allow_promotion_codes: 'true', customer_creation: 'always',
+      success_url: `${origin}/registro`, cancel_url: `${origin}/#planes`,
+      line_items: { 0: { quantity: 1, price_data: priceData(product, 'pase') } },
+      metadata: { plan: 'pase', guest: '1' },
+    });
+    return { url: s.url };
+  } catch (e) { return { error: 'stripe', message: String(e.message || e).slice(0, 200), status: 502 }; }
+}
+
 async function startCheckout(c, user, key) {
     if (!c.env.STRIPE_SECRET_KEY || !(await billingReady(c.env.DB))) return { error: 'off', status: 503 };
     if (key !== 'pase' && !(PLANES[key] && PLANES[key].precio > 0)) return { error: 'plan', status: 400 };
@@ -148,6 +164,7 @@ export function billingRoutes(app) {
     const key = c.req.param('plan');
     if (key !== 'pase' && !(PLANES[key] && PLANES[key].precio > 0)) return go('/registro');
     const user = await currentUser(c);
+    if (!user && key === 'pase') { const r = await guestPase(c); return go(r.url || '/registro'); }
     if (!user) return go('/registro', { 'set-cookie': `picfy_plan=${key}; Path=/; Max-Age=1800; SameSite=Lax; Secure; HttpOnly` });
     const r = await startCheckout(c, user, key);
     return go(r.url || '/planes', { 'set-cookie': 'picfy_plan=; Path=/; Max-Age=0' });
@@ -169,8 +186,17 @@ export function billingRoutes(app) {
     const db = c.env.DB; if (!(await billingReady(db))) return json({ error: 'migracion' }, 503);
     const o = ev.data && ev.data.object; if (!o) return json({ ok: true });
     if (ev.type === 'checkout.session.completed') {
-      const uid = o.client_reference_id || (o.metadata && o.metadata.user); const plan = o.metadata && o.metadata.plan;
-      if (uid && o.customer) await db.prepare('UPDATE users SET stripe_customer = COALESCE(stripe_customer, ?) WHERE id = ?').bind(o.customer, uid).run();
+      let uid = o.client_reference_id || (o.metadata && o.metadata.user); const plan = o.metadata && o.metadata.plan;
+      // Pase comprado sin cuenta: queda a nombre del correo y se enlaza cuando se registre con él.
+      if (!uid && o.mode === 'payment' && plan === 'pase' && o.payment_status === 'paid') {
+        const em = String((o.customer_details && o.customer_details.email) || o.customer_email || '').trim().toLowerCase();
+        if (em) {
+          const ex = await db.prepare('SELECT id FROM users WHERE email = ?').bind(em).first();
+          uid = ex ? ex.id : 'pend:' + em;
+          if (!ex) await sendMail(c.env, { to: em, subject: 'Tu pase de Picfy está listo', text: 'Gracias por tu compra. Crea tu cuenta con este mismo correo y el pase se activará solo: ' + new URL(c.req.url).origin + '/registro', html: '<p>Gracias por tu compra.</p><p><a href="' + new URL(c.req.url).origin + '/registro">Crea tu cuenta</a> con este mismo correo y el pase se activará solo.</p>' });
+        }
+      }
+      if (uid && o.customer && !uid.startsWith('pend:')) await db.prepare('UPDATE users SET stripe_customer = COALESCE(stripe_customer, ?) WHERE id = ?').bind(o.customer, uid).run();
       if (uid && o.mode === 'payment' && plan === 'pase' && o.payment_status === 'paid') {
         const exp = new Date(); exp.setMonth(exp.getMonth() + PASE.meses);
         await db.prepare('INSERT OR IGNORE INTO pases (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)').bind(o.id, uid, Date.now(), exp.getTime()).run();
