@@ -1,7 +1,7 @@
 // Planes y Stripe: se prueba con un Stripe simulado (necesita `npm run dev -- --var STRIPE_SECRET_KEY:sk_test_123 --var STRIPE_WEBHOOK_SECRET:whsec_test --var STRIPE_API:http://127.0.0.1:9911`).
 const { chromium } = require('/opt/npm-tools/node_modules/playwright'); const http = require('http'); const crypto = require('crypto'); const { execSync } = require('child_process');
 const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
-const calls = [];
+const calls = []; const RUN = Date.now();
 const mock = http.createServer((q, r) => { let b = ''; q.on('data', (d) => (b += d)); q.on('end', () => { calls.push({ m: q.method, u: q.url, b: decodeURIComponent(b) }); r.setHeader('content-type', 'application/json');
   if (q.url.startsWith('/v1/products/search')) return r.end('{"data":[]}'); if (q.url === '/v1/products') return r.end('{"id":"prod_t"}');
   if (q.url === '/v1/checkout/sessions') return r.end('{"url":"https://stripe.test/pay"}'); if (q.url === '/v1/billing_portal/sessions') return r.end('{"url":"https://stripe.test/portal"}');
@@ -44,8 +44,8 @@ const hook = async (type, object, bad) => { const raw = JSON.stringify({ type, d
   await p.goto(B + '/planes'); await p.click('#portalBtn'); await p.waitForURL('https://stripe.test/portal').catch(() => {});
   // pase por evento
   await p.goto(B + '/planes'); await p.click('[data-plan=pase]'); await p.waitForTimeout(500); const ps = calls.filter((c) => c.u === '/v1/checkout/sessions').pop(); ok(/mode=payment/.test(ps.b) && /unit_amount\]=2900/.test(ps.b), 'pase: pago único');
-  ok((await hook('checkout.session.completed', { id: 'cs_2', mode: 'payment', payment_status: 'paid', client_reference_id: U.id, customer: 'cus_1', metadata: { plan: 'pase', user: U.id } })) === 200, 'webhook pase'); await hook('checkout.session.completed', { id: 'cs_2', mode: 'payment', payment_status: 'paid', client_reference_id: U.id, metadata: { plan: 'pase', user: U.id } });
-  ok(JSON.parse(sql(`SELECT COUNT(*) n FROM pases WHERE user_id='${U.id}'`))[0].results[0].n === 1, 'el pase no se duplica');
+  ok((await hook('checkout.session.completed', { id: 'cs_2' + RUN, mode: 'payment', payment_status: 'paid', client_reference_id: U.id, customer: 'cus_1', metadata: { plan: 'pase', user: U.id } })) === 200, 'webhook pase'); await hook('checkout.session.completed', { id: 'cs_2' + RUN, mode: 'payment', payment_status: 'paid', client_reference_id: U.id, metadata: { plan: 'pase', user: U.id } });
+  ok(JSON.parse(sql(`SELECT COUNT(*) n FROM pases WHERE user_id='${U.id}'`))[0].results[0].n === 1, 'el pase no se duplica ' + sql(`SELECT COUNT(*) n FROM pases WHERE user_id='${U.id}'`).slice(0, 200));
   await p.goto(B + '/planes'); ok(/pase por evento activo/.test(await p.textContent('.plan-uso')), 'se ve el pase');
   // baja
   ok((await hook('customer.subscription.deleted', { id: 'sub_1', customer: 'cus_1', status: 'canceled', metadata: { plan: 'organizador', user: U.id } })) === 200, 'webhook de baja');
