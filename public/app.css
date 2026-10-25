@@ -1211,3 +1211,4 @@ dialog.pedit { width: min(94vw, 880px); max-width: calc(100vw - 16px); max-heigh
 .plan-pase{margin-top:16px;padding:24px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
 .plan-pase h3{margin:0 0 4px}.plan-pase p{margin:6px 0 0;max-width:46em}
 @media (max-width:820px){.plan-grid,.plan-meters{grid-template-columns:1fr}}
+#installApp[hidden]{display:none!important}

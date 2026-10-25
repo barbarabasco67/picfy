@@ -239,6 +239,7 @@ export function landingPage(user = null) {
 <meta property="og:url" content="https://picfy.es/"><meta property="og:image" content="https://picfy.es/torneos/og.jpg?v=${ASSET_V}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b1426">
+<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" type="image/png" href="/pwa/favicon.png"><link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
 <link rel="preload" href="/vendor/fonts/bricolage-grotesque-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>${CSS}</style>
 </head>

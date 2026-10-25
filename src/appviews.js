@@ -29,11 +29,17 @@ ICON.team = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 ICON.more = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="18.5" cy="12" r="1.9"/></svg>';
 export { ICON };
 
+const PWA_HEAD = `<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/pwa/favicon.png">
+<link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Picfy"><meta name="apple-mobile-web-app-status-bar-style" content="default">`;
 function appPage({ title, body, scripts = [], bodyAttrs = '' }) {
   return layout({
     title: `${title} · Picfy`,
     bodyAttrs,
-    scripts,
+    head: PWA_HEAD,
+    scripts: [...scripts, '/pwa.js'],
     body,
   });
 }
@@ -529,7 +535,7 @@ export function accountPage({ user, section = 'datos', ok = '', error = '', defa
 ${user.avatar_v ? '<button class="avdel" type="button" id="avDel" title="Quitar la foto" aria-label="Quitar la foto">×</button>' : ''}</div>
 <div class="prof-id"><h1>${esc(full)}</h1>${user.username ? `<p class="handle">@${esc(user.username)}</p>` : ''}${since ? `<p class="since">Con Picfy desde ${esc(since)}</p>` : ''}</div>
 <div class="prof-stats"><div><b>${stats.galleries || 0}</b><span>Galerías</span></div><div><b>${stats.photos || 0}</b><span>Fotos</span></div></div>
-<div class="prof-act"><form method="post" action="/salir"><button class="btn" type="submit">${ICON.out} Cerrar sesión</button></form></div>
+<div class="prof-act"><button class="btn" type="button" id="installApp" hidden>Instalar en el móvil</button><form method="post" action="/salir"><button class="btn" type="submit">${ICON.out} Cerrar sesión</button></form></div>
 </div>
 <div class="notice err hidden" id="avMsg"></div>
 <nav class="tabs" aria-label="Mi cuenta">${tab('datos', 'Datos y correo')}${tab('password', 'Contraseña')}${tab('galerias', 'Galerías nuevas')}<a class="tab" href="/planes">Plan y espacio</a></nav>
