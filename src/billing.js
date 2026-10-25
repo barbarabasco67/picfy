@@ -6,7 +6,7 @@ import { trashReady } from './photos.js';
 import { planesPage } from './appviews.js';
 import { PLANES, PASE, THUMB_EST, limitsOf, usedBytes } from './plans.js';
 
-const go = (to) => new Response(null, { status: 303, headers: { location: to } });
+const go = (to, headers = {}) => new Response(null, { status: 303, headers: { location: to, ...headers } });
 
 let rd = { v: null, t: 0 };
 export async function billingReady(db) {
@@ -97,23 +97,12 @@ async function onSubscription(db, sub) {
   else await db.prepare("UPDATE users SET plan = 'gratis', stripe_sub = NULL, plan_until = NULL WHERE id = ?").bind(u.id).run();
 }
 
-export function billingRoutes(app) {
-  app.get('/planes', async (c) => {
-    const user = await currentUser(c);
-    if (!user) return go('/entrar');
-    const db = c.env.DB; const plan = await getPlan(db, user.id); const usage = await getUsage(db, user.id);
-    const q = c.req.query();
-    return html(planesPage({ user, plan, usage, stripeOn: Boolean(c.env.STRIPE_SECRET_KEY), aviso: q.limite || '', ok: q.ok || '' }));
-  });
-
-  app.post('/api/billing/checkout', async (c) => {
-    const user = await currentUser(c); if (!user) return json({ error: 'auth' }, 401);
-    if (!c.env.STRIPE_SECRET_KEY || !(await billingReady(c.env.DB))) return json({ error: 'off' }, 503);
-    let b; try { b = await c.req.json(); } catch { b = {}; }
-    const key = String(b.plan || ''); if (key !== 'pase' && !(PLANES[key] && PLANES[key].precio > 0)) return json({ error: 'plan' }, 400);
+async function startCheckout(c, user, key) {
+    if (!c.env.STRIPE_SECRET_KEY || !(await billingReady(c.env.DB))) return { error: 'off', status: 503 };
+    if (key !== 'pase' && !(PLANES[key] && PLANES[key].precio > 0)) return { error: 'plan', status: 400 };
     const origin = new URL(c.req.url).origin; const db = c.env.DB;
     const u = await db.prepare('SELECT plan, stripe_customer, stripe_sub FROM users WHERE id = ?').bind(user.id).first();
-    if (u.plan === 'libre') return json({ error: 'libre' }, 400);
+    if (u.plan === 'libre') return { error: 'libre', status: 400 };
     try {
       const product = await productFor(c.env, key);
       // Quien ya tiene una suscripción cambia de plan sin pagar dos veces.
@@ -122,7 +111,7 @@ export function billingRoutes(app) {
         if (sub && ACTIVE.has(sub.status) && sub.items && sub.items.data[0]) {
           await stripe(c.env, 'POST', `/v1/subscriptions/${u.stripe_sub}`, { items: { 0: { id: sub.items.data[0].id, price_data: priceData(product, key) } }, metadata: { plan: key, user: user.id }, proration_behavior: 'create_prorations' });
           await db.prepare('UPDATE users SET plan = ? WHERE id = ?').bind(key, user.id).run();
-          return json({ url: '/planes?ok=cambio' });
+          return { url: '/planes?ok=cambio' };
         }
       }
       const params = {
@@ -134,8 +123,34 @@ export function billingRoutes(app) {
         ...(key === 'pase' ? {} : { subscription_data: { metadata: { user: user.id, plan: key } } }),
       };
       const s = await stripe(c.env, 'POST', '/v1/checkout/sessions', params);
-      return json({ url: s.url });
-    } catch (e) { return json({ error: 'stripe', message: String(e.message || e).slice(0, 200) }, 502); }
+      return { url: s.url };
+    } catch (e) { return { error: 'stripe', message: String(e.message || e).slice(0, 200), status: 502 }; }
+  }
+
+export function billingRoutes(app) {
+  app.get('/planes', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    const db = c.env.DB; const plan = await getPlan(db, user.id); const usage = await getUsage(db, user.id);
+    const q = c.req.query();
+    return html(planesPage({ user, plan, usage, stripeOn: Boolean(c.env.STRIPE_SECRET_KEY), aviso: q.limite || '', ok: q.ok || '' }));
+  });
+
+  app.post('/api/billing/checkout', async (c) => {
+    const user = await currentUser(c); if (!user) return json({ error: 'auth' }, 401);
+    let b; try { b = await c.req.json(); } catch { b = {}; }
+    const r = await startCheckout(c, user, String(b.plan || ''));
+    return r.url ? json({ url: r.url }) : json({ error: r.error, message: r.message }, r.status);
+  });
+
+  // Los botones de la landing llegan aquí: con cuenta van directos al pago; sin cuenta, primero se registran.
+  app.get('/comprar/:plan', async (c) => {
+    const key = c.req.param('plan');
+    if (key !== 'pase' && !(PLANES[key] && PLANES[key].precio > 0)) return go('/registro');
+    const user = await currentUser(c);
+    if (!user) return go('/registro', { 'set-cookie': `picfy_plan=${key}; Path=/; Max-Age=1800; SameSite=Lax; Secure; HttpOnly` });
+    const r = await startCheckout(c, user, key);
+    return go(r.url || '/planes', { 'set-cookie': 'picfy_plan=; Path=/; Max-Age=0' });
   });
 
   app.post('/api/billing/portal', async (c) => {

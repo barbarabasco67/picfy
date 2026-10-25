@@ -20,6 +20,7 @@ import { socialReady, loadStats, viewsReady } from './social.js';
 import { loadSelections, selSeenReady, NEW_SEL_SQL } from './selection.js';
 import { withLimit, canCreateGallery } from './billing.js';
 
+const wantsPlan = (c) => { const m = /(?:^|; )picfy_plan=(fotografo|organizador|pase)/.exec(c.req.header('cookie') || ''); return m ? '/comprar/' + m[1] : '/inicio'; };
 const go = (to, headers = {}) => new Response(null, { status: 303, headers: { location: to, ...headers } });
 
 async function userCount(db) {
@@ -49,7 +50,7 @@ export function appRoutes(app) {
     // Se calcula siempre el hash para que no se note si el correo existe.
     const ok = user ? await checkPassword(user, password) : (await hashPassword(password, '00'.repeat(16)), false);
     if (!ok) return html(authPage({ mode: 'login', email, google: googleOn(c.env), error: 'Correo o contraseña incorrectos.' }), 401);
-    return go('/inicio', { 'set-cookie': await startSession(c.env.DB, user.id) });
+    return go(wantsPlan(c), { 'set-cookie': await startSession(c.env.DB, user.id) });
   });
 
   /* ----- Crear cuenta ----- */
@@ -71,7 +72,7 @@ export function appRoutes(app) {
     if (password.length < 8) return back('La contraseña debe tener al menos 8 caracteres.');
     if (await c.env.DB.prepare('SELECT 1 FROM users WHERE email = ?').bind(email).first()) return back('Ya existe una cuenta con ese correo.', 409);
     const id = await createUser(c.env.DB, { name, email, password });
-    return go('/inicio', { 'set-cookie': await startSession(c.env.DB, id) });
+    return go(wantsPlan(c), { 'set-cookie': await startSession(c.env.DB, id) });
   });
 
   app.post('/salir', async (c) => go('/entrar', { 'set-cookie': await endSession(c.env.DB, c.req.raw) }));

@@ -50,6 +50,10 @@ const hook = async (type, object, bad) => { const raw = JSON.stringify({ type, d
   // baja
   ok((await hook('customer.subscription.deleted', { id: 'sub_1', customer: 'cus_1', status: 'canceled', metadata: { plan: 'organizador', user: U.id } })) === 200, 'webhook de baja');
   await p.goto(B + '/planes'); ok(/Gratis/.test(await p.textContent('.plan-uso h2')), 'vuelve a gratis'); await p.screenshot({ path: '/tmp/picfy_shots/planes.png', fullPage: true });
+  // botón de la landing sin cuenta: registro y directo al pago
+  { const p2 = await (await b.newContext()).newPage(); await p2.route('https://stripe.test/**', (r) => r.fulfill({ body: 'stripe' })); await p2.goto(B + '/comprar/fotografo'); ok(/\/registro/.test(p2.url()), 'sin cuenta pasa por registro');
+    await p2.fill('input[name=name]', 'Dir'); await p2.fill('input[name=email]', `di${Date.now()}@t.es`); await p2.fill('input[name=password]', 'clave12345'); const w1 = p2.waitForRequest(/stripe\.test\/pay/); await p2.click('.au-submit'); await w1; ok(true, 'tras registrarse va directo al pago');
+    const w2 = p2.waitForRequest(/stripe\.test\/pay/); await p2.goto(B + '/comprar/organizador').catch(() => {}); await w2; ok(true, 'con cuenta va directo al pago'); }
   // cuentas anteriores: sin límites
   sql(`UPDATE users SET plan='libre' WHERE id='${U.id}'`); await p.goto(B + '/planes'); ok(/Sin límites/.test(await p.textContent('.plan-uso h2')), 'cuenta libre');
   ok(errs.length === 0, 'errores JS: ' + errs.join(';')); console.log('ALL OK'); await b.close(); mock.close();
