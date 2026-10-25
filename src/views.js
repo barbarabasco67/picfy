@@ -17,6 +17,7 @@ export function layout({ title, body, scripts = [], bodyAttrs = '', head = '' })
 <link rel="stylesheet" href="/app.css?v=${ASSET_V}">
 <link rel="stylesheet" href="/motion.css?v=${ASSET_V}">
 <meta name="theme-color" content="#ffffff">
+<script>try{if(location.pathname==="/inicio"&&!sessionStorage.getItem("picfy_hi")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("hi")}catch(e){}</script>
 ${head}
 </head>
 <body class="app" ${bodyAttrs}>

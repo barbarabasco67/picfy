@@ -5,7 +5,17 @@
   const img = lb.querySelector('img');
   let list = [], i = 0;
 
-  function show(dir) { img.classList.remove('nx', 'pv'); void img.offsetWidth; if (dir) img.classList.add(dir > 0 ? 'nx' : 'pv'); img.src = list[i]; lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); lb.dispatchEvent(new CustomEvent('lbshow', { detail: { i } })); }
+  let from = null;
+  document.addEventListener('click', (e) => { from = e.target.closest ? e.target.closest('.tile, .gcard img, .ph') : null; }, true);
+  function flip() {
+    const t = from && from.isConnected ? (from.matches('img') ? from : from.querySelector('img') || from) : null;
+    if (!t) { lb.style.removeProperty('--tx'); return false; }
+    const r = t.getBoundingClientRect(); if (!r.width) return false;
+    lb.style.setProperty('--tx', (r.left + r.width / 2 - innerWidth / 2) + 'px'); lb.style.setProperty('--ty', (r.top + r.height / 2 - innerHeight / 2) + 'px');
+    lb.style.setProperty('--ts', Math.max(.08, Math.min(.9, r.width / Math.min(innerWidth * .9, 900))).toFixed(3));
+    return true;
+  }
+  function show(dir) { const wasOpen = lb.classList.contains('open'); img.classList.remove('nx', 'pv', 'from'); void img.offsetWidth; if (dir) img.classList.add(dir > 0 ? 'nx' : 'pv'); else if (!wasOpen && flip()) img.classList.add('from'); img.src = list[i]; lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); lb.dispatchEvent(new CustomEvent('lbshow', { detail: { i } })); }
   const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function close() {
     if (!lb.classList.contains('open') || lb.classList.contains('closing')) return;
