@@ -1,7 +1,7 @@
 // Política de privacidad y condiciones de uso (páginas públicas).
 import { html } from './util.js';
 
-const CONTACTO = 'pablo.garcia.alvarez91@gmail.com';
+const CONTACTO = 'barbarabasco7@gmail.com';
 const ACTUALIZADO = '25 de octubre de 2026';
 
 const CSS = `:root{--bg:#f6f4f0;--ink:#14213d;--acc:#edb265;--mut:#5b6478}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
