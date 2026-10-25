@@ -27,16 +27,15 @@
   // Corazón de "me gusta" con un pequeño rebote.
   document.addEventListener('click', (e) => { const l = e.target.closest && e.target.closest('#lbLike'); if (!l || rm) return; l.classList.remove('pop'); void l.offsetWidth; l.classList.add('pop'); setTimeout(() => l.classList.remove('pop'), 450); });
 
-  // Bienvenida: un objetivo que se abre, obturador y revelado. Una vez por visita, al llegar al panel.
-  const SVG = '<svg viewBox="-100 -100 200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><mask id="irisM" maskUnits="userSpaceOnUse" x="-1000" y="-1000" width="2000" height="2000"><rect x="-1000" y="-1000" width="2000" height="2000" fill="#fff"/><g class="iris"><polygon points="0.8660,0.5000 0.0000,1.0000 -0.8660,0.5000 -0.8660,-0.5000 -0.0000,-1.0000 0.8660,-0.5000" fill="#000"/></g></mask></defs><rect x="-1000" y="-1000" width="2000" height="2000" fill="#14213d" mask="url(#irisM)"/><g class="iris"><line class="seam" x1="8.660" y1="-4.000" x2="-6.928" y2="5.000"/><line class="seam" x1="7.794" y1="5.500" x2="-7.794" y2="-3.500"/><line class="seam" x1="-0.866" y1="9.500" x2="-0.866" y2="-8.500"/><line class="seam" x1="-8.660" y1="4.000" x2="6.928" y2="-5.000"/><line class="seam" x1="-7.794" y1="-5.500" x2="7.794" y2="3.500"/><line class="seam" x1="0.866" y1="-9.500" x2="0.866" y2="8.500"/></g></svg>';
+  // Bienvenida: enfoque de cámara, flash y obturador que se abre. Una vez por visita, al llegar al panel.
   const hi = document.documentElement;
   try {
     if (!rm && location.pathname === '/inicio' && !sessionStorage.getItem('picfy_hi')) {
       sessionStorage.setItem('picfy_hi', '1');
       const s = document.createElement('div'); s.className = 'splash'; s.setAttribute('aria-hidden', 'true');
-      s.innerHTML = '<div class="sbg"><div class="logo3"><i class="lens"></i><span>Picfy</span></div></div><div class="flash"></div>' + SVG;
+      s.innerHTML = '<div class="cur ct"></div><div class="cur cb"></div><div class="mid"><div class="vf"><i></i><i></i><i></i><i></i></div><div class="mark"></div></div><div class="flash"></div>';
       document.body.appendChild(s);
-      setTimeout(() => { s.remove(); hi.classList.remove('hi'); }, 2950);
+      setTimeout(() => { s.remove(); hi.classList.remove('hi'); }, 2500);
     } else hi.classList.remove('hi');
   } catch { hi.classList.remove('hi'); }
 
