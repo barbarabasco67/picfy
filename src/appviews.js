@@ -138,6 +138,7 @@ ${tile('photo-1574623452334-1e0ac2b3ccb4')}${tile('photo-1627627256672-027a4613d
 ${google ? `<a class="au-google" href="/auth/google">${GOOGLE_G}Continuar con Google</a><div class="au-or"><span>o</span></div>` : ''}
 <div id="auForms">${authForm(mode, act)}</div>
 <template id="auOther" data-mode="${other}">${authForm(other, idle)}</template>
+<p class="au-legal"><a href="/privacidad">Privacidad</a> · <a href="/condiciones">Condiciones</a></p>
 </div></section>
 </main>`,
   });

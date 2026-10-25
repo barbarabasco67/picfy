@@ -340,7 +340,7 @@ export function landingPage(user = null) {
 
 <footer><div class="wrap">
   <a class="logo" href="/"><i aria-hidden="true"></i>Picfy</a>
-  <div class="links"><a href="#album">Álbum colaborativo</a><a href="#pro">Fotógrafos y organizadores</a><a href="#planes">Planes</a><a href="${goHref}">${goText}</a></div>
+  <div class="links"><a href="#album">Álbum colaborativo</a><a href="#pro">Fotógrafos y organizadores</a><a href="#planes">Planes</a><a href="/privacidad">Privacidad</a><a href="/condiciones">Condiciones</a><a href="${goHref}">${goText}</a></div>
 </div></footer>
 <script type="application/json" id="phs">${JSON.stringify(PHOTOS)}</script>
 <script>${JS}</script>

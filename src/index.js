@@ -19,6 +19,7 @@ import { selectionRoutes } from './selection.js';
 import { publicCollectionRoute } from './collections.js';
 import { appRoutes } from './app.js';
 import { billingRoutes, hasSpace } from './billing.js';
+import { legalRoutes } from './legal.js';
 import { currentUser, hashPassword } from './auth.js';
 import { getWm, wmAttr } from './watermark.js';
 import { getBest } from './best.js';
@@ -61,7 +62,7 @@ app.get('/health', async (c) => {
   };
   return json(out);
 });
-app.get('/robots.txt', (c) => new Response('User-agent: *\nAllow: /portfolio\nDisallow: /\n', { headers: { 'content-type': 'text/plain' } }));
+app.get('/robots.txt', (c) => new Response('User-agent: *\nAllow: /portfolio\nAllow: /privacidad\nAllow: /condiciones\nDisallow: /\n', { headers: { 'content-type': 'text/plain' } }));
 // Portfolio público de Pablo y Bárbara (efectos, fotos y vídeos en /public/portfolio/)
 app.get('/portfolio', (c) => html(portfolioPage(), 200, { 'cache-control': 'public, max-age=300' }));
 app.get('/portfolio/', (c) => c.redirect('/portfolio', 301));
@@ -429,6 +430,7 @@ manageRoutes(app);
 /* ---------- Plataforma: cuentas y galerías ---------- */
 appRoutes(app);
 billingRoutes(app);
+legalRoutes(app);
 
 app.notFound((c) => (c.req.header('accept') || '').includes('text/html') ? html(notFoundPage(), 404) : c.text('Not found', 404));
 app.onError((err, c) => {
