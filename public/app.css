@@ -1296,3 +1296,31 @@ dialog.pedit { width: min(94vw, 880px); max-width: calc(100vw - 16px); max-heigh
 .mdfile .mdchat { position: relative; border: 0; background: none; cursor: pointer; color: #6b7488; padding: 2px 4px; display: inline-grid; } .mdfile .mdchat svg { width: 18px; height: 18px; }
 .mdfiles .cform .csend { flex: none; border: 0; background: #14213d; color: #fff; font: inherit; font-size: .84rem; font-weight: 700; padding: 8px 16px; border-radius: 99px; cursor: pointer; }
 body.app .cform input[type=text] { position: static; width: auto; flex: 1 1 0; min-width: 0; }
+/* Tareas como módulos dentro de la tarjeta del creador */
+body.app .tcreator .tdaybox { gap: 8px; }
+body.app .tcreator .tday { margin: 8px 0 0; }
+body.app .tcreator .ttasks { gap: 10px; }
+body.app .tcreator .ttasks > li { background: rgba(255,255,255,.82); border: 1px solid rgba(20,33,61,.08); border-radius: 14px; padding: 12px 12px 12px 14px; row-gap: 8px; align-items: start; }
+body.app .tcreator .ttasks > li.done { background: rgba(255,255,255,.55); }
+body.app .tcreator .ttasks > li.retry { border-color: rgba(168,48,31,.3); }
+body.app .tcreator .ttasks .tacts { gap: 0; margin: -4px -4px 0 0; }
+body.app .tcreator .ttasks .tfl { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px; margin: 2px 0 0; padding-top: 10px; border-top: 1px solid rgba(20,33,61,.08); }
+body.app .tcreator .ttasks .tfl > li.tfile { display: block; background: #f6f4f0; border-radius: 12px; padding: 10px; }
+body.app .tfile .frow { display: grid; grid-template-columns: 48px minmax(0,1fr); gap: 8px 10px; align-items: center; }
+body.app .tfile .fth { width: 48px; height: 48px; }
+body.app .tfile .finfo { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+body.app .tfile .finfo .fn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: .86rem; color: var(--navy, #14213d); text-decoration: none; }
+body.app .tfile .fchips { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 7px; } body.app .tfile .fchips small { color: var(--muted); font-size: .74rem; white-space: nowrap; }
+body.app .tfile .fbar { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding-top: 8px; border-top: 1px solid rgba(20,33,61,.08); }
+body.app .tfile .fpills, body.app .tfile .ficons { display: flex; align-items: center; gap: 6px; }
+body.app .tfile .fpill { display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(20,33,61,.18); background: #fff; color: #14213d; border-radius: 99px; padding: 5px 11px; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; }
+body.app .tfile .fpill svg { width: 14px; height: 14px; } body.app .tfile .fpill.on { background: #14213d; color: #fff; border-color: #14213d; }
+body.app .tfile .ficons .ib { position: relative; }
+body.app .tfile .ficons .fcount { position: absolute; top: -3px; right: -3px; }
+body.app .tfile .cthread { margin-top: 10px; }
+body.app .tfile .ficons { margin-left: auto; }
+body.app .tfile .cthread { margin: 10px 0 0; background: #fff; }
+body.app .tfile .cthread .cform { align-items: stretch; } body.app .tfile .cform input[type=text] { position: static; width: auto; flex: 1 1 0; min-width: 0; }
+body.app .tfile .cform button { flex: none; box-shadow: none; padding: 8px 14px; }
+.cmsg { box-shadow: none; border: 1px solid rgba(20,33,61,.08); } .cmsg.other { align-self: flex-start; }
+body.app .tfile .cform button, body.app .tfile .fpill { box-shadow: none !important; }

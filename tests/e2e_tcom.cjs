@@ -47,6 +47,6 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   // Comentario del hub
   await nuevo.locator('[aria-label="Comentarios"]').first().click(); await p.waitForSelector('.tfile .cform input');
   await p.locator('.tfile .cform input').first().fill('Perfecta'); await p.locator('.tfile .cform button').first().click(); await p.waitForSelector('.tfile .cmsg');
-  ok(true, 'hub comenta');
+  ok(true, 'hub comenta'); await p.waitForTimeout(1200); await p.screenshot({ path: '/tmp/picfy_shots/tcom.png', fullPage: true });
   ok(errs.length === 0, 'sin errores JS: ' + errs.join(';')); console.log('ALL OK'); await b.close();
 })().catch((e) => { console.log('ERR', e.message); process.exit(1); });

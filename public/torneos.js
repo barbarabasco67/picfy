@@ -267,18 +267,22 @@
           const isImg = /^image\//.test(f.mime || '');
           const vi = versions(files), ver = vi.num[f.id], old = vi.old.has(f.id);
           const rv = data.comentarios ? reviewChip(f.review, old) : null;
+          const pill = (path, label, cls, fn) => { const b = h('button', { type: 'button', class: 'fpill ' + cls, 'aria-label': label, onclick: fn }); b.append(svgi(path)); b.append(label); return b; };
           const row = h('div', { class: 'frow' },
             isImg ? h('img', { class: 'fth', loading: 'lazy', alt: '', src: `/api/entregas/${f.id}/archivo` }) : h('span', { class: 'fth vid' }, 'Vídeo'),
-            h('a', { href: `/api/entregas/${f.id}/archivo`, target: '_blank', rel: 'noopener', class: 'fn' }, f.filename),
-            ver > 1 || old ? h('span', { class: 'fver' }, 'v' + ver) : null, rv, h('small', {}, bytes(f.size)),
-            isImg && f.sent_id ? h('span', { class: 'fsent', title: 'Enviada a la galería como borrador' }, 'Enviada') : null,
-            data.comentarios && !old ? ico('<path d="M5 12l5 5L20 7"/>', 'Aprobar', async () => { await api('PUT', `/api/entregas/${f.id}/revision`, { review: f.review === 'ok' ? '' : 'ok' }); load(); }) : null,
-            data.comentarios && !old ? ico('<path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/>', 'Pedir cambios', () => askChanges(f)) : null,
-            data.comentarios ? ico('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/>', 'Comentarios', () => { if (openThreads.has(f.id)) openThreads.delete(f.id); else openThreads.add(f.id); draw(); }) : null,
-            data.comentarios && f.ncom ? h('b', { class: 'fcount' }, String(f.ncom)) : null,
-            isImg && sede.event_id && !f.sent_id ? ico('<path d="M5 12l5 5L20 7"/><path d="M4 20h16"/>', 'Enviar a la galería', () => sendPhoto(f, sede)) : null,
-            h('a', { href: `/api/entregas/${f.id}/archivo?dl=1`, class: 'ib', title: 'Descargar', 'aria-label': 'Descargar' }, svgi('<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/>')),
-            ico('<path d="M6 6l12 12M18 6L6 18"/>', 'Borrar archivo', async () => { if (confirm('¿Borrar ' + f.filename + '?')) { await api('DELETE', '/api/entregas/' + f.id); load(); } }));
+            h('div', { class: 'finfo' },
+              h('a', { href: `/api/entregas/${f.id}/archivo`, target: '_blank', rel: 'noopener', class: 'fn' }, f.filename),
+              h('div', { class: 'fchips' }, ver > 1 || old ? h('span', { class: 'fver' }, 'v' + ver) : null, rv, h('small', {}, bytes(f.size)),
+                isImg && f.sent_id ? h('span', { class: 'fsent', title: 'Enviada a la galería como borrador' }, 'Enviada') : null)),
+            h('div', { class: 'fbar' },
+              h('div', { class: 'fpills' },
+                data.comentarios && !old ? pill('<path d="M5 12l5 5L20 7"/>', 'Aprobar', f.review === 'ok' ? 'on' : '', async () => { await api('PUT', `/api/entregas/${f.id}/revision`, { review: f.review === 'ok' ? '' : 'ok' }); load(); }) : null,
+                data.comentarios && !old ? pill('<path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/>', 'Pedir cambios', '', () => askChanges(f)) : null),
+              h('div', { class: 'ficons' },
+                data.comentarios ? (() => { const c = ico('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/>', 'Comentarios', () => { if (openThreads.has(f.id)) openThreads.delete(f.id); else openThreads.add(f.id); draw(); }); if (f.ncom) c.append(h('b', { class: 'fcount' }, String(f.ncom))); return c; })() : null,
+                isImg && sede.event_id && !f.sent_id ? ico('<path d="M5 12l5 5L20 7"/><path d="M4 20h16"/>', 'Enviar a la galería', () => sendPhoto(f, sede)) : null,
+                h('a', { href: `/api/entregas/${f.id}/archivo?dl=1`, class: 'ib', title: 'Descargar', 'aria-label': 'Descargar' }, svgi('<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/>')),
+                ico('<path d="M6 6l12 12M18 6L6 18"/>', 'Borrar archivo', async () => { if (confirm('¿Borrar ' + f.filename + '?')) { await api('DELETE', '/api/entregas/' + f.id); load(); } }))));
           return h('li', { class: 'tfile' + (old ? ' old' : '') }, row, data.comentarios && openThreads.has(f.id) ? thread(f.id, `/api/entregas/${f.id}/comentarios`, 'hub') : null);
         })) : null);
     }))));
