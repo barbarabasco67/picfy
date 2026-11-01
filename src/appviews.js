@@ -804,12 +804,12 @@ ${torneo.extra ? `<label class="field"><span>Descripción</span><textarea name="
 <label class="field"><span>Qué debe corregir</span><textarea name="note" maxlength="600" rows="4" placeholder="Por ejemplo: el vídeo se ve movido, grábalo en horizontal" required></textarea></label>
 <footer><span class="spacer"></span><button class="btn primary" type="submit">Devolver al creador</button></footer></form></dialog>
 <dialog id="taskDlg" class="glassdlg"><form class="dlgbox" id="taskForm" method="dialog">
-<header><h2>Editar tarea</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<header><h2 id="taskDlgTitle">Editar tarea</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <label class="field"><span>Qué hay que hacer</span><input type="text" name="title" maxlength="160" required></label>
 <div class="row2"><label class="field"><span>Tipo</span><select name="kind">${Object.entries(kinds).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join('')}</select></label><label class="field"><span>Asignada a</span><select name="creador_id"></select></label></div>
 <div class="row2"><label class="field"><span>Fecha</span><input type="date" name="date"></label><label class="field"><span>Hora</span><input type="time" name="time"></label></div>
 <label class="field"><span>Notas para el creador</span><textarea name="notes" maxlength="1000" rows="3"></textarea></label>
-<footer><span class="spacer"></span><button class="btn primary" type="submit">Guardar cambios</button></footer></form></dialog>`,
+<footer><span class="spacer"></span><button class="btn primary" type="submit" id="taskSave">Guardar cambios</button></footer></form></dialog>`,
     }),
   });
 }

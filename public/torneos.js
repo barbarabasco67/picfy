@@ -7,17 +7,27 @@
   const fmt = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Sin fecha';
   let data = { sedes: [] };
 
-  // Editar tarea
-  const taskDlg = document.getElementById('taskDlg'), taskForm = document.getElementById('taskForm'); let editing = null;
-  function editTask(t, s) {
-    editing = t; const f = taskForm;
-    f.title.value = t.title; f.kind.value = t.kind in kinds ? t.kind : Object.keys(kinds)[0]; f.date.value = t.date || ''; f.time.value = t.time || ''; f.notes.value = t.notes || '';
+  // Editar o crear tarea (la misma ventana)
+  const taskDlg = document.getElementById('taskDlg'), taskForm = document.getElementById('taskForm'); let editing = null, creating = null;
+  const fillTask = (s, t) => {
+    const f = taskForm;
+    f.title.value = t.title || ''; f.kind.value = t.kind in kinds ? t.kind : Object.keys(kinds)[0]; f.date.value = t.date || ''; f.time.value = t.time || ''; f.notes.value = t.notes || '';
     f.creador_id.replaceChildren(h('option', { value: '' }, 'Toda la sede'), ...s.creadores.map((c) => h('option', { value: c.id }, c.name))); f.creador_id.value = t.creador_id || '';
+  };
+  function editTask(t, s) {
+    editing = t; creating = null; fillTask(s, t);
+    document.getElementById('taskDlgTitle').textContent = 'Editar tarea'; document.getElementById('taskSave').textContent = 'Guardar cambios';
     taskDlg.showModal();
   }
+  function newTask(s, date, time) {
+    editing = null; creating = s; fillTask(s, { date, time });
+    document.getElementById('taskDlgTitle').textContent = 'Nueva tarea en ' + s.name; document.getElementById('taskSave').textContent = 'Añadir tarea';
+    taskDlg.showModal(); taskForm.title.focus();
+  }
   taskForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); const f = taskForm; if (!editing || !f.title.value.trim()) return;
-    await api('PUT', '/api/tareas/' + editing.id, { title: f.title.value, kind: f.kind.value, date: f.date.value, time: f.time.value, notes: f.notes.value, creador_id: f.creador_id.value });
+    e.preventDefault(); const f = taskForm; if ((!editing && !creating) || !f.title.value.trim()) return;
+    const body = { title: f.title.value, kind: f.kind.value, date: f.date.value, time: f.time.value, notes: f.notes.value, creador_id: f.creador_id.value };
+    if (editing) await api('PUT', '/api/tareas/' + editing.id, body); else await api('POST', `/api/sedes/${creating.id}/tareas`, body);
     taskDlg.close(); load();
   });
 
@@ -118,7 +128,7 @@
     const gutter = h('div', { class: 'tcalgut', style: `height:${height}px` }); for (let m = lo; m < hi; m += 60) { const l = h('span', {}, hhmm(m)); l.style.top = ((m - lo) / 60) * HOUR + 'px'; gutter.append(l); }
     const cols = data.sedes.map((s) => {
       const mine = timed.filter((x) => x.s.id === s.id).sort((a, b) => mins(a.t.time) - mins(b.t.time));
-      const body = h('div', { class: 'tcalbody', style: `height:${height}px` });
+      const body = h('div', { class: 'tcalbody', style: `height:${height}px`, onclick: (e) => { if (e.target !== body) return; const m = Math.min(hi - 30, lo + Math.floor((e.offsetY / HOUR) * 2) * 30); newTask(s, calDay, hhmm(m)); } });
       let cluster = [], end = -1; const flush = () => { const lanes = Math.max(1, ...cluster.map((c) => c.lane + 1)); cluster.forEach((c) => { c.el.style.width = `calc(${100 / lanes}% - 4px)`; c.el.style.left = `calc(${(100 / lanes) * c.lane}% + 2px)`; }); cluster = []; };
       const laneEnd = [];
       for (const x of mine) {
@@ -135,7 +145,8 @@
       if (calDay === today) { const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' })); const nm = now.getHours() * 60 + now.getMinutes(); if (nm >= lo && nm <= hi) { const ln = h('i', { class: 'tcalnow' }); ln.style.top = ((nm - lo) / 60) * HOUR + 'px'; body.append(ln); } }
       const un = untimed.filter((x) => x.s.id === s.id);
       return {
-        head: h('header', { class: 'tcalch' }, h('b', {}, s.name), h('small', {}, `${dayTasks.filter((x) => x.s.id === s.id).length} ${dayTasks.filter((x) => x.s.id === s.id).length === 1 ? 'tarea' : 'tareas'}`)),
+        head: h('header', { class: 'tcalch' }, h('div', {}, h('b', {}, s.name), h('small', {}, `${dayTasks.filter((x) => x.s.id === s.id).length} hoy · ${s.tareas.filter((t) => t.done).length}/${s.tareas.length} en total`)),
+          h('button', { type: 'button', class: 'iconbtn tcaladd', title: 'Añadir tarea a ' + s.name, 'aria-label': 'Añadir tarea a ' + s.name, onclick: () => newTask(s, calDay, '') }, '+')),
         un: h('div', { class: 'tcalun' }, un.map((x) => { const k = kinds[x.t.kind] || { color: '#999' }, c = x.s.creadores.find((c) => c.id === x.t.creador_id); return h('button', { type: 'button', class: 'tcalev flat' + (x.t.done ? ' done' : ''), style: `--c:${k.color}`, onclick: () => editTask(x.t, x.s) }, h('span', { class: 't' }, x.t.title), h('small', {}, (c ? c.name : 'Toda la sede') + (x.t.done ? ' · Hecha' : ''))); })),
         body,
       };

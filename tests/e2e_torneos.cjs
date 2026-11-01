@@ -101,6 +101,14 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   ok((await p.locator('.tcalch').count()) === 2 && (await p.locator('.tcalev >> text=Partido 10h').count()) === 1, 'calendario con una columna por sede y la tarea en su hora');
   await p.waitForTimeout(1200); await p.screenshot({ path: '/tmp/picfy_shots/cal.png' });
   const top = await p.evaluate(() => parseInt(document.querySelector('.tcalev:not(.flat)').style.top, 10)); ok(top === 120, 'la tarea de las 10:00 está en su fila: ' + top);
+  // crear tareas desde el calendario: al pulsar un hueco se prellena sede, día y hora, y cuenta en la sede
+  const before = await p.evaluate(async () => { const d = await (await fetch('/api/torneos/' + document.body.dataset.torneo)).json(); return d.sedes[1].tareas.length; });
+  await p.locator('.tcalbody').nth(1).click({ position: { x: 40, y: 3 * 60 + 10 } }); await p.waitForSelector('#taskDlg[open]');
+  ok(/Nueva tarea en Sabadell/.test(await p.textContent('#taskDlgTitle')) && (await p.inputValue('#taskForm input[name=time]')) === '11:00' && (await p.inputValue('#taskForm input[name=date]')) !== '', 'hueco del calendario: nueva tarea con sede, día y hora');
+  await p.fill('#taskForm input[name=title]', 'Final desde calendario'); await p.click('#taskSave'); await p.waitForSelector('.tcalev >> text=Final desde calendario');
+  const after = await p.evaluate(async () => { const d = await (await fetch('/api/torneos/' + document.body.dataset.torneo)).json(); return d.sedes[1].tareas.length; }); ok(after === before + 1, 'la tarea se guarda en la sede (' + before + ' → ' + after + ')');
+  ok(/en total/.test(await p.textContent('.tcalch >> nth=1')), 'la cabecera de la sede cuenta la tarea: ' + await p.textContent('.tcalch >> nth=1'));
+  await p.click('.tcaladd >> nth=0'); await p.waitForSelector('#taskDlg[open]'); ok(/Nueva tarea en Zaragoza/.test(await p.textContent('#taskDlgTitle')), 'el botón + de la columna crea una tarea'); await p.keyboard.press('Escape');
   await p.click('.tcalev >> text=Partido 10h'); await p.waitForSelector('#taskDlg[open]'); ok((await p.inputValue('#taskForm input[name=title]')) === 'Partido 10h', 'al pulsar una tarea se abre para editarla'); await p.keyboard.press('Escape');
   await p.reload(); await p.waitForSelector('.tcal'); ok(true, 'recuerda la vista elegida'); await p.click('.tseg button >> text=Sedes'); await p.waitForSelector('.tsede');
   ok((await p.locator('.tsede .tsum .tschip').count()) >= 3 && /creador/.test(await p.textContent('.tsede .tsum')), 'vistazo de la sede con datos');

@@ -1273,3 +1273,7 @@ dialog.pedit { width: min(94vw, 880px); max-width: calc(100vw - 16px); max-heigh
 .tcalev.done { opacity: .6; } .tcalev.done .t { text-decoration: line-through; } .tcalev.late { border-left-color: #d6402f; background: #fff3f1; } .tcalev.late small { color: #d6402f; font-weight: 600; }
 .tcalev.flat { position: static; }
 .tcalnow { position: absolute; left: 0; right: 0; height: 0; border-top: 2px solid #ef6b5b; z-index: 2; pointer-events: none; } .tcalnow::before { content: ''; position: absolute; left: -4px; top: -5px; width: 8px; height: 8px; border-radius: 50%; background: #ef6b5b; }
+
+.tcalch { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; } .tcalch > div { min-width: 0; display: flex; flex-direction: column; }
+.tcaladd { flex: none; width: 30px; height: 30px; border-radius: 50%; background: #14213d; color: #fff; font-size: 1.2rem; line-height: 1; display: grid; place-items: center; transition: transform .2s var(--spring, ease); } .tcaladd:hover { transform: scale(1.12) rotate(90deg); }
+.tcalbody { cursor: cell; } .tcalbody:hover { background-color: rgba(237, 178, 101, .05); }
