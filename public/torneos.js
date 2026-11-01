@@ -77,11 +77,29 @@
   });
   tForm.addEventListener('submit', async (e) => {
     e.preventDefault(); const f = tForm; if (!f.name.value.trim()) return;
-    const body = { name: f.name.value }; if (f.description) Object.assign(body, { description: f.description.value, start_date: f.start_date.value, end_date: f.end_date.value, color: (f.querySelector('input[name=color]:checked') || {}).value });
+    const body = { name: f.name.value }; if (f.avisos) body.avisos = f.avisos.checked; if (f.description) Object.assign(body, { description: f.description.value, start_date: f.start_date.value, end_date: f.end_date.value, color: (f.querySelector('input[name=color]:checked') || {}).value });
     await api('PUT', '/api/torneos/' + tid, body);
     if (coverDel) await fetch(`/api/torneos/${tid}/portada`, { method: 'DELETE' });
     if (coverFile) { try { const blob = await shrink(coverFile); await fetch(`/api/torneos/${tid}/portada`, { method: 'POST', headers: { 'content-type': 'image/jpeg' }, body: blob }); } catch (x) { /* sin portada */ } }
     location.reload();
+  });
+  // Entrega al cliente
+  const shareDlg = document.getElementById('shareDlg'), shareBox = document.getElementById('shareBox');
+  function drawShare() {
+    const body = document.getElementById('shareBody'), url = shareBox.dataset.share ? shareBox.dataset.origin + '/entrega/' + shareBox.dataset.share : '';
+    const set = async (on) => { const r = await api('PUT', `/api/torneos/${tid}/entrega`, { on }); shareBox.dataset.share = r.share || ''; drawShare(); };
+    if (!url) { body.replaceChildren(h('button', { class: 'btn primary', type: 'button', onclick: () => set(true) }, 'Crear enlace')); return; }
+    const inp = h('input', { type: 'text', readonly: true, value: url, 'aria-label': 'Enlace de entrega', onfocus: (e) => e.target.select() });
+    const cp = h('button', { class: 'btn primary', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(url); } catch (x) { inp.select(); } cp.textContent = 'Copiado'; setTimeout(() => (cp.textContent = 'Copiar enlace'), 1500); } }, 'Copiar enlace');
+    body.replaceChildren(h('div', { class: 'tshare' }, inp), h('div', { class: 'tshare-acts' }, cp, h('a', { class: 'btn', href: url, target: '_blank', rel: 'noopener' }, 'Abrir'), h('button', { class: 'btn danger', type: 'button', onclick: () => set(false) }, 'Dejar de compartir')));
+  }
+  const shareBtn = document.getElementById('shareBtn'); if (shareBtn) shareBtn.addEventListener('click', () => { drawShare(); shareDlg.showModal(); });
+  // Duplicar torneo
+  const dupDlg = document.getElementById('dupDlg'), dupForm = document.getElementById('dupForm');
+  document.getElementById('dupBtn').addEventListener('click', () => dupDlg.showModal());
+  dupForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); const btn = document.getElementById('dupSave'); btn.disabled = true;
+    try { const r = await fetch(`/api/torneos/${tid}/duplicar`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: dupForm.name.value, start_date: dupForm.start_date.value }) }); const d = await r.json(); if (r.status === 403) { location.href = '/planes?limite=torneos'; return; } if (d.id) location.href = '/torneo/' + d.id; else btn.disabled = false; } catch (x) { btn.disabled = false; }
   });
   document.querySelectorAll('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-close]')) d.close(); }));
 
@@ -339,8 +357,8 @@
     if (data.galerias) card.append(h('div', { class: 'tgalrow' }, galSelect('Galería de la sede', s.event_id, data.galerias.slice().sort((x, y) => (y.parent_id ? 1 : 0) - (x.parent_id ? 1 : 0)), (v) => api('PUT', `/api/sedes/${s.id}/galeria`, { event_id: v }), 'Crear subgalería de la sede')));
 
     // Cuadros para añadir (separados de las tareas)
-    const cf = h('form', { class: 'tform tnewcreator', onsubmit: async (e) => { e.preventDefault(); const v = e.target.name.value.trim(); if (!v) return; await api('POST', `/api/sedes/${s.id}/creadores`, { name: v }); load(); } },
-      h('h3', {}, 'Nuevo creador'), h('input', { type: 'text', name: 'name', maxlength: 80, placeholder: 'Nombre', 'aria-label': 'Nombre del creador', required: true }), h('button', { class: 'btn sm', type: 'submit' }, 'Añadir creador'));
+    const cf = h('form', { class: 'tform tnewcreator', onsubmit: async (e) => { e.preventDefault(); const v = e.target.name.value.trim(); if (!v) return; await api('POST', `/api/sedes/${s.id}/creadores`, { name: v, email: e.target.email.value.trim() }); load(); } },
+      h('h3', {}, 'Nuevo creador'), h('input', { type: 'text', name: 'name', maxlength: 80, placeholder: 'Nombre', 'aria-label': 'Nombre del creador', required: true }), h('input', { type: 'email', name: 'email', maxlength: 120, placeholder: 'Correo (opcional)', 'aria-label': 'Correo del creador' }), h('button', { class: 'btn sm', type: 'submit' }, 'Añadir creador'));
     const tf = h('form', { class: 'tform tnewtask', onsubmit: async (e) => {
       e.preventDefault(); const f = e.target; const title = f.title.value.trim(); if (!title) return;
       await api('POST', `/api/sedes/${s.id}/tareas`, { title, kind: f.kind.value, date: f.date.value, time: f.time.value, creador_id: f.creador_id.value });

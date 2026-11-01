@@ -9,7 +9,7 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   await p.goto(B + '/torneo'); await p.fill('.tnew input[name=name]', 'Torneo Check'); await p.click('.tnew button'); await p.waitForURL(/torneo\/\w{16}/);
   await p.fill('#sedeForm input[name=name]', 'Bilbao'); await p.click('#sedeForm button'); await p.waitForSelector('.tsede');
   const z = p.locator('.tsede').first();
-  await z.locator('.tnewcreator input').fill('Ana'); await z.locator('.tnewcreator button').click(); await p.waitForSelector('.tcreator');
+  await z.locator('.tnewcreator input[name=name]').fill('Ana'); await z.locator('.tnewcreator button').click(); await p.waitForSelector('.tcreator');
   await z.locator('.tnewtask input[name=title]').fill('Final'); await z.locator('.tnewtask button').click(); await p.waitForSelector('.ttasks li');
   // Añadir puntos desde la ventana de edición
   await p.click('[aria-label="Editar tarea"]'); await p.fill('#taskForm textarea[name=items]', 'Foto de equipo\n3 jugadas\nCeremonia'); await p.click('#taskSave');

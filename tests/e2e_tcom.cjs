@@ -9,7 +9,7 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   await p.goto(B + '/torneo'); await p.fill('.tnew input[name=name]', 'Torneo Com'); await p.click('.tnew button'); await p.waitForURL(/torneo\/\w{16}/);
   await p.fill('#sedeForm input[name=name]', 'Sevilla'); await p.click('#sedeForm button'); await p.waitForSelector('.tsede');
   const z = p.locator('.tsede').first();
-  await z.locator('.tnewcreator input').fill('Marta'); await z.locator('.tnewcreator button').click(); await p.waitForSelector('.tcreator');
+  await z.locator('.tnewcreator input[name=name]').fill('Marta'); await z.locator('.tnewcreator button').click(); await p.waitForSelector('.tcreator');
   await z.locator('.tnewtask input[name=title]').fill('Saludo'); await z.locator('.tnewtask button').click(); await p.waitForSelector('.ttasks li');
   const d = await p.evaluate(async () => { const r = await (await fetch('/api/torneos/' + document.body.dataset.torneo)).json(); return { tarea: r.sedes[0].tareas[0].id, token: r.sedes[0].creadores[0].token }; });
   const up = (replaces) => p.evaluate(async ([t, tid, rp]) => {

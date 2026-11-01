@@ -13,7 +13,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await p.fill('#sedeForm input[name=name]', 'Zaragoza'); await p.click('#sedeForm button'); await p.waitForSelector('.tsede');
   await p.fill('#sedeForm input[name=name]', 'Sabadell'); await p.click('#sedeForm button'); await p.waitForFunction(() => document.querySelectorAll('.tsede').length === 2);
   const z = p.locator('.tsede').first();
-  await z.locator('.tnewcreator input').fill('Marta'); await z.locator('.tnewcreator button').click(); await p.waitForSelector('.tcreator');
+  await z.locator('.tnewcreator input[name=name]').fill('Marta'); await z.locator('.tnewcreator button').click(); await p.waitForSelector('.tcreator');
   await p.locator('.tsede').first().locator('.tnewtask input[name=title]').fill('Grabar saludo');
   const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   await p.locator('.tsede').first().locator('.tnewtask input[name=date]').fill(today);

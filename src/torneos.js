@@ -3,6 +3,8 @@ import { randomHex, sha256Hex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
 import { canCreateTorneo } from './billing.js';
 import { buildZip } from './zip.js';
+import { sendMail } from './mail.js';
+import { entregaPage } from './entrega.js';
 import { informePage } from './informe.js';
 import { torneosPage, torneoPage, miDiaPage } from './appviews.js';
 
@@ -50,6 +52,13 @@ export async function itemsReady(db) {
   try { await db.prepare('SELECT id, tarea_id, text, done, pos FROM tarea_items LIMIT 1').first(); sk = { v: true, t: Date.now() }; }
   catch { sk = { v: false, t: Date.now() }; }
   return sk.v;
+}
+let sq = { v: null, t: 0 };
+export async function extrasReady(db) {
+  if (sq.v === true || (sq.v === false && Date.now() - sq.t < 30000)) return sq.v;
+  try { await db.prepare('SELECT share, avisos, aviso_at FROM torneos LIMIT 1').first(); await db.prepare('SELECT email FROM creadores LIMIT 1').first(); sq = { v: true, t: Date.now() }; }
+  catch { sq = { v: false, t: Date.now() }; }
+  return sq.v;
 }
 let sr = { v: null, t: 0 };
 export async function repetirReady(db) {
@@ -123,7 +132,7 @@ export function torneosRoutes(app) {
     if (!(await torneosReady(c.env.DB))) return go('/torneo');
     const t = await ownTorneo(c, user, c.req.param('id'));
     if (!t) return go('/torneo');
-    return html(torneoPage({ user, torneo: { id: t.id, name: t.name, description: t.description || '', start_date: t.start_date || '', end_date: t.end_date || '', color: t.color || COLORS[0], cover_v: t.cover_v || 0, extra: await detallesReady(c.env.DB) }, kinds: KINDS, colors: COLORS }));
+    return html(torneoPage({ user, torneo: { id: t.id, name: t.name, description: t.description || '', start_date: t.start_date || '', end_date: t.end_date || '', color: t.color || COLORS[0], cover_v: t.cover_v || 0, extra: await detallesReady(c.env.DB), ex: await extrasReady(c.env.DB), share: t.share || '', avisos: t.avisos === 0 ? 0 : 1, origin: new URL(c.req.url).origin }, kinds: KINDS, colors: COLORS }));
   });
 
   // Informe imprimible (Guardar como PDF) con lo cumplido, entregado y publicado
@@ -181,6 +190,7 @@ export function torneosRoutes(app) {
       if (sd && ed && ed < sd) ed = sd;
       await c.env.DB.prepare('UPDATE torneos SET name=?2, description=?3, start_date=?4, end_date=?5, color=?6 WHERE id=?1').bind(t.id, name, clip(b.description, 600) || null, sd, ed, COLORS.includes(b.color) ? b.color : COLORS[0]).run();
     } else await c.env.DB.prepare('UPDATE torneos SET name=?2 WHERE id=?1').bind(t.id, name).run();
+    if ('avisos' in b && (await extrasReady(c.env.DB))) await c.env.DB.prepare('UPDATE torneos SET avisos = ? WHERE id = ?').bind(b.avisos ? 1 : 0, t.id).run();
     return json({ ok: true });
   });
 
@@ -327,10 +337,12 @@ export function torneosRoutes(app) {
     const a = await auth(c); if (a.err) return a.err;
     const s = await ownSede(c, a.user, c.req.param('id'));
     if (!s) return json({ error: 'nf' }, 404);
-    const name = clip((await c.req.json().catch(() => ({}))).name, 80);
+    const bc = await c.req.json().catch(() => ({}));
+    const name = clip(bc.name, 80);
     if (!name) return json({ error: 'name' }, 400);
-    const id = randomHex(8), token = randomHex(12);
+    const mail = clip(bc.email, 120).toLowerCase(), id = randomHex(8), token = randomHex(12);
     await c.env.DB.prepare('INSERT INTO creadores (id, sede_id, name, token, created_at) VALUES (?,?,?,?,?)').bind(id, s.id, name, token, Date.now()).run();
+    if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail) && (await extrasReady(c.env.DB))) await c.env.DB.prepare('UPDATE creadores SET email = ? WHERE id = ?').bind(mail, id).run();
     return json({ creador: { id, sede_id: s.id, name, token } });
   });
 
@@ -442,10 +454,34 @@ export function torneosRoutes(app) {
   });
 
   /* ----- Creadores: "Mi día" por enlace de invitación ----- */
+  /* ----- Avisos por correo (al organizador, con un respiro de 5 min; y al creador si tiene correo) ----- */
+  const mailBody = (title, line, url, label) => `<div style="font-family:system-ui,sans-serif;max-width:480px;margin:auto;padding:24px;color:#14213d"><h2 style="margin:0 0 8px">${title}</h2><p style="font-size:15px;line-height:1.5;margin:0 0 20px">${line}</p><a href="${url}" style="display:inline-block;background:#14213d;color:#fff;text-decoration:none;font-weight:700;padding:11px 20px;border-radius:99px">${label}</a><p style="font-size:12px;color:#7a8296;margin-top:24px">Picfy</p></div>`;
+  const esc2 = (v) => String(v).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  async function enviar(c, msg) { const p = sendMail(c.env, msg); try { c.executionCtx.waitUntil(p); } catch { await p; } }
+  async function avisoHub(c, torneoId, subject, line) {
+    try {
+      const db = c.env.DB; if (!torneoId || !(await extrasReady(db))) return;
+      const t = await db.prepare('SELECT t.id, t.name, t.avisos, t.aviso_at, u.email FROM torneos t JOIN users u ON u.id = t.owner_id WHERE t.id = ?').bind(torneoId).first();
+      const now = Date.now();
+      if (!t || t.avisos === 0 || !t.email || now - (t.aviso_at || 0) < 5 * 60 * 1000) return;
+      await db.prepare('UPDATE torneos SET aviso_at = ? WHERE id = ?').bind(now, t.id).run();
+      await enviar(c, { to: t.email, subject: `${subject} · ${t.name}`, html: mailBody(esc2(t.name), esc2(line), new URL(c.req.url).origin + '/torneo/' + t.id, 'Abrir el torneo'), text: `${line}\n${new URL(c.req.url).origin}/torneo/${t.id}` });
+    } catch {}
+  }
+  async function avisoCreador(c, creadorId, subject, line) {
+    try {
+      const db = c.env.DB; if (!creadorId || !(await extrasReady(db))) return;
+      const r = await db.prepare('SELECT c.email, c.token, c.name, t.name AS torneo FROM creadores c JOIN sedes s ON s.id = c.sede_id JOIN torneos t ON t.id = s.torneo_id WHERE c.id = ?').bind(creadorId).first();
+      if (!r || !r.email) return;
+      const url = new URL(c.req.url).origin + '/t/' + r.token;
+      await enviar(c, { to: r.email, subject: `${subject} · ${r.torneo}`, html: mailBody('Hola, ' + esc2(r.name), esc2(line), url, 'Abrir mi día'), text: `${line}\n${url}` });
+    } catch {}
+  }
+
   async function byToken(c) {
     const token = c.req.param('token');
     if (!isHex(token, 24) || !(await torneosReady(c.env.DB))) return null;
-    return c.env.DB.prepare('SELECT c.id, c.name, c.sede_id, s.name AS sede, t.name AS torneo FROM creadores c JOIN sedes s ON s.id = c.sede_id JOIN torneos t ON t.id = s.torneo_id WHERE c.token = ?').bind(token).first();
+    return c.env.DB.prepare('SELECT c.id, c.name, c.sede_id, s.name AS sede, t.name AS torneo, t.id AS torneo_id FROM creadores c JOIN sedes s ON s.id = c.sede_id JOIN torneos t ON t.id = s.torneo_id WHERE c.token = ?').bind(token).first();
   }
 
   app.get('/t/:token', async (c) => {
@@ -477,6 +513,7 @@ export function torneosRoutes(app) {
     const done = Number((await c.req.json().catch(() => ({}))).done) ? 1 : 0;
     await c.env.DB.prepare('UPDATE tareas_torneo SET done = ?2, done_at = ?3, done_by = ?4 WHERE id = ?1').bind(id, done, done ? Date.now() : null, done ? me.name : null).run();
     if (done && (await repetirReady(c.env.DB))) await c.env.DB.prepare('UPDATE tareas_torneo SET retry = 0 WHERE id = ?').bind(id).run();
+    if (done && !cur.done) await avisoHub(c, me.torneo_id, 'Tarea hecha', `${me.name} (${me.sede}) ha marcado como hecha «${cur.title}».`);
     return json({ ok: true });
   });
   app.put('/api/t/:token/items/:id', async (c) => {
@@ -546,6 +583,7 @@ export function torneosRoutes(app) {
     if (!parts.length) return json({ error: 'parts' }, 400);
     const obj = await c.env.PHOTOS.resumeMultipartUpload(keyOf(e), e.upload_id).complete(parts);
     await c.env.DB.prepare("UPDATE entregas_torneo SET state = 'ok', upload_id = NULL, size = ?2 WHERE id = ?1").bind(e.id, obj.size).run();
+    await avisoHub(c, me.torneo_id, 'Archivo nuevo', `${me.name} (${me.sede}) ha subido «${e.filename}».`);
     return json({ entrega: { id: e.id, tarea_id: e.tarea_id, filename: e.filename, mime: e.mime, size: obj.size, review: null, replaces: e.replaces || null, ncom: 0 } });
   });
 
@@ -564,14 +602,11 @@ export function torneosRoutes(app) {
     return c.env.DB.prepare("SELECT e.* FROM entregas_torneo e JOIN sedes s ON s.id = e.sede_id JOIN torneos t ON t.id = s.torneo_id WHERE e.id = ? AND t.owner_id = ? AND e.state = 'ok'").bind(id, user.id).first();
   }
 
-  app.get('/api/entregas/:id/archivo', async (c) => {
-    const user = await currentUser(c);
-    if (!user) return new Response('', { status: 401 });
-    const e = await hubEntrega(c, user, c.req.param('id'));
-    if (!e) return new Response('', { status: 404 });
+  // Sirve un archivo de R2 con soporte de rangos (vídeo) y descarga opcional
+  async function serveEntrega(c, e, cache) {
     const range = c.req.header('range');
     const m = range && /^bytes=(\d*)-(\d*)$/.exec(range);
-    let opts, status = 200, headers = new Headers({ 'content-type': e.mime, 'accept-ranges': 'bytes', 'cache-control': 'private, max-age=600' });
+    let opts, status = 200, headers = new Headers({ 'content-type': e.mime, 'accept-ranges': 'bytes', 'cache-control': cache });
     if (m && (m[1] || m[2])) {
       const start = m[1] ? Number(m[1]) : Math.max(0, e.size - Number(m[2]));
       const end = m[1] && m[2] ? Math.min(Number(m[2]), e.size - 1) : e.size - 1;
@@ -583,19 +618,25 @@ export function torneosRoutes(app) {
     if (!obj) return new Response('', { status: 404 });
     if (c.req.query('dl')) headers.set('content-disposition', `attachment; filename="${e.filename.replace(/[^\w.\- ]+/g, '_')}"`);
     return new Response(obj.body, { status, headers });
+  }
+
+  app.get('/api/entregas/:id/archivo', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return new Response('', { status: 401 });
+    const e = await hubEntrega(c, user, c.req.param('id'));
+    if (!e) return new Response('', { status: 404 });
+    return serveEntrega(c, e, 'private, max-age=600');
   });
 
   // Todas las entregas de una sede (o de un solo creador) en un zip, ordenadas por creador y tarea.
-  app.get('/api/sedes/:id/zip', async (c) => {
-    const user = await currentUser(c);
-    if (!user) return new Response('', { status: 401 });
-    const sede = await ownSede(c, user, c.req.param('id'));
-    if (!sede || !(await entregasReady(c.env.DB))) return new Response('', { status: 404 });
-    const cr = String(c.req.query('creador') || '');
+  async function sedeZip(c, sede, approved) {
+    if (!(await entregasReady(c.env.DB))) return new Response('', { status: 404 });
+    const cr = approved ? '' : String(c.req.query('creador') || '');
+    const only = approved && (await comentariosReady(c.env.DB)) ? " AND e.review = 'ok'" : '';
     const rows = (await c.env.DB.prepare(
       `SELECT e.id, e.filename, e.size, e.created_at, e.sede_id, c.name AS cname, t.title, t.date
        FROM entregas_torneo e JOIN tareas_torneo t ON t.id = e.tarea_id LEFT JOIN creadores c ON c.id = e.creador_id
-       WHERE e.sede_id = ? AND e.state = 'ok' ${cr ? 'AND e.creador_id = ?' : ''} ORDER BY COALESCE(c.name, ''), t.date, t.created_at, e.created_at, e.id`,
+       WHERE e.sede_id = ? AND e.state = 'ok'${only} ${cr ? 'AND e.creador_id = ?' : ''} ORDER BY COALESCE(c.name, ''), t.date, t.created_at, e.created_at, e.id`,
     ).bind(...(cr ? [sede.id, cr] : [sede.id])).all()).results;
     // El zip clásico llega a 4 GB: si hay más, se reparte en partes.
     const MAX = 3.5 * 1024 * 1024 * 1024; const parts = []; let cur = [], sz = 0;
@@ -617,6 +658,95 @@ export function torneosRoutes(app) {
     const label = safe(sede.name).replace(/\s+/g, '-') || 'sede';
     const who = cr && list[0] ? '-' + (safe(list[0].cname).replace(/\s+/g, '-') || 'creador') : '';
     return new Response(stream, { headers: { 'content-type': 'application/zip', 'content-length': String(length), 'content-disposition': `attachment; filename="picfy-${label}${who}${parts.length > 1 ? '-parte' + part : ''}.zip"`, 'cache-control': 'no-store' } });
+  }
+  app.get('/api/sedes/:id/zip', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return new Response('', { status: 401 });
+    const sede = await ownSede(c, user, c.req.param('id'));
+    if (!sede) return new Response('', { status: 404 });
+    return sedeZip(c, sede, false);
+  });
+
+
+  /* ----- Entrega al cliente: enlace público de solo lectura con lo aprobado ----- */
+  app.put('/api/torneos/:id/entrega', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    const t = await ownTorneo(c, a.user, c.req.param('id'));
+    if (!t || !(await extrasReady(c.env.DB))) return json({ error: 'nf' }, 404);
+    const on = Boolean((await c.req.json().catch(() => ({}))).on);
+    const share = on ? (t.share || randomHex(16)) : null;
+    await c.env.DB.prepare('UPDATE torneos SET share = ? WHERE id = ?').bind(share, t.id).run();
+    return json({ share: share || '' });
+  });
+  async function shareTorneo(c) {
+    const token = c.req.param('token');
+    if (!isHex(token, 32) || !(await extrasReady(c.env.DB))) return null;
+    return c.env.DB.prepare('SELECT * FROM torneos WHERE share = ?').bind(token).first();
+  }
+  const fmtD = (d) => (d ? new Date(d + 'T00:00:00Z').toLocaleDateString('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' }) : '');
+  app.get('/entrega/:token', async (c) => {
+    const t = await shareTorneo(c);
+    if (!t) return html(entregaPage({ torneo: null }), 404);
+    const db = c.env.DB;
+    const sedes = (await db.prepare('SELECT id, name FROM sedes WHERE torneo_id = ? ORDER BY created_at').bind(t.id).all()).results;
+    let files = [];
+    if (sedes.length && (await entregasReady(db))) {
+      const only = (await comentariosReady(db)) ? " AND e.review = 'ok'" : '';
+      files = (await db.prepare(`SELECT e.id, e.sede_id, e.filename, e.mime, e.size FROM entregas_torneo e JOIN tareas_torneo k ON k.id = e.tarea_id WHERE e.state = 'ok'${only} AND e.sede_id IN (${sedes.map(() => '?').join(',')}) ORDER BY k.date, k.created_at, e.created_at`).bind(...sedes.map((s) => s.id)).all()).results;
+    }
+    const range = t.start_date ? fmtD(t.start_date) + (t.end_date && t.end_date !== t.start_date ? ' – ' + fmtD(t.end_date) : '') : '';
+    return html(entregaPage({ torneo: { name: t.name, description: t.description || '', range }, token: t.share, sedes: sedes.map((s) => ({ ...s, files: files.filter((f) => f.sede_id === s.id) })) }));
+  });
+  app.get('/entrega/:token/archivo/:id', async (c) => {
+    const t = await shareTorneo(c);
+    const id = c.req.param('id');
+    if (!t || !isHex(id, 16) || !(await entregasReady(c.env.DB))) return new Response('', { status: 404 });
+    const only = (await comentariosReady(c.env.DB)) ? " AND e.review = 'ok'" : '';
+    const e = await c.env.DB.prepare(`SELECT e.* FROM entregas_torneo e JOIN sedes s ON s.id = e.sede_id WHERE e.id = ? AND s.torneo_id = ? AND e.state = 'ok'${only}`).bind(id, t.id).first();
+    if (!e) return new Response('', { status: 404 });
+    return serveEntrega(c, e, 'private, max-age=300');
+  });
+  app.get('/entrega/:token/zip/:sede', async (c) => {
+    const t = await shareTorneo(c);
+    const sid = c.req.param('sede');
+    if (!t || !isHex(sid, 16)) return new Response('', { status: 404 });
+    const sede = await c.env.DB.prepare('SELECT * FROM sedes WHERE id = ? AND torneo_id = ?').bind(sid, t.id).first();
+    if (!sede) return new Response('', { status: 404 });
+    return sedeZip(c, sede, true);
+  });
+
+  /* ----- Plantillas: duplicar un torneo (sedes, creadores con enlace nuevo, tareas y puntos) ----- */
+  app.post('/api/torneos/:id/duplicar', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    const t = await ownTorneo(c, a.user, c.req.param('id'));
+    if (!t) return json({ error: 'nf' }, 404);
+    if (!(await canCreateTorneo(c.env.DB, a.user.id))) return json({ error: 'limit' }, 403);
+    const db = c.env.DB, b = await c.req.json().catch(() => ({}));
+    const name = clip(b.name, 120) || clip(t.name + ' (copia)', 120);
+    const dx = await detallesReady(db), ex = await extrasReady(db), ix = await itemsReady(db);
+    const sd = reDate.test(String(b.start_date || '')) ? b.start_date : '';
+    const days = sd && dx && t.start_date ? Math.round((Date.parse(sd) - Date.parse(t.start_date)) / 86400000) : null;
+    const shift = (d, n) => { if (!d || n === null) return ''; const x = new Date(d + 'T00:00:00Z'); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
+    const now = Date.now(), nid = randomHex(8), st = [];
+    if (dx) st.push(db.prepare('INSERT INTO torneos (id, owner_id, name, created_at, description, start_date, end_date, color) VALUES (?,?,?,?,?,?,?,?)').bind(nid, a.user.id, name, now, t.description || null, days !== null ? sd : (sd || null), days !== null && t.end_date ? shift(t.end_date, days) : null, t.color || null));
+    else st.push(db.prepare('INSERT INTO torneos (id, owner_id, name, created_at) VALUES (?,?,?,?)').bind(nid, a.user.id, name, now));
+    const sedes = (await db.prepare('SELECT * FROM sedes WHERE torneo_id = ? ORDER BY created_at').bind(t.id).all()).results;
+    const sm = {}, cm = {};
+    sedes.forEach((s, i) => { sm[s.id] = randomHex(8); st.push(db.prepare('INSERT INTO sedes (id, torneo_id, name, created_at) VALUES (?,?,?,?)').bind(sm[s.id], nid, s.name, now + i)); });
+    if (sedes.length) {
+      const ph = sedes.map(() => '?').join(','), ids = sedes.map((s) => s.id);
+      const crs = (await db.prepare(`SELECT * FROM creadores WHERE sede_id IN (${ph}) ORDER BY created_at`).bind(...ids).all()).results;
+      crs.forEach((x, i) => { cm[x.id] = randomHex(8); st.push(db.prepare('INSERT INTO creadores (id, sede_id, name, token, created_at) VALUES (?,?,?,?,?)').bind(cm[x.id], sm[x.sede_id], x.name, randomHex(12), now + i)); if (ex && x.email) st.push(db.prepare('UPDATE creadores SET email = ? WHERE id = ?').bind(x.email, cm[x.id])); });
+      const tas = (await db.prepare(`SELECT * FROM tareas_torneo WHERE sede_id IN (${ph}) ORDER BY created_at`).bind(...ids).all()).results;
+      const tm = {};
+      tas.forEach((k, i) => { tm[k.id] = randomHex(8); const d = shift(k.date, days); st.push(db.prepare('INSERT INTO tareas_torneo (id, sede_id, creador_id, kind, title, date, time, notes, done, created_at) VALUES (?,?,?,?,?,?,?,?,0,?)').bind(tm[k.id], sm[k.sede_id], k.creador_id ? cm[k.creador_id] || null : null, k.kind, k.title, d, d ? k.time : null, k.notes || null, now + i)); });
+      if (ix) {
+        const its = (await db.prepare(`SELECT * FROM tarea_items WHERE sede_id IN (${ph}) ORDER BY pos`).bind(...ids).all()).results;
+        for (const x of its) if (tm[x.tarea_id]) st.push(db.prepare('INSERT INTO tarea_items (id, tarea_id, sede_id, text, done, pos) VALUES (?,?,?,?,0,?)').bind(randomHex(8), tm[x.tarea_id], sm[x.sede_id], x.text, x.pos));
+      }
+    }
+    for (let i = 0; i < st.length; i += 80) await db.batch(st.slice(i, i + 80));
+    return json({ id: nid });
   });
 
   /* ----- Comentarios y revisión de cada entrega ----- */
@@ -635,6 +765,7 @@ export function torneosRoutes(app) {
     const e = await hubEntrega(c, user, c.req.param('id')); if (!e) return json({ error: 'nf' }, 404);
     const body = clip((await c.req.json().catch(() => ({}))).body, 1000); if (!body) return json({ error: 'body' }, 400);
     await comAdd(c.env.DB, e, 'hub', user.name || 'Organizador', body);
+    await avisoCreador(c, e.creador_id, 'Comentario nuevo', `${user.name || 'El organizador'} ha comentado en «${e.filename}»: ${body.slice(0, 200)}`);
     return json({ comentarios: await comList(c.env.DB, e.id) });
   });
   // Aprobar un archivo o pedir cambios (al pedir cambios la tarea vuelve a "repetir" para el creador)
@@ -649,6 +780,7 @@ export function torneosRoutes(app) {
       if (note) await comAdd(c.env.DB, e, 'hub', user.name || 'Organizador', note);
       if (await repetirReady(c.env.DB)) await c.env.DB.prepare('UPDATE tareas_torneo SET done = 0, done_at = NULL, done_by = NULL, retry = 1, retry_note = ?2 WHERE id = ?1').bind(e.tarea_id, note || 'Hay cambios pedidos en uno de tus archivos. Mira los comentarios.').run();
     }
+    if (review === 'cambios') await avisoCreador(c, e.creador_id, 'Cambios pedidos', `Te piden cambios en «${e.filename}».${clip(b.note, 300) ? ' ' + clip(b.note, 300) : ''}`);
     return json({ review });
   });
   app.get('/api/t/:token/entregas/:id/comentarios', async (c) => {
@@ -661,6 +793,7 @@ export function torneosRoutes(app) {
     const e = await ownEntrega(c, me, c.req.param('id')); if (!e || e.state !== 'ok') return json({ error: 'nf' }, 404);
     const body = clip((await c.req.json().catch(() => ({}))).body, 1000); if (!body) return json({ error: 'body' }, 400);
     await comAdd(c.env.DB, e, 'creador', me.name, body);
+    await avisoHub(c, me.torneo_id, 'Comentario nuevo', `${me.name} (${me.sede}) ha comentado en «${e.filename}»: ${body.slice(0, 200)}`);
     return json({ comentarios: await comList(c.env.DB, e.id) });
   });
 

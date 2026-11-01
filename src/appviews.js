@@ -786,7 +786,7 @@ export function torneoPage({ user, torneo, kinds, colors = [] }) {
     body: shell({
       user, active: 'torneos', crumbs: '<a href="/torneo">Torneos</a>',
       main: `<div class="head thead"><div><h1>${esc(torneo.name)}</h1>${range ? `<p class="muted">${esc(range)}</p>` : ''}${torneo.description ? `<p class="tdesc2">${esc(torneo.description)}</p>` : ''}</div>
-<div class="tbtns"><a class="btn" href="/torneo/${torneo.id}/informe" target="_blank" rel="noopener">${ICON.down} Informe PDF</a><button class="btn" type="button" id="editTorneo">${ICON.cog} Editar torneo</button>
+<div class="tbtns"><a class="btn" href="/torneo/${torneo.id}/informe" target="_blank" rel="noopener">${ICON.down} Informe PDF</a>${torneo.ex ? `<button class="btn" type="button" id="shareBtn">${ICON.share} Entrega al cliente</button>` : ''}<button class="btn" type="button" id="dupBtn">${ICON.coll} Duplicar</button><button class="btn" type="button" id="editTorneo">${ICON.cog} Editar torneo</button>
 <form class="tnew" id="sedeForm"><input class="search glass" type="text" name="name" maxlength="80" placeholder="Nueva sede" aria-label="Nueva sede" required><button class="btn primary" type="submit">${ICON.plus} Añadir sede</button></form></div></div>
 <div class="tsedes" id="tSedes"></div>
 <form method="post" action="/torneo/${torneo.id}/borrar" class="tdel" onsubmit="return confirm('¿Borrar el torneo con todas sus sedes y tareas?')"><button class="btn danger sm" type="submit">${ICON.trash} Borrar torneo</button></form>
@@ -797,7 +797,16 @@ ${torneo.extra ? `<label class="field"><span>Descripción</span><textarea name="
 <div class="row2"><label class="field"><span>Empieza</span><input type="date" name="start_date" value="${esc(torneo.start_date)}"></label><label class="field"><span>Termina</span><input type="date" name="end_date" value="${esc(torneo.end_date)}"></label></div>
 <div class="field"><span>Color</span><div class="tsws">${sw}</div></div>
 <div class="field"><span>Foto de portada</span><div class="tcoverpick">${torneo.cover_v ? `<img id="tcPrev" src="/torneo/${torneo.id}/portada?v=${torneo.cover_v}" alt="">` : '<img id="tcPrev" hidden alt="">'}<input type="file" id="tcFile" accept="image/jpeg,image/png,image/webp" hidden><button class="btn sm" type="button" id="tcPick">Elegir foto</button><button class="btn sm danger" type="button" id="tcDel"${torneo.cover_v ? '' : ' hidden'}>Quitar</button></div></div>` : `<p class="muted">Falta una actualización de la base de datos (migración 0029) para personalizar el torneo.</p>`}
+${torneo.ex ? `<label class="field tavisos"><input type="checkbox" name="avisos"${torneo.avisos ? ' checked' : ''}><span>Avisarme por correo cuando haya novedades</span></label>` : ''}
 <footer><span class="spacer"></span><button class="btn primary" type="submit">Guardar</button></footer></form></dialog>
+<dialog id="shareDlg" class="glassdlg"><div class="dlgbox" id="shareBox" data-share="${esc(torneo.share)}" data-origin="${esc(torneo.origin || '')}">
+<header><h2>Entrega al cliente</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div id="shareBody"></div></div></dialog>
+<dialog id="dupDlg" class="glassdlg"><form class="dlgbox" id="dupForm" method="dialog">
+<header><h2>Duplicar torneo</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<label class="field"><span>Nombre</span><input type="text" name="name" maxlength="120" required value="${esc(torneo.name)} (copia)"></label>
+<label class="field"><span>Empieza</span><input type="date" name="start_date" value="${esc(torneo.start_date)}"></label>
+<footer><span class="spacer"></span><button class="btn primary" type="submit" id="dupSave">Crear copia</button></footer></form></dialog>
 <dialog id="revDlg" class="glassdlg"><form class="dlgbox" id="revForm" method="dialog">
 <header><h2>Pedir cambios</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <p class="muted" id="revTitle" style="margin:0"></p>

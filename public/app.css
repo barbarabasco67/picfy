@@ -1352,3 +1352,8 @@ body.app .tcreator > header .tcopy { padding: 5px 12px; font-size: .76rem; font-
 .mdt .tck { margin: 6px 0 8px 40px; } .mdt .tck li { display: block; font-size: .88rem; }
 .mdt .tck li.tckn { align-self: flex-start; margin-bottom: 4px; display: inline-block; }
 .mdt .tck input[type=checkbox] { position: static; opacity: 1; width: 18px; height: 18px; }
+/* Entrega al cliente, avisos y duplicar */
+.tavisos { flex-direction: row; align-items: center; gap: 10px; } .tavisos input { width: 18px; height: 18px; accent-color: #14213d; flex: none; }
+.tshare input { width: 100%; box-sizing: border-box; }
+.tshare-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tnewcreator input[type=email] { width: 100%; box-sizing: border-box; }
