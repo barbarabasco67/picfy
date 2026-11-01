@@ -1324,3 +1324,7 @@ body.app .tfile .cthread .cform { align-items: stretch; } body.app .tfile .cform
 body.app .tfile .cform button { flex: none; box-shadow: none; padding: 8px 14px; }
 .cmsg { box-shadow: none; border: 1px solid rgba(20,33,61,.08); } .cmsg.other { align-self: flex-start; }
 body.app .tfile .cform button, body.app .tfile .fpill { box-shadow: none !important; }
+/* Creadores en filas y tareas en cuadrícula: menos alto */
+body.app .tboxes { grid-template-columns: 1fr; }
+body.app .tcreator .ttasks { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); align-items: start; }
+body.app .tcreator .ttasks > li { min-width: 0; }
