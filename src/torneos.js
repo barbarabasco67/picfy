@@ -3,6 +3,7 @@ import { randomHex, sha256Hex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
 import { canCreateTorneo } from './billing.js';
 import { buildZip } from './zip.js';
+import { informePage } from './informe.js';
 import { torneosPage, torneoPage, miDiaPage } from './appviews.js';
 
 let st = { v: null, t: 0 };
@@ -108,6 +109,32 @@ export function torneosRoutes(app) {
     const t = await ownTorneo(c, user, c.req.param('id'));
     if (!t) return go('/torneo');
     return html(torneoPage({ user, torneo: { id: t.id, name: t.name, description: t.description || '', start_date: t.start_date || '', end_date: t.end_date || '', color: t.color || COLORS[0], cover_v: t.cover_v || 0, extra: await detallesReady(c.env.DB) }, kinds: KINDS, colors: COLORS }));
+  });
+
+  // Informe imprimible (Guardar como PDF) con lo cumplido, entregado y publicado
+  app.get('/torneo/:id/informe', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return go('/entrar');
+    if (!(await torneosReady(c.env.DB))) return go('/torneo');
+    const t = await ownTorneo(c, user, c.req.param('id'));
+    if (!t) return go('/torneo');
+    const db = c.env.DB;
+    const sedes = (await db.prepare('SELECT * FROM sedes WHERE torneo_id = ? ORDER BY created_at').bind(t.id).all()).results;
+    const ids = sedes.map((x) => x.id);
+    const q = (sql) => ids.length ? db.prepare(sql.replace('?', ids.map(() => '?').join(','))).bind(...ids).all().then((r) => r.results) : [];
+    const creadores = await q('SELECT id, sede_id, name FROM creadores WHERE sede_id IN (?) ORDER BY created_at');
+    const rc = (await repetirReady(db)) ? ', retry' : '';
+    const tareas = await q("SELECT id, sede_id, creador_id, kind, title, date, time, done" + rc + " FROM tareas_torneo WHERE sede_id IN (?) ORDER BY date, COALESCE(time, '99:99'), created_at");
+    const entregas = (await entregasReady(db)) ? await q("SELECT id, sede_id, tarea_id, creador_id, mime, size FROM entregas_torneo WHERE state = 'ok' AND sede_id IN (?)") : [];
+    const gx = await galeriaReady(db);
+    const out = [];
+    for (const sd of sedes) {
+      let fotos = null;
+      if (gx && sd.event_id) fotos = (await db.prepare("SELECT COUNT(*) AS n FROM photos WHERE state = 'approved' AND event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1)").bind(sd.event_id).first())?.n ?? 0;
+      out.push({ id: sd.id, name: sd.name, fotos, creadores: creadores.filter((x) => x.sede_id === sd.id), tareas: tareas.filter((x) => x.sede_id === sd.id), entregas: entregas.filter((x) => x.sede_id === sd.id) });
+    }
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+    return html(informePage({ user, torneo: { id: t.id, name: t.name, description: t.description || '', start_date: t.start_date || '', end_date: t.end_date || '', color: t.color || COLORS[0] }, kinds: KINDS, sedes: out, today }));
   });
 
   app.post('/torneo/:id/borrar', async (c) => {

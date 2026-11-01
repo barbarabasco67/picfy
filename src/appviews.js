@@ -786,7 +786,7 @@ export function torneoPage({ user, torneo, kinds, colors = [] }) {
     body: shell({
       user, active: 'torneos', crumbs: '<a href="/torneo">Torneos</a>',
       main: `<div class="head thead"><div><h1>${esc(torneo.name)}</h1>${range ? `<p class="muted">${esc(range)}</p>` : ''}${torneo.description ? `<p class="tdesc2">${esc(torneo.description)}</p>` : ''}</div>
-<div class="tbtns"><button class="btn" type="button" id="editTorneo">${ICON.cog} Editar torneo</button>
+<div class="tbtns"><a class="btn" href="/torneo/${torneo.id}/informe" target="_blank" rel="noopener">${ICON.down} Informe PDF</a><button class="btn" type="button" id="editTorneo">${ICON.cog} Editar torneo</button>
 <form class="tnew" id="sedeForm"><input class="search glass" type="text" name="name" maxlength="80" placeholder="Nueva sede" aria-label="Nueva sede" required><button class="btn primary" type="submit">${ICON.plus} Añadir sede</button></form></div></div>
 <div class="tsedes" id="tSedes"></div>
 <form method="post" action="/torneo/${torneo.id}/borrar" class="tdel" onsubmit="return confirm('¿Borrar el torneo con todas sus sedes y tareas?')"><button class="btn danger sm" type="submit">${ICON.trash} Borrar torneo</button></form>

@@ -111,6 +111,12 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   await p.click('.tcaladd >> nth=0'); await p.waitForSelector('#taskDlg[open]'); ok(/Nueva tarea en Zaragoza/.test(await p.textContent('#taskDlgTitle')), 'el botón + de la columna crea una tarea'); await p.keyboard.press('Escape');
   await p.click('.tcalev >> text=Partido 10h'); await p.waitForSelector('#taskDlg[open]'); ok((await p.inputValue('#taskForm input[name=title]')) === 'Partido 10h', 'al pulsar una tarea se abre para editarla'); await p.keyboard.press('Escape');
   await p.reload(); await p.waitForSelector('.tcal'); ok(true, 'recuerda la vista elegida'); await p.click('.tseg button >> text=Sedes'); await p.waitForSelector('.tsede');
+  // informe PDF del torneo
+  const rep = await p.evaluate(async (u) => { const r = await fetch(u + '/informe'); return { st: r.status, tx: await r.text() }; }, new URL(url).pathname);
+  ok(rep.st === 200 && /Informe del torneo/.test(rep.tx) && /Resumen por sede/.test(rep.tx) && /Zaragoza/.test(rep.tx) && /Tareas cumplidas/.test(rep.tx) && /printBtn/.test(rep.tx), 'informe del torneo con resumen y detalle');
+  ok(await p.isVisible('a[href$="/informe"]'), 'botón Informe PDF en el torneo');
+  { const pr = await (await b.newContext()).newPage(); await p.goto(B + new URL(url).pathname + '/informe'); await p.pdf({ path: '/tmp/picfy_shots/informe.pdf', format: 'A4', printBackground: true, preferCSSPageSize: true }); await p.goto(url); await p.waitForSelector('.tsede'); }
+  const o2 = await (await b.newContext()).newPage(); await o2.goto(B + new URL(url).pathname + '/informe'); ok(/entrar/.test(o2.url()), 'sin sesión el informe pide entrar');
   ok((await p.locator('.tsede .tsum .tschip').count()) >= 3 && /creador/.test(await p.textContent('.tsede .tsum')), 'vistazo de la sede con datos');
   ok((await p.locator('.tsede .tsopen').count()) >= 1 && /\/galerias\//.test(await p.getAttribute('.tsede .tsopen', 'href')), 'botón Abrir galería en la cabecera de la sede');
   await p.waitForTimeout(1300); await p.screenshot({ path: '/tmp/picfy_shots/torneo.png' });
