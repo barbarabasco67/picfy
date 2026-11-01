@@ -250,14 +250,16 @@
     return days.map((d) => h('div', { class: 'tdaybox' }, h('h4', { class: 'tday' }, fmt(d)), h('ul', { class: 'ttasks' }, list.filter((t) => t.date === d).map((t) => {
       const k = kinds[t.kind] || { color: '#999', label: t.kind };
       const files = t.entregas || [];
-      return h('li', { class: (t.done ? 'done' : '') + (t.retry && !t.done ? ' retry' : '') },
+      const canOpen = files.length || (t.retry && !t.done && t.retry_note);
+      const flip = (li) => { const o = !openTasks.has(t.id); if (o) openTasks.add(t.id); else openTasks.delete(t.id); li.classList.toggle('open', o); const ul = li.querySelector('.tfl'); if (ul) ul.hidden = !o; };
+      return h('li', { class: (t.done ? 'done' : '') + (t.retry && !t.done ? ' retry' : '') + (openTasks.has(t.id) ? ' open' : '') },
         h('input', { type: 'checkbox', checked: !!t.done, 'aria-label': 'Hecha', onchange: async (e) => { await api('PUT', '/api/tareas/' + t.id, { done: e.target.checked ? 1 : 0 }); load(); } }),
         h('div', { class: 'tbd' },
-          h('div', { class: 'tmain' }, h('span', { class: 'tkind', style: `--c:${k.color}` }, k.label), h('span', { class: 't' }, t.title, t.time ? h('small', {}, ' · ' + t.time) : null)),
+          h('div', { class: 'tmain' + (canOpen ? ' canopen' : ''), onclick: canOpen ? (e) => flip(e.target.closest('li')) : null }, h('span', { class: 'tkind', style: `--c:${k.color}` }, k.label), h('span', { class: 't' }, t.title, t.time ? h('small', {}, ' · ' + t.time) : null)),
           t.retry && !t.done || t.done && t.done_by || files.length ? h('div', { class: 'tmeta' },
             t.retry && !t.done ? h('span', { class: 'tretry', title: t.retry_note || '' }, 'Repetir') : null,
             t.done && t.done_by ? h('span', { class: 'by' }, t.done_by === 'hub' ? 'Hecha' : 'Hecha por ' + t.done_by) : null,
-            files.length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => { const ul = e.target.closest('li').querySelector('.tfl'); ul.hidden = !ul.hidden; if (ul.hidden) openTasks.delete(t.id); else openTasks.add(t.id); } }, `${files.length} ${files.length === 1 ? 'archivo' : 'archivos'}`) : null) : null,
+            files.length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => flip(e.target.closest('li')) }, `${files.length} ${files.length === 1 ? 'archivo' : 'archivos'}`) : null) : null,
           t.retry && !t.done && t.retry_note ? h('p', { class: 'tnote' }, t.retry_note) : null),
         h('div', { class: 'tacts' },
           t.done ? ico('<path d="M20 11a8 8 0 00-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0014.5 4.5L20 16"/><path d="M20 20v-4h-4"/>', 'Devolver al creador', () => askRetry(t)) : null,
