@@ -88,10 +88,69 @@
       h('div', { class: 'tpgcols' }, h('div', { class: 'tpgbox' }, h('h3', {}, 'Por sede'), ...rows), crows.length ? h('div', { class: 'tpgbox' }, h('h3', {}, 'Por creador'), ...crows.map((c) => c.el)) : null));
   }
 
+
+  // Calendario: un día cada vez, una columna por sede y cada tarea en su hora
+  let view = 'sedes', calDay = '';
+  try { view = localStorage.getItem('picfy_tview_' + tid) === 'cal' ? 'cal' : 'sedes'; } catch (e) { /* sin almacenamiento */ }
+  const setView = (v) => { view = v; try { localStorage.setItem('picfy_tview_' + tid, v); } catch (e) { /* nada */ } draw(); };
+  const HOUR = 60, mins = (t) => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ''); return m ? +m[1] * 60 + +m[2] : null; };
+  const hhmm = (m) => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+  const dayLong = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+  function viewbar() {
+    const seg = (v, label) => h('button', { type: 'button', class: view === v ? 'on' : '', 'aria-pressed': String(view === v), onclick: () => setView(v) }, label);
+    return h('div', { class: 'tviewbar' }, h('div', { class: 'tseg' }, seg('sedes', 'Sedes'), seg('cal', 'Calendario')));
+  }
+  function calendar() {
+    const all = data.sedes.flatMap((s) => s.tareas.map((t) => ({ t, s }))).filter((x) => x.t.date);
+    if (!all.length) return h('div', { class: 'glass emptybox' }, 'Cuando pongas fecha a las tareas, aparecerán aquí por día y por hora.');
+    const days = [...new Set(all.map((x) => x.t.date))].sort(), today = todayStr();
+    if (!days.includes(calDay)) calDay = days.includes(today) ? today : (days.find((d) => d >= today) || days[days.length - 1]);
+    const tabs = h('div', { class: 'tcaltabs', role: 'tablist' }, days.map((d) => {
+      const n = all.filter((x) => x.t.date === d).length, late = all.some((x) => x.t.date === d && !x.t.done && d < today);
+      return h('button', { type: 'button', role: 'tab', class: 'tcaltab' + (d === calDay ? ' on' : '') + (d === today ? ' today' : ''), 'aria-selected': String(d === calDay), onclick: () => { calDay = d; draw(); } },
+        h('span', {}, new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short' })), h('b', {}, new Date(d + 'T12:00:00').getDate()), h('small', {}, `${n} ${n === 1 ? 'tarea' : 'tareas'}`), late ? h('i', { class: 'dot' }) : null);
+    }));
+    const dayTasks = all.filter((x) => x.t.date === calDay);
+    const timed = dayTasks.filter((x) => mins(x.t.time) !== null), untimed = dayTasks.filter((x) => mins(x.t.time) === null);
+    let lo = 8 * 60, hi = 21 * 60;
+    for (const x of timed) { const m = mins(x.t.time); lo = Math.min(lo, Math.floor(m / 60) * 60); hi = Math.max(hi, Math.ceil((m + HOUR) / 60) * 60); }
+    const height = ((hi - lo) / 60) * HOUR;
+    const gutter = h('div', { class: 'tcalgut', style: `height:${height}px` }); for (let m = lo; m < hi; m += 60) { const l = h('span', {}, hhmm(m)); l.style.top = ((m - lo) / 60) * HOUR + 'px'; gutter.append(l); }
+    const cols = data.sedes.map((s) => {
+      const mine = timed.filter((x) => x.s.id === s.id).sort((a, b) => mins(a.t.time) - mins(b.t.time));
+      const body = h('div', { class: 'tcalbody', style: `height:${height}px` });
+      let cluster = [], end = -1; const flush = () => { const lanes = Math.max(1, ...cluster.map((c) => c.lane + 1)); cluster.forEach((c) => { c.el.style.width = `calc(${100 / lanes}% - 4px)`; c.el.style.left = `calc(${(100 / lanes) * c.lane}% + 2px)`; }); cluster = []; };
+      const laneEnd = [];
+      for (const x of mine) {
+        const m = mins(x.t.time);
+        if (m >= end && cluster.length) { flush(); laneEnd.length = 0; }
+        let lane = laneEnd.findIndex((e) => e <= m); if (lane < 0) { lane = laneEnd.length; laneEnd.push(0); } laneEnd[lane] = m + HOUR; end = Math.max(end, m + HOUR);
+        const k = kinds[x.t.kind] || { color: '#999', label: x.t.kind }, c = x.s.creadores.find((c) => c.id === x.t.creador_id);
+        const late = !x.t.done && x.t.date < today;
+        const el = h('button', { type: 'button', class: 'tcalev' + (x.t.done ? ' done' : '') + (late ? ' late' : ''), style: `--c:${k.color};top:${((m - lo) / 60) * HOUR}px;height:${HOUR - 4}px`, title: `${x.t.title} · ${c ? c.name : 'Toda la sede'}`, onclick: () => editTask(x.t, x.s) },
+          h('b', {}, x.t.time), h('span', { class: 't' }, x.t.title), h('small', {}, (c ? c.name : 'Toda la sede') + (x.t.done ? ' · Hecha' : late ? ' · Con retraso' : '')));
+        body.append(el); cluster.push({ el, lane });
+      }
+      if (cluster.length) flush();
+      if (calDay === today) { const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' })); const nm = now.getHours() * 60 + now.getMinutes(); if (nm >= lo && nm <= hi) { const ln = h('i', { class: 'tcalnow' }); ln.style.top = ((nm - lo) / 60) * HOUR + 'px'; body.append(ln); } }
+      const un = untimed.filter((x) => x.s.id === s.id);
+      return {
+        head: h('header', { class: 'tcalch' }, h('b', {}, s.name), h('small', {}, `${dayTasks.filter((x) => x.s.id === s.id).length} ${dayTasks.filter((x) => x.s.id === s.id).length === 1 ? 'tarea' : 'tareas'}`)),
+        un: h('div', { class: 'tcalun' }, un.map((x) => { const k = kinds[x.t.kind] || { color: '#999' }, c = x.s.creadores.find((c) => c.id === x.t.creador_id); return h('button', { type: 'button', class: 'tcalev flat' + (x.t.done ? ' done' : ''), style: `--c:${k.color}`, onclick: () => editTask(x.t, x.s) }, h('span', { class: 't' }, x.t.title), h('small', {}, (c ? c.name : 'Toda la sede') + (x.t.done ? ' · Hecha' : ''))); })),
+        body,
+      };
+    });
+    const hasUn = untimed.length > 0, cell = (cls, ...kids) => h('div', { class: 'tcalcell ' + cls }, ...kids);
+    const cells = [cell('gut head'), ...cols.map((c) => c.head)];
+    if (hasUn) cells.push(cell('gut un', h('span', { class: 'lab' }, 'Sin hora')), ...cols.map((c) => c.un));
+    cells.push(cell('gut', gutter), ...cols.map((c) => c.body));
+    return h('section', { class: 'glass tcal' }, h('h2', { class: 'tcalday' }, dayLong(calDay)), tabs, h('div', { class: 'tcalscroll' }, h('div', { class: 'tcalgrid', style: `--n:${Math.max(1, data.sedes.length)}` }, ...cells)));
+  }
+
   function draw() {
     const top = data.galerias ? [h('div', { class: 'glass tgalbar' }, galSelect('Galería del torneo', data.galeria, data.galerias.filter((g) => !g.parent_id), (v) => api('PUT', `/api/torneos/${tid}/galeria`, { event_id: v }), 'Crear galería del torneo'))] : [];
-    root.replaceChildren(...[progress()].filter(Boolean), ...top, ...data.sedes.map(sedeCard));
-    if (!data.sedes.length) root.append(h('div', { class: 'glass emptybox' }, 'Añade la primera sede.'));
+    root.replaceChildren(...[progress()].filter(Boolean), viewbar(), ...(view === 'cal' ? [calendar()] : [...top, ...data.sedes.map(sedeCard)]));
+    if (!data.sedes.length && view !== 'cal') root.append(h('div', { class: 'glass emptybox' }, 'Añade la primera sede.'));
   }
 
   const KEY = 'picfy_sedes_cerradas';

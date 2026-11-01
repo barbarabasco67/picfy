@@ -95,6 +95,14 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   const stats = await p.evaluate(() => [...document.querySelectorAll('.tpgstat')].map((e) => e.querySelector('span').textContent + ':' + e.querySelector('b').textContent));
   ok(stats.length === 6 && /Con retraso:[1-9]/.test(stats.join()), 'panel de progreso con retraso: ' + stats.join());
   ok(/Vencida/.test(await p.textContent('.tpgwait')) && (await p.locator('.tpgrow').count()) >= 1 && /%/.test(await p.textContent('.tpgring')), 'panel muestra la tarea vencida, filas y porcentaje');
+  // calendario: una tarea con hora aparece en su columna y se puede abrir para editar
+  await p.evaluate(async () => { const id = document.body.dataset.torneo; const d = await (await fetch('/api/torneos/' + id)).json(); const s = d.sedes[0]; const day = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10); await fetch(`/api/sedes/${s.id}/tareas`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title: 'Partido 10h', kind: Object.keys(JSON.parse(document.body.dataset.kinds))[0], date: day, time: '10:00' }) }); });
+  await p.reload(); await p.waitForSelector('.tviewbar'); await p.click('.tseg button >> text=Calendario'); await p.waitForSelector('.tcal');
+  ok((await p.locator('.tcalch').count()) === 2 && (await p.locator('.tcalev >> text=Partido 10h').count()) === 1, 'calendario con una columna por sede y la tarea en su hora');
+  await p.waitForTimeout(1200); await p.screenshot({ path: '/tmp/picfy_shots/cal.png' });
+  const top = await p.evaluate(() => parseInt(document.querySelector('.tcalev:not(.flat)').style.top, 10)); ok(top === 120, 'la tarea de las 10:00 está en su fila: ' + top);
+  await p.click('.tcalev >> text=Partido 10h'); await p.waitForSelector('#taskDlg[open]'); ok((await p.inputValue('#taskForm input[name=title]')) === 'Partido 10h', 'al pulsar una tarea se abre para editarla'); await p.keyboard.press('Escape');
+  await p.reload(); await p.waitForSelector('.tcal'); ok(true, 'recuerda la vista elegida'); await p.click('.tseg button >> text=Sedes'); await p.waitForSelector('.tsede');
   ok((await p.locator('.tsede .tsum .tschip').count()) >= 3 && /creador/.test(await p.textContent('.tsede .tsum')), 'vistazo de la sede con datos');
   ok((await p.locator('.tsede .tsopen').count()) >= 1 && /\/galerias\//.test(await p.getAttribute('.tsede .tsopen', 'href')), 'botón Abrir galería en la cabecera de la sede');
   await p.waitForTimeout(1300); await p.screenshot({ path: '/tmp/picfy_shots/torneo.png' });
