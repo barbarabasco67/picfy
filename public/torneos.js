@@ -182,6 +182,16 @@
     }))));
   }
 
+  // Descargar todas las entregas de una sede o de un creador en zip (en partes si pesan mucho)
+  async function dlZip(sedeId, creador) {
+    try {
+      const q = creador ? '&creador=' + creador : '';
+      const info = await api('GET', `/api/sedes/${sedeId}/zip?info=1${q}`);
+      if (!info.parts) return;
+      for (let k = 1; k <= info.parts; k++) setTimeout(() => { const a = document.createElement('a'); a.href = `/api/sedes/${sedeId}/zip?part=${k}${q}`; document.body.append(a); a.click(); a.remove(); }, (k - 1) * 900);
+    } catch (x) { alert('No se ha podido preparar la descarga.'); }
+  }
+
   function personBox(name, color, list, extra, sede) {
     const done = list.filter((t) => t.done).length;
     return h('article', { class: 'tcreator', style: `--pc:${color}` },
@@ -212,6 +222,7 @@
     fold.firstChild.replaceWith(Object.assign(document.createElementNS('http://www.w3.org/2000/svg', 'svg'), {}));
     const sv = fold.firstChild; sv.setAttribute('viewBox', '0 0 24 24'); sv.setAttribute('fill', 'none'); sv.setAttribute('stroke', 'currentColor'); sv.setAttribute('stroke-width', '2.2'); sv.setAttribute('stroke-linecap', 'round'); sv.setAttribute('stroke-linejoin', 'round'); sv.innerHTML = '<path d="M6 9l6 6 6-6"/>';
     card.append(h('header', { class: 'tshead' }, fold,
+      s.tareas.some((t) => (t.entregas || []).length) ? h('button', { class: 'btn sm tszip', type: 'button', onclick: () => dlZip(s.id) }, 'Descargar entregas') : null,
       s.event_id ? h('a', { class: 'btn primary sm tsopen', href: '/galerias/' + s.event_id }, 'Abrir galería') : null,
       h('button', { class: 'iconbtn', type: 'button', title: 'Borrar sede', 'aria-label': 'Borrar sede', onclick: async () => { if (confirm('¿Borrar la sede con sus tareas y creadores?')) { await api('DELETE', '/api/sedes/' + s.id); load(); } } }, '×')));
     card.append(sedeSummary(s));
@@ -240,6 +251,7 @@
     if (general.length) boxes.append(personBox('Toda la sede', '#14213d', general, null, s));
     s.creadores.forEach((c, i) => boxes.append(personBox(c.name, PAL[i % PAL.length], s.tareas.filter((t) => t.creador_id === c.id),
       h('span', { class: 'tact' },
+        s.tareas.some((t) => (t.entregas || []).some((f) => f.creador_id === c.id)) ? ico('<path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/>', 'Descargar sus entregas', () => dlZip(s.id, c.id)) : null,
         h('button', { type: 'button', class: 'tcopy', onclick: async (e) => { const url = location.origin + '/t/' + c.token; try { await navigator.clipboard.writeText(url); } catch (x) { prompt('Copia el enlace', url); } e.target.textContent = 'Copiado'; setTimeout(() => (e.target.textContent = 'Copiar enlace'), 1500); } }, 'Copiar enlace'),
         h('button', { type: 'button', class: 'tx', title: 'Quitar creador', 'aria-label': 'Quitar creador', onclick: async () => { if (confirm('¿Quitar a ' + c.name + '? Su enlace dejará de funcionar.')) { await api('DELETE', '/api/creadores/' + c.id); load(); } } }, '×')), s)));
     if (!boxes.children.length) boxes.append(h('p', { class: 'tnone' }, 'Añade un creador o una tarea para empezar.'));

@@ -2,6 +2,7 @@
 import { randomHex, sha256Hex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
 import { canCreateTorneo } from './billing.js';
+import { buildZip } from './zip.js';
 import { torneosPage, torneoPage, miDiaPage } from './appviews.js';
 
 let st = { v: null, t: 0 };
@@ -474,6 +475,40 @@ export function torneosRoutes(app) {
     if (!obj) return new Response('', { status: 404 });
     if (c.req.query('dl')) headers.set('content-disposition', `attachment; filename="${e.filename.replace(/[^\w.\- ]+/g, '_')}"`);
     return new Response(obj.body, { status, headers });
+  });
+
+  // Todas las entregas de una sede (o de un solo creador) en un zip, ordenadas por creador y tarea.
+  app.get('/api/sedes/:id/zip', async (c) => {
+    const user = await currentUser(c);
+    if (!user) return new Response('', { status: 401 });
+    const sede = await ownSede(c, user, c.req.param('id'));
+    if (!sede || !(await entregasReady(c.env.DB))) return new Response('', { status: 404 });
+    const cr = String(c.req.query('creador') || '');
+    const rows = (await c.env.DB.prepare(
+      `SELECT e.id, e.filename, e.size, e.created_at, e.sede_id, c.name AS cname, t.title, t.date
+       FROM entregas_torneo e JOIN tareas_torneo t ON t.id = e.tarea_id LEFT JOIN creadores c ON c.id = e.creador_id
+       WHERE e.sede_id = ? AND e.state = 'ok' ${cr ? 'AND e.creador_id = ?' : ''} ORDER BY COALESCE(c.name, ''), t.date, t.created_at, e.created_at, e.id`,
+    ).bind(...(cr ? [sede.id, cr] : [sede.id])).all()).results;
+    // El zip clásico llega a 4 GB: si hay más, se reparte en partes.
+    const MAX = 3.5 * 1024 * 1024 * 1024; const parts = []; let cur = [], sz = 0;
+    for (const r of rows) { if (cur.length && sz + r.size > MAX) { parts.push(cur); cur = []; sz = 0; } cur.push(r); sz += r.size; }
+    if (cur.length) parts.push(cur);
+    if (c.req.query('info')) return json({ parts: parts.length, files: rows.length });
+    const part = Math.max(1, parseInt(c.req.query('part') || '1', 10) || 1);
+    const list = parts[part - 1];
+    if (!list) return new Response('No hay archivos para descargar.', { status: 404 });
+    const safe = (x) => String(x || '').replace(/[\\/:*?"<>|\x00-\x1f]+/g, '_').trim().slice(0, 70);
+    const used = new Set();
+    const entries = list.map((r) => {
+      let name = `${safe(r.cname) || 'Sin asignar'}/${r.date ? r.date + '_' : ''}${safe(r.title) || 'tarea'}/${safe(r.filename) || r.id}`;
+      while (used.has(name)) name = name.replace(/(\.[^./]*)?$/, `_${r.id.slice(0, 4)}$1`);
+      used.add(name);
+      return { key: keyOf(r), name, size: r.size, crc: null, ms: r.created_at };
+    });
+    const { stream, length } = buildZip(c.env.PHOTOS, entries);
+    const label = safe(sede.name).replace(/\s+/g, '-') || 'sede';
+    const who = cr && list[0] ? '-' + (safe(list[0].cname).replace(/\s+/g, '-') || 'creador') : '';
+    return new Response(stream, { headers: { 'content-type': 'application/zip', 'content-length': String(length), 'content-disposition': `attachment; filename="picfy-${label}${who}${parts.length > 1 ? '-parte' + part : ''}.zip"`, 'cache-control': 'no-store' } });
   });
 
   app.delete('/api/entregas/:id', async (c) => {
