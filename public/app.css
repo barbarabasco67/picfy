@@ -1328,3 +1328,5 @@ body.app .tfile .cform button, body.app .tfile .fpill { box-shadow: none !import
 body.app .tboxes { grid-template-columns: 1fr; }
 body.app .tcreator .ttasks { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); align-items: start; }
 body.app .tcreator .ttasks > li { min-width: 0; }
+body.app .tcreator > header .tact { width: auto; flex: none; justify-content: flex-end; gap: 6px; margin-left: 4px; padding-left: 10px; border-left: 1px solid rgba(20,33,61,.12); }
+body.app .tcreator > header .tcopy { padding: 5px 12px; font-size: .76rem; font-weight: 700; }
