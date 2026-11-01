@@ -798,6 +798,11 @@ ${torneo.extra ? `<label class="field"><span>Descripción</span><textarea name="
 <div class="field"><span>Color</span><div class="tsws">${sw}</div></div>
 <div class="field"><span>Foto de portada</span><div class="tcoverpick">${torneo.cover_v ? `<img id="tcPrev" src="/torneo/${torneo.id}/portada?v=${torneo.cover_v}" alt="">` : '<img id="tcPrev" hidden alt="">'}<input type="file" id="tcFile" accept="image/jpeg,image/png,image/webp" hidden><button class="btn sm" type="button" id="tcPick">Elegir foto</button><button class="btn sm danger" type="button" id="tcDel"${torneo.cover_v ? '' : ' hidden'}>Quitar</button></div></div>` : `<p class="muted">Falta una actualización de la base de datos (migración 0029) para personalizar el torneo.</p>`}
 <footer><span class="spacer"></span><button class="btn primary" type="submit">Guardar</button></footer></form></dialog>
+<dialog id="revDlg" class="glassdlg"><form class="dlgbox" id="revForm" method="dialog">
+<header><h2>Pedir cambios</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<p class="muted" id="revTitle" style="margin:0"></p>
+<label class="field"><span>Qué hay que cambiar</span><textarea name="note" maxlength="600" rows="4" placeholder="Por ejemplo: recorta los primeros segundos" required></textarea></label>
+<footer><span class="spacer"></span><button class="btn primary" type="submit">Enviar al creador</button></footer></form></dialog>
 <dialog id="retryDlg" class="glassdlg"><form class="dlgbox" id="retryForm" method="dialog">
 <header><h2>Pedir que lo repita</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <p class="muted" id="retryTitle" style="margin:0"></p>

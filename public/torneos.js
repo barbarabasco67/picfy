@@ -31,6 +31,30 @@
     taskDlg.close(); load();
   });
 
+
+  // Revisión de entregas: versiones, estado y conversación con el creador
+  const openTasks = new Set(), openThreads = new Set();
+  function versions(files) {
+    const byId = Object.fromEntries(files.map((f) => [f.id, f])), old = new Set(), num = {};
+    files.forEach((f) => { if (f.replaces && byId[f.replaces]) old.add(f.replaces); });
+    const depth = (f, n = 1) => (f.replaces && byId[f.replaces] && n < 50 ? depth(byId[f.replaces], n + 1) : n);
+    files.forEach((f) => { num[f.id] = depth(f); });
+    return { old, num };
+  }
+  const reviewChip = (r, old) => h('span', { class: 'frev ' + (old ? 'old' : r === 'ok' ? 'ok' : r === 'cambios' ? 'ch' : 'wait') }, old ? 'Versión anterior' : r === 'ok' ? 'Aprobado' : r === 'cambios' ? 'Cambios pedidos' : 'En revisión');
+  const when = (ms) => new Date(Number(ms)).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  function thread(id, url, role) {
+    const list = h('div', { class: 'cthread-list' }, h('small', { class: 'cload' }, 'Cargando…'));
+    const draw1 = (items) => list.replaceChildren(...(items.length ? items.map((m) => h('div', { class: 'cmsg ' + (m.role === role ? 'me' : 'other') }, h('b', {}, m.author), h('p', {}, m.body), h('small', {}, when(m.created_at)))) : [h('small', { class: 'cload' }, 'Aún no hay comentarios.')]));
+    const inp = h('input', { type: 'text', maxlength: 1000, placeholder: 'Escribe un comentario', 'aria-label': 'Comentario' });
+    const form = h('form', { class: 'cform', onsubmit: async (e) => { e.preventDefault(); const v = inp.value.trim(); if (!v) return; inp.value = ''; try { const r = await api('POST', url, { body: v }); draw1(r.comentarios); const f = data.sedes.flatMap((s) => s.tareas).flatMap((t) => t.entregas || []).find((x) => x.id === id); if (f) f.ncom = r.comentarios.length; } catch (x) { inp.value = v; } } }, inp, h('button', { type: 'submit', class: 'btn sm primary' }, 'Enviar'));
+    api('GET', url).then((r) => { draw1(r.comentarios); list.scrollTop = list.scrollHeight; }).catch(() => draw1([]));
+    return h('div', { class: 'cthread' }, list, form);
+  }
+  const revDlg = document.getElementById('revDlg'), revForm = document.getElementById('revForm'); let revFile = null;
+  function askChanges(f) { revFile = f; document.getElementById('revTitle').textContent = f.filename; revForm.note.value = ''; revDlg.showModal(); revForm.note.focus(); }
+  revForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!revFile || !revForm.note.value.trim()) return; await api('PUT', `/api/entregas/${revFile.id}/revision`, { review: 'cambios', note: revForm.note.value }); revDlg.close(); openThreads.add(revFile.id); load(); });
+
   // Pedir que se repita
   const retryDlg = document.getElementById('retryDlg'), retryForm = document.getElementById('retryForm'); let retrying = null;
   function askRetry(t) { retrying = t; document.getElementById('retryTitle').textContent = t.title; retryForm.note.value = ''; retryDlg.showModal(); }
@@ -233,21 +257,29 @@
           t.retry && !t.done || t.done && t.done_by || files.length ? h('div', { class: 'tmeta' },
             t.retry && !t.done ? h('span', { class: 'tretry', title: t.retry_note || '' }, 'Repetir') : null,
             t.done && t.done_by ? h('span', { class: 'by' }, t.done_by === 'hub' ? 'Hecha' : 'Hecha por ' + t.done_by) : null,
-            files.length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => { const ul = e.target.closest('li').querySelector('.tfl'); ul.hidden = !ul.hidden; } }, `${files.length} ${files.length === 1 ? 'archivo' : 'archivos'}`) : null) : null,
+            files.length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => { const ul = e.target.closest('li').querySelector('.tfl'); ul.hidden = !ul.hidden; if (ul.hidden) openTasks.delete(t.id); else openTasks.add(t.id); } }, `${files.length} ${files.length === 1 ? 'archivo' : 'archivos'}`) : null) : null,
           t.retry && !t.done && t.retry_note ? h('p', { class: 'tnote' }, t.retry_note) : null),
         h('div', { class: 'tacts' },
           t.done ? ico('<path d="M20 11a8 8 0 00-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0014.5 4.5L20 16"/><path d="M20 20v-4h-4"/>', 'Devolver al creador', () => askRetry(t)) : null,
           ico('<path d="M4 20h4L19 9l-4-4L4 16v4z"/>', 'Editar tarea', () => editTask(t, sede)),
           ico('<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>', 'Borrar tarea', async () => { await api('DELETE', '/api/tareas/' + t.id); load(); })),
-        files.length ? h('ul', { class: 'tfl', hidden: true }, files.map((f) => {
+        files.length ? h('ul', { class: 'tfl', hidden: !openTasks.has(t.id) }, files.map((f) => {
           const isImg = /^image\//.test(f.mime || '');
-          return h('li', {},
+          const vi = versions(files), ver = vi.num[f.id], old = vi.old.has(f.id);
+          const rv = data.comentarios ? reviewChip(f.review, old) : null;
+          const row = h('div', { class: 'frow' },
             isImg ? h('img', { class: 'fth', loading: 'lazy', alt: '', src: `/api/entregas/${f.id}/archivo` }) : h('span', { class: 'fth vid' }, 'Vídeo'),
-            h('a', { href: `/api/entregas/${f.id}/archivo`, target: '_blank', rel: 'noopener', class: 'fn' }, f.filename), h('small', {}, bytes(f.size)),
+            h('a', { href: `/api/entregas/${f.id}/archivo`, target: '_blank', rel: 'noopener', class: 'fn' }, f.filename),
+            ver > 1 || old ? h('span', { class: 'fver' }, 'v' + ver) : null, rv, h('small', {}, bytes(f.size)),
             isImg && f.sent_id ? h('span', { class: 'fsent', title: 'Enviada a la galería como borrador' }, 'Enviada') : null,
+            data.comentarios && !old ? ico('<path d="M5 12l5 5L20 7"/>', 'Aprobar', async () => { await api('PUT', `/api/entregas/${f.id}/revision`, { review: f.review === 'ok' ? '' : 'ok' }); load(); }) : null,
+            data.comentarios && !old ? ico('<path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/>', 'Pedir cambios', () => askChanges(f)) : null,
+            data.comentarios ? ico('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/>', 'Comentarios', () => { if (openThreads.has(f.id)) openThreads.delete(f.id); else openThreads.add(f.id); draw(); }) : null,
+            data.comentarios && f.ncom ? h('b', { class: 'fcount' }, String(f.ncom)) : null,
             isImg && sede.event_id && !f.sent_id ? ico('<path d="M5 12l5 5L20 7"/><path d="M4 20h16"/>', 'Enviar a la galería', () => sendPhoto(f, sede)) : null,
             h('a', { href: `/api/entregas/${f.id}/archivo?dl=1`, class: 'ib', title: 'Descargar', 'aria-label': 'Descargar' }, svgi('<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/>')),
             ico('<path d="M6 6l12 12M18 6L6 18"/>', 'Borrar archivo', async () => { if (confirm('¿Borrar ' + f.filename + '?')) { await api('DELETE', '/api/entregas/' + f.id); load(); } }));
+          return h('li', { class: 'tfile' + (old ? ' old' : '') }, row, data.comentarios && openThreads.has(f.id) ? thread(f.id, `/api/entregas/${f.id}/comentarios`, 'hub') : null);
         })) : null);
     }))));
   }

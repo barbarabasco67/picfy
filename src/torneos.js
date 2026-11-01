@@ -37,6 +37,13 @@ export async function galeriaReady(db) {
   } catch { sg = { v: false, t: Date.now() }; }
   return sg.v;
 }
+let sc = { v: null, t: 0 };
+export async function comentariosReady(db) {
+  if (sc.v === true || (sc.v === false && Date.now() - sc.t < 30000)) return sc.v;
+  try { await db.prepare('SELECT review, replaces FROM entregas_torneo LIMIT 1').first(); await db.prepare('SELECT id, entrega_id FROM entrega_comentarios LIMIT 1').first(); sc = { v: true, t: Date.now() }; }
+  catch { sc = { v: false, t: Date.now() }; }
+  return sc.v;
+}
 let sr = { v: null, t: 0 };
 export async function repetirReady(db) {
   if (sr.v === true || (sr.v === false && Date.now() - sr.t < 30000)) return sr.v;
@@ -72,6 +79,7 @@ export function torneosRoutes(app) {
     for (const r of rows) {
       try { if (r.state === 'uploading' && r.upload_id) await c.env.PHOTOS.resumeMultipartUpload(keyOf(r), r.upload_id).abort(); else await c.env.PHOTOS.delete(keyOf(r)); } catch { /* ya no está */ }
     }
+    try { await c.env.DB.prepare(`DELETE FROM entrega_comentarios WHERE entrega_id IN (${rows.map(() => '?').join(',') || "''"})`).bind(...rows.map((r) => r.id)).run(); } catch { /* sin comentarios aún */ }
     await c.env.DB.prepare(`DELETE FROM entregas_torneo WHERE ${col} IN (${ids.map(() => '?').join(',')})`).bind(...ids).run();
   }
 
@@ -211,13 +219,14 @@ export function torneosRoutes(app) {
     const rc = (await repetirReady(c.env.DB)) ? ', retry, retry_note' : '';
     const tareas = await q("SELECT id, sede_id, creador_id, kind, title, date, time, notes, done, done_at, done_by" + rc + " FROM tareas_torneo WHERE sede_id IN (?) ORDER BY date, COALESCE(time, '99:99'), created_at");
     const gx = await galeriaReady(c.env.DB);
-    const entregas = (await entregasReady(c.env.DB)) ? await q("SELECT id, sede_id, tarea_id, creador_id, filename, mime, size" + (gx ? ', sent_id' : '') + " FROM entregas_torneo WHERE state = 'ok' AND sede_id IN (?) ORDER BY created_at") : [];
+    const cx = await comentariosReady(c.env.DB);
+    const entregas = (await entregasReady(c.env.DB)) ? await q("SELECT id, sede_id, tarea_id, creador_id, filename, mime, size" + (gx ? ', sent_id' : '') + (cx ? ', review, replaces, (SELECT COUNT(*) FROM entrega_comentarios k WHERE k.entrega_id = entregas_torneo.id) AS ncom' : '') + " FROM entregas_torneo WHERE state = 'ok' AND sede_id IN (?) ORDER BY created_at") : [];
     let galerias = [], sedeEv = {};
     if (gx) {
       galerias = (await c.env.DB.prepare('SELECT id, name, parent_id FROM events WHERE owner_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 300').bind(a.user.id).all()).results;
       if (ids.length) for (const r of (await q('SELECT id, event_id FROM sedes WHERE id IN (?)'))) sedeEv[r.id] = r.event_id;
     }
-    return json({ galeria: gx ? t.event_id || null : null, galerias, sedes: sedes.map((s) => ({ ...s, event_id: sedeEv[s.id] || null, creadores: creadores.filter((x) => x.sede_id === s.id), tareas: tareas.filter((x) => x.sede_id === s.id).map((t) => ({ ...t, entregas: entregas.filter((e) => e.tarea_id === t.id) })) })) });
+    return json({ comentarios: cx, galeria: gx ? t.event_id || null : null, galerias, sedes: sedes.map((s) => ({ ...s, event_id: sedeEv[s.id] || null, creadores: creadores.filter((x) => x.sede_id === s.id), tareas: tareas.filter((x) => x.sede_id === s.id).map((t) => ({ ...t, entregas: entregas.filter((e) => e.tarea_id === t.id) })) })) });
   });
 
   /* ----- Galerías vinculadas ----- */
@@ -399,8 +408,9 @@ export function torneosRoutes(app) {
     const rc = (await repetirReady(c.env.DB)) ? ', retry, retry_note' : '';
     const rows = (await c.env.DB.prepare("SELECT id, kind, title, date, time, notes, done" + rc + " FROM tareas_torneo WHERE sede_id = ? AND (creador_id IS NULL OR creador_id = ?) ORDER BY date, COALESCE(time, '99:99'), created_at LIMIT 1000").bind(me.sede_id, me.id).all()).results;
     const up = await entregasReady(c.env.DB);
-    const ent = up ? (await c.env.DB.prepare("SELECT id, tarea_id, filename, mime, size FROM entregas_torneo WHERE sede_id = ? AND creador_id = ? AND state = 'ok' ORDER BY created_at LIMIT 3000").bind(me.sede_id, me.id).all()).results : [];
-    return json({ subida: up, max: MAX_BYTES, part: PART, tareas: rows.map((t) => ({ ...t, entregas: ent.filter((e) => e.tarea_id === t.id) })) });
+    const cx = up && (await comentariosReady(c.env.DB));
+    const ent = up ? (await c.env.DB.prepare("SELECT id, tarea_id, filename, mime, size" + (cx ? ', review, replaces, (SELECT COUNT(*) FROM entrega_comentarios k WHERE k.entrega_id = entregas_torneo.id) AS ncom' : '') + " FROM entregas_torneo WHERE sede_id = ? AND creador_id = ? AND state = 'ok' ORDER BY created_at LIMIT 3000").bind(me.sede_id, me.id).all()).results : [];
+    return json({ comentarios: Boolean(cx), subida: up, max: MAX_BYTES, part: PART, tareas: rows.map((t) => ({ ...t, entregas: ent.filter((e) => e.tarea_id === t.id) })) });
   });
 
   app.put('/api/t/:token/tareas/:id', async (c) => {
@@ -437,10 +447,13 @@ export function torneosRoutes(app) {
     if (size > MAX_BYTES) return json({ error: 'big' }, 413);
     if (!okType(mime)) return json({ error: 'type' }, 415);
     const id = randomHex(8);
+    let replaces = null;
+    if (b.replaces && (await comentariosReady(c.env.DB))) { const old = await ownEntrega(c, me, String(b.replaces)); if (old && old.tarea_id === tid && old.state === 'ok') replaces = old.id; }
     const e = { id, sede_id: me.sede_id };
     const up = await c.env.PHOTOS.createMultipartUpload(keyOf(e), { httpMetadata: { contentType: mime } });
     await c.env.DB.prepare('INSERT INTO entregas_torneo (id, tarea_id, sede_id, creador_id, filename, mime, size, upload_id, state, created_at) VALUES (?,?,?,?,?,?,?,?,\'uploading\',?)')
       .bind(id, tid, me.sede_id, me.id, clip(b.filename, 160) || 'archivo', mime, size, up.uploadId, Date.now()).run();
+    if (replaces) await c.env.DB.prepare('UPDATE entregas_torneo SET replaces = ?2 WHERE id = ?1').bind(id, replaces).run();
     return json({ id, part: PART });
   });
 
@@ -465,7 +478,7 @@ export function torneosRoutes(app) {
     if (!parts.length) return json({ error: 'parts' }, 400);
     const obj = await c.env.PHOTOS.resumeMultipartUpload(keyOf(e), e.upload_id).complete(parts);
     await c.env.DB.prepare("UPDATE entregas_torneo SET state = 'ok', upload_id = NULL, size = ?2 WHERE id = ?1").bind(e.id, obj.size).run();
-    return json({ entrega: { id: e.id, tarea_id: e.tarea_id, filename: e.filename, mime: e.mime, size: obj.size } });
+    return json({ entrega: { id: e.id, tarea_id: e.tarea_id, filename: e.filename, mime: e.mime, size: obj.size, review: null, replaces: e.replaces || null, ncom: 0 } });
   });
 
   app.delete('/api/t/:token/entregas/:id', async (c) => {
@@ -536,6 +549,51 @@ export function torneosRoutes(app) {
     const label = safe(sede.name).replace(/\s+/g, '-') || 'sede';
     const who = cr && list[0] ? '-' + (safe(list[0].cname).replace(/\s+/g, '-') || 'creador') : '';
     return new Response(stream, { headers: { 'content-type': 'application/zip', 'content-length': String(length), 'content-disposition': `attachment; filename="picfy-${label}${who}${parts.length > 1 ? '-parte' + part : ''}.zip"`, 'cache-control': 'no-store' } });
+  });
+
+  /* ----- Comentarios y revisión de cada entrega ----- */
+  const comList = async (db, id) => (await db.prepare('SELECT id, role, author, body, created_at FROM entrega_comentarios WHERE entrega_id = ? ORDER BY created_at, id LIMIT 500').bind(id).all()).results;
+  const comAdd = async (db, e, role, author, body) => { const id = randomHex(8); await db.prepare('INSERT INTO entrega_comentarios (id, entrega_id, sede_id, role, author, body, created_at) VALUES (?,?,?,?,?,?,?)').bind(id, e.id, e.sede_id, role, author, body, Date.now()).run(); return id; };
+
+  app.get('/api/entregas/:id/comentarios', async (c) => {
+    const user = await currentUser(c); if (!user) return json({ error: 'auth' }, 401);
+    if (!(await comentariosReady(c.env.DB))) return json({ error: 'setup' }, 503);
+    const e = await hubEntrega(c, user, c.req.param('id')); if (!e) return json({ error: 'nf' }, 404);
+    return json({ comentarios: await comList(c.env.DB, e.id) });
+  });
+  app.post('/api/entregas/:id/comentarios', async (c) => {
+    const user = await currentUser(c); if (!user) return json({ error: 'auth' }, 401);
+    if (!(await comentariosReady(c.env.DB))) return json({ error: 'setup' }, 503);
+    const e = await hubEntrega(c, user, c.req.param('id')); if (!e) return json({ error: 'nf' }, 404);
+    const body = clip((await c.req.json().catch(() => ({}))).body, 1000); if (!body) return json({ error: 'body' }, 400);
+    await comAdd(c.env.DB, e, 'hub', user.name || 'Organizador', body);
+    return json({ comentarios: await comList(c.env.DB, e.id) });
+  });
+  // Aprobar un archivo o pedir cambios (al pedir cambios la tarea vuelve a "repetir" para el creador)
+  app.put('/api/entregas/:id/revision', async (c) => {
+    const user = await currentUser(c); if (!user) return json({ error: 'auth' }, 401);
+    if (!(await comentariosReady(c.env.DB))) return json({ error: 'setup' }, 503);
+    const e = await hubEntrega(c, user, c.req.param('id')); if (!e) return json({ error: 'nf' }, 404);
+    const b = await c.req.json().catch(() => ({})); const review = b.review === 'ok' || b.review === 'cambios' ? b.review : null;
+    await c.env.DB.prepare('UPDATE entregas_torneo SET review = ?2 WHERE id = ?1').bind(e.id, review).run();
+    if (review === 'cambios') {
+      const note = clip(b.note, 600);
+      if (note) await comAdd(c.env.DB, e, 'hub', user.name || 'Organizador', note);
+      if (await repetirReady(c.env.DB)) await c.env.DB.prepare('UPDATE tareas_torneo SET done = 0, done_at = NULL, done_by = NULL, retry = 1, retry_note = ?2 WHERE id = ?1').bind(e.tarea_id, note || 'Hay cambios pedidos en uno de tus archivos. Mira los comentarios.').run();
+    }
+    return json({ review });
+  });
+  app.get('/api/t/:token/entregas/:id/comentarios', async (c) => {
+    const me = await upCtx(c); if (!me || !(await comentariosReady(c.env.DB))) return json({ error: 'nf' }, 404);
+    const e = await ownEntrega(c, me, c.req.param('id')); if (!e) return json({ error: 'nf' }, 404);
+    return json({ comentarios: await comList(c.env.DB, e.id) });
+  });
+  app.post('/api/t/:token/entregas/:id/comentarios', async (c) => {
+    const me = await upCtx(c); if (!me || !(await comentariosReady(c.env.DB))) return json({ error: 'nf' }, 404);
+    const e = await ownEntrega(c, me, c.req.param('id')); if (!e || e.state !== 'ok') return json({ error: 'nf' }, 404);
+    const body = clip((await c.req.json().catch(() => ({}))).body, 1000); if (!body) return json({ error: 'body' }, 400);
+    await comAdd(c.env.DB, e, 'creador', me.name, body);
+    return json({ comentarios: await comList(c.env.DB, e.id) });
   });
 
   app.delete('/api/entregas/:id', async (c) => {

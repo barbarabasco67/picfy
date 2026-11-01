@@ -70,7 +70,7 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   // galería de la sede + enviar foto como borrador con editor
   await p.selectOption('.tgalrow >> nth=0 >> select', 'new'); await p.waitForSelector('.tsede >> nth=0 >> .tsopen'); ok(true, 'subgalería creada');
   ok((await p.$eval('.tgalbar select', (e) => e.value)) !== '', 'galería del torneo creada a la vez');
-  await p.click('.tsede >> nth=0 >> .tfiles'); await p.waitForSelector('.tsede >> nth=0 >> button[aria-label="Enviar a la galería"]');
+  if (await p.locator('.tsede >> nth=0 >> .tfl').first().isHidden()) await p.click('.tsede >> nth=0 >> .tfiles'); await p.waitForSelector('.tsede >> nth=0 >> button[aria-label="Enviar a la galería"]');
   await p.click('.tsede >> nth=0 >> button[aria-label="Enviar a la galería"]'); await p.waitForSelector('.pedit[open] .pe-view');
   await p.fill('.pedit input[aria-label="Brillo"]', '40'); await p.dispatchEvent('.pedit input[aria-label="Brillo"]', 'input');
   await p.click('.pe-chip:has-text("1:1")'); await p.waitForTimeout(300);

@@ -5,11 +5,11 @@
   const h = (tag, a, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(a || {})) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v); } for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
   const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   const fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-  let tareas = [], subida = false, view = 'lista', wk = 0;
+  let tareas = [], subida = false, view = 'lista', wk = 0, conv = false; const openThreads = new Set();
   try { if (localStorage.getItem('picfy_midia_vista') === 'semana') view = 'semana'; } catch (e) {}
   const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   const mondayOf = (n) => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + n * 7); return d; };
-  async function load() { const r = await fetch('/api/t/' + token); if (!r.ok) return; const d = await r.json(); tareas = d.tareas; subida = d.subida; draw(); }
+  async function load() { const r = await fetch('/api/t/' + token); if (!r.ok) return; const d = await r.json(); tareas = d.tareas; subida = d.subida; conv = Boolean(d.comentarios); draw(); }
   async function toggle(t, on) { t.done = on ? 1 : 0; draw(); await fetch(`/api/t/${token}/tareas/${t.id}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ done: t.done }) }); }
   const PART = 10 * 1024 * 1024, MAX = 1024 * 1024 * 1024;
   const prog = {};  // por tarea: [{ name, pct, error }]
@@ -17,14 +17,14 @@
   const api = (m, u, body, raw) => fetch(u, { method: m, headers: raw ? {} : { 'content-type': 'application/json' }, body: raw || (body ? JSON.stringify(body) : undefined) });
   function bar(tid) { const el = document.querySelector(`[data-prog="${tid}"]`); if (!el) return; const list = prog[tid] || []; el.replaceChildren(...list.map((p) => h('div', { class: 'mdup' + (p.error ? ' err' : '') }, h('span', {}, p.error ? `${p.name}: ${p.error}` : `${p.name} · ${p.pct}%`), p.error ? null : h('i', {}, h('u', { style: `width:${p.pct}%` }))))); }
 
-  async function sendFile(t, file) {
+  async function sendFile(t, file, replaces) {
     const p = { name: file.name, pct: 0 }; (prog[t.id] = prog[t.id] || []).push(p); bar(t.id);
     const fail = (m) => { p.error = m; bar(t.id); setTimeout(() => { prog[t.id] = (prog[t.id] || []).filter((x) => x !== p); bar(t.id); }, 6000); };
     if (file.size > MAX) return fail('pesa más de 1 GB');
     if (!/^(image|video)\//.test(file.type)) return fail('solo fotos y vídeos');
     let id;
     try {
-      const r = await api('POST', `/api/t/${token}/tareas/${t.id}/entregas`, { filename: file.name, size: file.size, mime: file.type });
+      const r = await api('POST', `/api/t/${token}/tareas/${t.id}/entregas`, { filename: file.name, size: file.size, mime: file.type, replaces: replaces || undefined });
       if (!r.ok) return fail('no se pudo empezar');
       id = (await r.json()).id;
       const partes = []; const n = Math.ceil(file.size / PART);
@@ -47,11 +47,33 @@
     }
   }
 
+  const chatIcon = () => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2'); s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round'); s.innerHTML = '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/>'; return s; };
+  const when = (ms) => new Date(Number(ms)).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  function thread(e) {
+    const url = `/api/t/${token}/entregas/${e.id}/comentarios`;
+    const list = h('div', { class: 'cthread-list' }, h('small', { class: 'cload' }, 'Cargando…'));
+    const show = (items) => { e.ncom = items.length; list.replaceChildren(...(items.length ? items.map((m) => h('div', { class: 'cmsg ' + (m.role === 'creador' ? 'me' : 'other') }, h('b', {}, m.author), h('p', {}, m.body), h('small', {}, when(m.created_at)))) : [h('small', { class: 'cload' }, 'Aún no hay comentarios.')])); list.scrollTop = list.scrollHeight; };
+    const inp = h('input', { type: 'text', maxlength: 1000, placeholder: 'Escribe un comentario', 'aria-label': 'Comentario' });
+    const form = h('form', { class: 'cform', onsubmit: async (ev) => { ev.preventDefault(); const v = inp.value.trim(); if (!v) return; inp.value = ''; try { const r = await api('POST', url, { body: v }); if (!r.ok) throw new Error(); show((await r.json()).comentarios); } catch (x) { inp.value = v; } } }, inp, h('button', { type: 'submit', class: 'csend' }, 'Enviar'));
+    api('GET', url).then((r) => r.json()).then((d) => show(d.comentarios)).catch(() => show([]));
+    return h('div', { class: 'cthread' }, list, form);
+  }
   function retryIcon() { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2'); s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round'); s.innerHTML = '<path d="M20 11a8 8 0 00-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0014.5 4.5L20 16"/><path d="M20 20v-4h-4"/>'; return s; }
   function row(t) {
     const k = kinds[t.kind] || { color: '#999', label: '' };
-    const files = (t.entregas || []).map((e) => h('li', {}, h('span', {}, e.filename), h('small', {}, size(e.size)),
-      h('button', { type: 'button', 'aria-label': 'Quitar archivo', onclick: async () => { if (!confirm('¿Quitar ' + e.filename + '?')) return; await api('DELETE', `/api/t/${token}/entregas/${e.id}`); t.entregas = t.entregas.filter((x) => x.id !== e.id); draw(); } }, '×')));
+    const list = t.entregas || [], byId = Object.fromEntries(list.map((e) => [e.id, e])), old = new Set(list.filter((e) => e.replaces && byId[e.replaces]).map((e) => e.replaces));
+    const depth = (e, n = 1) => (e.replaces && byId[e.replaces] && n < 50 ? depth(byId[e.replaces], n + 1) : n);
+    const files = list.map((e) => {
+      const isOld = old.has(e.id), ver = depth(e);
+      const chip = conv ? h('span', { class: 'frev ' + (isOld ? 'old' : e.review === 'ok' ? 'ok' : e.review === 'cambios' ? 'ch' : 'wait') }, isOld ? 'Versión anterior' : e.review === 'ok' ? 'Aprobado' : e.review === 'cambios' ? 'Cambios pedidos' : 'En revisión') : null;
+      const re = h('input', { type: 'file', accept: 'image/*,video/*', hidden: true, onchange: (ev) => { const f = ev.target.files[0]; ev.target.value = ''; if (f) sendFile(t, f, e.id); } });
+      return h('li', { class: 'mdfile' + (isOld ? ' old' : '') },
+        h('div', { class: 'mdfrow' }, h('span', {}, e.filename), ver > 1 || isOld ? h('span', { class: 'fver' }, 'v' + ver) : null, chip, h('small', {}, size(e.size)),
+          conv ? h('button', { type: 'button', class: 'mdchat', 'aria-label': 'Comentarios', title: 'Comentarios', onclick: () => { if (openThreads.has(e.id)) openThreads.delete(e.id); else openThreads.add(e.id); draw(); } }, chatIcon(), e.ncom ? h('b', { class: 'fcount' }, String(e.ncom)) : null) : null,
+          conv && e.review === 'cambios' && !isOld ? h('button', { type: 'button', class: 'mdnew', onclick: () => re.click() }, 'Subir nueva versión') : null, re,
+          h('button', { type: 'button', 'aria-label': 'Quitar archivo', onclick: async () => { if (!confirm('¿Quitar ' + e.filename + '?')) return; await api('DELETE', `/api/t/${token}/entregas/${e.id}`); t.entregas = t.entregas.filter((x) => x.id !== e.id); draw(); } }, '×')),
+        conv && openThreads.has(e.id) ? thread(e) : null);
+    });
     const input = h('input', { type: 'file', multiple: true, accept: 'image/*,video/*', hidden: true, onchange: (e) => { const fs = [...e.target.files]; e.target.value = ''; fs.forEach((f) => sendFile(t, f)); } });
     const retry = t.retry && !t.done ? h('div', { class: 'mdretry' }, h('b', {}, 'Hay que repetirlo'), t.retry_note ? h('p', {}, t.retry_note) : null) : null;
     if (retry) retry.prepend(retryIcon());
