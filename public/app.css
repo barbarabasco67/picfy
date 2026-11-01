@@ -1214,3 +1214,6 @@ dialog.pedit { width: min(94vw, 880px); max-width: calc(100vw - 16px); max-heigh
 #installApp[hidden]{display:none!important}
 
 .au-legal{margin:22px 0 0;font-size:13px;text-align:center;color:#7a8296}.au-legal a{color:inherit}
+
+.dlb { top: 84px; }
+.sharerow { display: flex; flex-wrap: wrap; gap: 10px; }

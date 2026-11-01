@@ -74,6 +74,7 @@
     const b = e.target.closest('.mk'); if (!b) return;
     e.preventDefault(); e.stopPropagation();
     const t = b.closest('.tile'), id = t.dataset.id;
+    if (b.dataset.mk === 'dl') { download([id]); return; }
     try {
       if (b.dataset.mk === 'fav') { const v = t.dataset.fav === '1' ? 0 : 1; await post(api + '/mark', { ids: [id], fav: v }); t.dataset.fav = String(v); }
       else { const next = FLAGS[(FLAGS.indexOf(t.dataset.flag) + 1) % FLAGS.length]; await post(api + '/mark', { ids: [id], flag: next || null }); t.dataset.flag = next; }
@@ -205,6 +206,7 @@
   }
   async function run(what) {
     if (!cur) return; const t = cur, id = t.dataset.id;
+    if (what === 'dl') { const a = document.createElement('a'); a.href = `/m/${id}/o?dl=1`; document.body.append(a); a.click(); a.remove(); return; }
     try {
       if (what === 'fav') { const v = t.dataset.fav === '1' ? 0 : 1; await post(api + '/mark', { ids: [id], fav: v }); t.dataset.fav = String(v); const b = t.querySelector('.favb'); if (b) b.classList.toggle('on', Boolean(v)); paint(); return; }
       await post(api + '/state', { action: what, ids: [id] });

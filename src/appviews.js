@@ -309,6 +309,7 @@ ${p.event_id !== event.id && p.ename ? `<span class="sedechip">${esc(p.ename)}</
 <img src="/m/${p.id}/l" loading="lazy" decoding="async" alt="">
 <button class="mk flagb" type="button" data-mk="flag" aria-label="Bandera">${ICON.flag}</button>
 <button class="mk favb ${p.fav ? 'on' : ''}" type="button" data-mk="fav" aria-label="Destacada" title="Destacada (mejor foto)">${ICON.heart}</button>
+<button class="mk dlb" type="button" data-mk="dl" aria-label="Descargar foto" title="Descargar">${ICON.down}</button>
 ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' ? 'En revisión' : 'No publicada'}</span>` : ''}
 <span class="soc"><i class="eye">${ICON.eye}${p.views || 0}</i>${p.likes ? `<i>♥ ${p.likes}</i>` : ''}${p.coms ? `<i>💬 ${p.coms}</i>` : ''}</span><span class="cap">${esc(p.filename || '')}</span></div>`)
     .join('');
@@ -393,7 +394,7 @@ ${selectionsDialog(sels)}
 <header><h2>Compartir galería</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <p class="muted">Copia el enlace y envíaselo a tus invitados. Cualquiera con el enlace puede subir fotos.</p>
 <div class="linkbox" id="guestLink">${esc(guestUrl)}</div>
-<div class="sharerow"><button class="btn primary" type="button" id="copyLink">Copiar enlace</button></div>
+<div class="sharerow"><button class="btn primary" type="button" id="copyLink">Copiar enlace</button><a class="btn" id="openGallery" href="${esc(guestUrl)}" target="_blank" rel="noopener">Abrir galería</a></div>
 <div class="qr" data-qr="${esc(guestUrl)}"></div>
 </div></dialog>
 
