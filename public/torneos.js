@@ -52,9 +52,45 @@
 
   const load = async () => { data = await api('GET', '/api/torneos/' + tid); draw(); };
 
+
+  // Panel de progreso: cuánto va hecho, qué se retrasa y quién lo lleva
+  const todayStr = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+  const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+  function bar(a, b, cls) { const i = h('i', { class: 'tpgbar' + (cls ? ' ' + cls : '') }); const u = h('u', {}); u.style.width = pct(a, b) + '%'; i.append(u); return i; }
+  function progress() {
+    const all = data.sedes.flatMap((s) => s.tareas.map((t) => ({ ...t, sede: s })));
+    if (!all.length) return null;
+    const today = todayStr();
+    const late = (t) => !t.done && t.date && t.date < today;
+    const done = all.filter((t) => t.done).length, lateN = all.filter(late).length, todayN = all.filter((t) => !t.done && t.date === today).length;
+    const retryN = all.filter((t) => t.retry && !t.done).length, files = all.reduce((n, t) => n + (t.entregas || []).length, 0);
+    const P = pct(done, all.length), R = 42, C = 2 * Math.PI * R;
+    const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); ring.setAttribute('viewBox', '0 0 100 100'); ring.setAttribute('class', 'tpgring');
+    ring.innerHTML = `<circle cx="50" cy="50" r="${R}" class="bg"/><circle cx="50" cy="50" r="${R}" class="fg" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - P / 100)}" transform="rotate(-90 50 50)"/><text x="50" y="56" text-anchor="middle">${P}%</text>`;
+    const stat = (n, label, cls) => h('div', { class: 'tpgstat' + (cls ? ' ' + cls : '') }, h('b', {}, String(n)), h('span', {}, label));
+    const rows = [];
+    for (const s of data.sedes) {
+      const d = s.tareas.filter((t) => t.done).length, l = s.tareas.filter(late).length;
+      if (s.tareas.length) rows.push(h('div', { class: 'tpgrow' }, h('span', { class: 'n' }, s.name), bar(d, s.tareas.length, l ? 'warn' : ''), h('span', { class: 'v' }, `${d}/${s.tareas.length}`), l ? h('span', { class: 'tpgl' }, `${l} con retraso`) : h('span', { class: 'tpgl ok' }, d === s.tareas.length ? 'Completa' : '')));
+    }
+    const crows = [];
+    for (const s of data.sedes) for (const c of s.creadores) {
+      const mine = s.tareas.filter((t) => t.creador_id === c.id); if (!mine.length) continue;
+      const d = mine.filter((t) => t.done).length, l = mine.filter(late).length, f = mine.reduce((n, t) => n + (t.entregas || []).length, 0);
+      crows.push({ l, d, n: mine.length, el: h('div', { class: 'tpgrow' }, h('span', { class: 'n' }, c.name, h('small', {}, s.name)), bar(d, mine.length, l ? 'warn' : ''), h('span', { class: 'v' }, `${d}/${mine.length}`), h('span', { class: 'tpgl' + (l ? '' : ' ok') }, l ? `${l} con retraso` : f ? `${f} ${f === 1 ? 'archivo' : 'archivos'}` : '')) });
+    }
+    crows.sort((a, b) => b.l - a.l || (a.d / a.n) - (b.d / b.n));
+    const lateList = all.filter(late).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5);
+    const who = (t) => { const c = t.creador_id && t.sede.creadores.find((x) => x.id === t.creador_id); return c ? c.name : 'Toda la sede'; };
+    return h('section', { class: 'glass tpg' },
+      h('div', { class: 'tpgtop' }, ring, h('div', { class: 'tpgstats' }, stat(done, 'Hechas'), stat(all.length - done, 'Pendientes'), stat(lateN, 'Con retraso', lateN ? 'bad' : ''), stat(todayN, 'Para hoy'), stat(retryN, 'A repetir', retryN ? 'warn' : ''), stat(files, 'Archivos'))),
+      lateList.length ? h('div', { class: 'tpgbox' }, h('h3', {}, 'Con retraso'), h('ul', { class: 'tpgwait' }, lateList.map((t) => h('li', {}, h('b', {}, t.title), h('span', {}, `${t.sede.name} · ${who(t)} · ${fmt(t.date)}`))))) : null,
+      h('div', { class: 'tpgcols' }, h('div', { class: 'tpgbox' }, h('h3', {}, 'Por sede'), ...rows), crows.length ? h('div', { class: 'tpgbox' }, h('h3', {}, 'Por creador'), ...crows.map((c) => c.el)) : null));
+  }
+
   function draw() {
     const top = data.galerias ? [h('div', { class: 'glass tgalbar' }, galSelect('Galería del torneo', data.galeria, data.galerias.filter((g) => !g.parent_id), (v) => api('PUT', `/api/torneos/${tid}/galeria`, { event_id: v }), 'Crear galería del torneo'))] : [];
-    root.replaceChildren(...top, ...data.sedes.map(sedeCard));
+    root.replaceChildren(...[progress()].filter(Boolean), ...top, ...data.sedes.map(sedeCard));
     if (!data.sedes.length) root.append(h('div', { class: 'glass emptybox' }, 'Añade la primera sede.'));
   }
 

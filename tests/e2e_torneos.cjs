@@ -88,6 +88,13 @@ const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
   // el otro hub no accede
   const o = await (await b.newContext()).newPage(); await o.goto(B + '/registro'); await o.fill('input[name=name]', 'O'); await o.fill('input[name=email]', `o${Date.now()}@t.es`); await o.fill('input[name=password]', 'clave12345'); await o.click('.au-submit'); await o.waitForURL('**/inicio');
   const rs = await o.evaluate(async (id) => (await fetch('/api/torneos/' + id)).status, url.split('/').pop()); ok(rs === 404, 'otra cuenta no ve el torneo ' + rs); const rf = await o.evaluate(async (h) => (await fetch(h)).status, href); ok(rf === 404, 'otra cuenta no ve el archivo ' + rf);
+  // panel de progreso: una tarea vencida sin hacer debe salir con retraso
+  await p.goto(url); await p.waitForSelector('#tSedes .tsede');
+  await p.evaluate(async () => { const id = document.body.dataset.torneo; const d = await (await fetch('/api/torneos/' + id)).json(); await fetch(`/api/sedes/${d.sedes[0].id}/tareas`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title: 'Vencida', kind: Object.keys(JSON.parse(document.body.dataset.kinds))[0], date: '2020-01-01' }) }); });
+  await p.reload(); await p.waitForSelector('.tpg');
+  const stats = await p.evaluate(() => [...document.querySelectorAll('.tpgstat')].map((e) => e.querySelector('span').textContent + ':' + e.querySelector('b').textContent));
+  ok(stats.length === 6 && /Con retraso:[1-9]/.test(stats.join()), 'panel de progreso con retraso: ' + stats.join());
+  ok(/Vencida/.test(await p.textContent('.tpgwait')) && (await p.locator('.tpgrow').count()) >= 1 && /%/.test(await p.textContent('.tpgring')), 'panel muestra la tarea vencida, filas y porcentaje');
   await p.screenshot({ path: '/tmp/picfy_shots/torneo.png' });
   ok(errs.length + merrs.length === 0, 'errores JS: ' + errs.concat(merrs).join(';'));
   console.log('ALL OK'); await b.close();
