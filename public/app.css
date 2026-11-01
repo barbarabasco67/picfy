@@ -1324,13 +1324,3 @@ body.app .tfile .cthread .cform { align-items: stretch; } body.app .tfile .cform
 body.app .tfile .cform button { flex: none; box-shadow: none; padding: 8px 14px; }
 .cmsg { box-shadow: none; border: 1px solid rgba(20,33,61,.08); } .cmsg.other { align-self: flex-start; }
 body.app .tfile .cform button, body.app .tfile .fpill { box-shadow: none !important; }
-/* Vista compacta de tareas: el detalle solo al abrir */
-body.app .tcreator .ttasks > li { padding: 9px 10px 9px 12px; row-gap: 4px; }
-body.app .tcreator .ttasks > li:not(.open) .tnote { display: none; }
-body.app .tcreator .ttasks > li:not(.open) .tfl { display: none; }
-body.app .tcreator .ttasks .tmain.canopen { cursor: pointer; }
-body.app .tcreator .ttasks .tmain.canopen::after { content: ""; display: inline-block; width: 7px; height: 7px; margin-left: 8px; border: solid #7a8296; border-width: 0 2px 2px 0; transform: rotate(45deg) translateY(-3px); transition: transform .2s; }
-body.app .tcreator .ttasks > li.open .tmain.canopen::after { transform: rotate(225deg); }
-body.app .tcreator .ttasks .tfl { gap: 8px; }
-body.app .tcreator { max-height: 76vh; overflow-y: auto; scrollbar-width: thin; }
-body.app .tcreator > header { position: sticky; top: 0; z-index: 2; background: inherit; padding-bottom: 6px; }
