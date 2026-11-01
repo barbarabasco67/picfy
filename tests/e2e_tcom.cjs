@@ -33,7 +33,7 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   await c.locator('.mdfile .mdchat').click(); await c.waitForSelector('.cmsg');
   ok((await c.locator('.cmsg').first().innerText()).includes('Más luz'), 'creador ve la nota del hub');
   await c.fill('.cform input', 'Hecho, subo otra'); await c.click('.cform button'); await c.waitForFunction(() => document.querySelectorAll('.cmsg').length >= 2);
-  ok(true, 'creador comenta');
+  ok(true, 'creador comenta'); await c.waitForTimeout(900); await c.screenshot({ path: '/tmp/picfy_shots/tcom_creador.png', fullPage: true });
   // Nueva versión
   const e2 = await up(e1);
   await c.reload(); await c.waitForSelector('.mdfile');

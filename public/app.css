@@ -1330,3 +1330,15 @@ body.app .tcreator .ttasks { display: grid; grid-template-columns: repeat(auto-f
 body.app .tcreator .ttasks > li { min-width: 0; }
 body.app .tcreator > header .tact { width: auto; flex: none; justify-content: flex-end; gap: 6px; margin-left: 4px; padding-left: 10px; border-left: 1px solid rgba(20,33,61,.12); }
 body.app .tcreator > header .tcopy { padding: 5px 12px; font-size: .76rem; font-weight: 700; }
+/* Comentarios a todo el ancho del módulo */
+.cthread { margin-left: 0; align-self: stretch; width: 100%; box-sizing: border-box; }
+.cthread-list, .cform { width: 100%; }
+.cmsg, .cmsg.me, .cmsg.other { max-width: none; width: 100%; align-self: stretch; box-sizing: border-box; }
+.mdfiles .mdfile .cform { display: flex; gap: 8px; align-items: stretch; }
+.mdfiles .mdfile .cform input[type=text] { opacity: 1; pointer-events: auto; height: auto; position: static; display: block; flex: 1 1 0; width: auto; min-width: 0; box-sizing: border-box; border: 1px solid #e2e5ee; border-radius: 99px; padding: 8px 14px; font: inherit; font-size: .88rem; background: #fff; }
+.mdfiles .mdfile .cthread { background: #f6f4f0; border-radius: 14px; padding: 10px; margin: 8px 0 4px; }
+
+/* Archivo del creador en dos líneas: nombre completo y debajo estado y acciones */
+.mdfile .mdfrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.mdfile .mdfrow > span:first-child { flex: 1 1 100%; font-weight: 600; overflow-wrap: anywhere; white-space: normal; }
+.mdfile .mdfrow .frev { flex: none; } .mdfile .mdfrow > small { margin-right: auto; }
