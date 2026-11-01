@@ -260,7 +260,7 @@
             files.length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => { const ul = e.target.closest('li').querySelector('.tfl'); ul.hidden = !ul.hidden; if (ul.hidden) openTasks.delete(t.id); else openTasks.add(t.id); } }, `${files.length} ${files.length === 1 ? 'archivo' : 'archivos'}`) : null) : null,
           t.retry && !t.done && t.retry_note ? h('p', { class: 'tnote' }, t.retry_note) : null),
         h('div', { class: 'tacts' },
-          t.done ? ico('<path d="M20 11a8 8 0 00-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0014.5 4.5L20 16"/><path d="M20 20v-4h-4"/>', 'Devolver al creador', () => askRetry(t)) : null,
+          t.done && !files.length ? ico('<path d="M20 11a8 8 0 00-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0014.5 4.5L20 16"/><path d="M20 20v-4h-4"/>', 'Devolver al creador', () => askRetry(t)) : null,
           ico('<path d="M4 20h4L19 9l-4-4L4 16v4z"/>', 'Editar tarea', () => editTask(t, sede)),
           ico('<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>', 'Borrar tarea', async () => { await api('DELETE', '/api/tareas/' + t.id); load(); })),
         files.length ? h('ul', { class: 'tfl', hidden: !openTasks.has(t.id) }, files.map((f) => {
