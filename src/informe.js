@@ -58,7 +58,7 @@ export function informePage({ user, torneo, kinds, sedes, today }) {
       const k = kinds[t.kind] || { label: t.kind, color: '#999' }, c = s.creadores.find((x) => x.id === t.creador_id);
       const st = t.done ? `<span class="st ok">Hecha</span>` : t.retry ? `<span class="st retry">A repetir</span>` : late(t) ? `<span class="st late">Con retraso</span>` : `<span class="st">Pendiente</span>`;
       const n = s.entregas.filter((e) => e.tarea_id === t.id).length;
-      return `<tr><td>${fmtDate(t.date)}${t.time ? ' · ' + esc(t.time) : ''}</td><td><span class="kind" style="--c:${k.color}"><i></i>${esc(k.label)}</span></td><td>${esc(t.title)}</td><td>${c ? esc(c.name) : 'Toda la sede'}</td><td>${st}</td><td class="n">${n || '–'}</td></tr>`;
+      return `<tr><td>${fmtDate(t.date)}${t.time ? ' · ' + esc(t.time) : ''}</td><td><span class="kind" style="--c:${k.color}"><i></i>${esc(k.label)}</span></td><td>${esc(t.title)}${t.items ? ` <small>(${t.items.done}/${t.items.total} puntos)</small>` : ""}</td><td>${c ? esc(c.name) : 'Toda la sede'}</td><td>${st}</td><td class="n">${n || '–'}</td></tr>`;
     }).join('');
     return `<section class="sede"><h2>${esc(s.name)}<small>${plural(s.tareas.length, 'tarea', 'tareas')} · ${plural(s.entregas.length, 'archivo entregado', 'archivos entregados')}${s.fotos != null ? ' · ' + plural(s.fotos, 'foto publicada', 'fotos publicadas') : ''}</small></h2>
 ${s.tareas.length ? `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Tarea</th><th>Asignada a</th><th>Estado</th><th class="n">Archivos</th></tr></thead><tbody>${rows}</tbody></table>` : '<p style="color:var(--mut)">Sin tareas.</p>'}</section>`;

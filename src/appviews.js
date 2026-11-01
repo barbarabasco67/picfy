@@ -813,6 +813,7 @@ ${torneo.extra ? `<label class="field"><span>Descripción</span><textarea name="
 <label class="field"><span>Qué hay que hacer</span><input type="text" name="title" maxlength="160" required></label>
 <div class="row2"><label class="field"><span>Tipo</span><select name="kind">${Object.entries(kinds).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join('')}</select></label><label class="field"><span>Asignada a</span><select name="creador_id"></select></label></div>
 <div class="row2"><label class="field"><span>Fecha</span><input type="date" name="date"></label><label class="field"><span>Hora</span><input type="time" name="time"></label></div>
+<label class="field" id="taskItemsField"><span>Puntos de la tarea</span><textarea name="items" maxlength="3000" rows="4" placeholder="Uno por línea"></textarea></label>
 <label class="field"><span>Notas para el creador</span><textarea name="notes" maxlength="1000" rows="3"></textarea></label>
 <footer><span class="spacer"></span><button class="btn primary" type="submit" id="taskSave">Guardar cambios</button></footer></form></dialog>`,
     }),

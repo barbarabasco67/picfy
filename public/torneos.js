@@ -11,7 +11,7 @@
   const taskDlg = document.getElementById('taskDlg'), taskForm = document.getElementById('taskForm'); let editing = null, creating = null;
   const fillTask = (s, t) => {
     const f = taskForm;
-    f.title.value = t.title || ''; f.kind.value = t.kind in kinds ? t.kind : Object.keys(kinds)[0]; f.date.value = t.date || ''; f.time.value = t.time || ''; f.notes.value = t.notes || '';
+    f.title.value = t.title || ''; f.kind.value = t.kind in kinds ? t.kind : Object.keys(kinds)[0]; f.date.value = t.date || ''; f.time.value = t.time || ''; f.notes.value = t.notes || ''; f.items.value = (t.items || []).map((i) => i.text).join('\n'); document.getElementById('taskItemsField').hidden = !data.checklist;
     f.creador_id.replaceChildren(h('option', { value: '' }, 'Toda la sede'), ...s.creadores.map((c) => h('option', { value: c.id }, c.name))); f.creador_id.value = t.creador_id || '';
   };
   function editTask(t, s) {
@@ -27,6 +27,7 @@
   taskForm.addEventListener('submit', async (e) => {
     e.preventDefault(); const f = taskForm; if ((!editing && !creating) || !f.title.value.trim()) return;
     const body = { title: f.title.value, kind: f.kind.value, date: f.date.value, time: f.time.value, notes: f.notes.value, creador_id: f.creador_id.value };
+    if (data.checklist) body.items = f.items.value.split('\n');
     if (editing) await api('PUT', '/api/tareas/' + editing.id, body); else await api('POST', `/api/sedes/${creating.id}/tareas`, body);
     taskDlg.close(); load();
   });
@@ -254,11 +255,13 @@
         h('input', { type: 'checkbox', checked: !!t.done, 'aria-label': 'Hecha', onchange: async (e) => { await api('PUT', '/api/tareas/' + t.id, { done: e.target.checked ? 1 : 0 }); load(); } }),
         h('div', { class: 'tbd' },
           h('div', { class: 'tmain' }, h('span', { class: 'tkind', style: `--c:${k.color}` }, k.label), h('span', { class: 't' }, t.title, t.time ? h('small', {}, ' · ' + t.time) : null)),
-          t.retry && !t.done || t.done && t.done_by || files.length ? h('div', { class: 'tmeta' },
+          t.retry && !t.done || t.done && t.done_by || files.length || (t.items || []).length ? h('div', { class: 'tmeta' },
+            (t.items || []).length ? h('span', { class: 'tckn' }, `${t.items.filter((i) => i.done).length}/${t.items.length}`) : null,
             t.retry && !t.done ? h('span', { class: 'tretry', title: t.retry_note || '' }, 'Repetir') : null,
             t.done && t.done_by ? h('span', { class: 'by' }, t.done_by === 'hub' ? 'Hecha' : 'Hecha por ' + t.done_by) : null,
             files.length ? h('button', { type: 'button', class: 'tfiles', onclick: (e) => { const ul = e.target.closest('li').querySelector('.tfl'); ul.hidden = !ul.hidden; if (ul.hidden) openTasks.delete(t.id); else openTasks.add(t.id); } }, `${files.length} ${files.length === 1 ? 'archivo' : 'archivos'}`) : null) : null,
-          t.retry && !t.done && t.retry_note ? h('p', { class: 'tnote' }, t.retry_note) : null),
+          t.retry && !t.done && t.retry_note ? h('p', { class: 'tnote' }, t.retry_note) : null,
+          (t.items || []).length ? h('ul', { class: 'tck' }, t.items.map((i) => h('li', {}, h('label', {}, h('input', { type: 'checkbox', checked: !!i.done, onchange: async (e) => { await api('PUT', '/api/items/' + i.id, { done: e.target.checked ? 1 : 0 }); load(); } }), h('span', {}, i.text))))) : null),
         h('div', { class: 'tacts' },
           t.done && !files.length ? ico('<path d="M20 11a8 8 0 00-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0014.5 4.5L20 16"/><path d="M20 20v-4h-4"/>', 'Devolver al creador', () => askRetry(t)) : null,
           ico('<path d="M4 20h4L19 9l-4-4L4 16v4z"/>', 'Editar tarea', () => editTask(t, sede)),

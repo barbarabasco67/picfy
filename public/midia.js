@@ -83,6 +83,7 @@
         h('label', {}, h('input', { type: 'checkbox', checked: !!t.done, onchange: (e) => toggle(t, e.target.checked) }), h('span', { class: 'mdck' }),
           h('span', { class: 'mdtx' }, h('strong', {}, t.title), h('small', {}, [k.label, t.time].filter(Boolean).join(' · ')), t.notes ? h('em', {}, t.notes) : null)),
         h('i', { style: `background:${k.color}` })),
+      (t.items || []).length ? h('ul', { class: 'tck' }, h('li', { class: 'tckn' }, `${t.items.filter((i) => i.done).length}/${t.items.length}`), t.items.map((i) => h('li', {}, h('label', {}, h('input', { type: 'checkbox', checked: !!i.done, onchange: async (e) => { try { await api('PUT', `/api/t/${token}/items/${i.id}`, { done: e.target.checked ? 1 : 0 }); } catch (x) {} load(); } }), h('span', {}, i.text))))) : null,
       subida ? h('div', { class: 'mdup-box' },
         files.length ? h('ul', { class: 'mdfiles' }, files) : null,
         h('div', { 'data-prog': t.id }),

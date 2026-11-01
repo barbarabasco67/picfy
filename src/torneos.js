@@ -44,6 +44,13 @@ export async function comentariosReady(db) {
   catch { sc = { v: false, t: Date.now() }; }
   return sc.v;
 }
+let sk = { v: null, t: 0 };
+export async function itemsReady(db) {
+  if (sk.v === true || (sk.v === false && Date.now() - sk.t < 30000)) return sk.v;
+  try { await db.prepare('SELECT id, tarea_id, text, done, pos FROM tarea_items LIMIT 1').first(); sk = { v: true, t: Date.now() }; }
+  catch { sk = { v: false, t: Date.now() }; }
+  return sk.v;
+}
 let sr = { v: null, t: 0 };
 export async function repetirReady(db) {
   if (sr.v === true || (sr.v === false && Date.now() - sr.t < 30000)) return sr.v;
@@ -135,6 +142,7 @@ export function torneosRoutes(app) {
     const tareas = await q("SELECT id, sede_id, creador_id, kind, title, date, time, done" + rc + " FROM tareas_torneo WHERE sede_id IN (?) ORDER BY date, COALESCE(time, '99:99'), created_at");
     const entregas = (await entregasReady(db)) ? await q("SELECT id, sede_id, tarea_id, creador_id, mime, size FROM entregas_torneo WHERE state = 'ok' AND sede_id IN (?)") : [];
     const gx = await galeriaReady(db);
+    if (await itemsReady(db)) { const its = await q('SELECT tarea_id, done FROM tarea_items WHERE sede_id IN (?)'); for (const t of tareas) { const m = its.filter((i) => i.tarea_id === t.id); if (m.length) t.items = { total: m.length, done: m.filter((i) => i.done).length }; } }
     const out = [];
     for (const sd of sedes) {
       let fotos = null;
@@ -153,6 +161,7 @@ export function torneosRoutes(app) {
       await purge(c, 'sede_id', ids);
       try { await c.env.PHOTOS.delete(`torneo-portada/${t.id}`); } catch { /* sin portada */ }
       const st2 = [];
+      for (const s of ids) try { await c.env.DB.prepare('DELETE FROM tarea_items WHERE sede_id = ?').bind(s).run(); } catch {}
       for (const s of ids) st2.push(c.env.DB.prepare('DELETE FROM tareas_torneo WHERE sede_id = ?').bind(s), c.env.DB.prepare('DELETE FROM creadores WHERE sede_id = ?').bind(s));
       st2.push(c.env.DB.prepare('DELETE FROM sedes WHERE torneo_id = ?').bind(t.id), c.env.DB.prepare('DELETE FROM torneos WHERE id = ?').bind(t.id));
       await c.env.DB.batch(st2);
@@ -220,13 +229,15 @@ export function torneosRoutes(app) {
     const tareas = await q("SELECT id, sede_id, creador_id, kind, title, date, time, notes, done, done_at, done_by" + rc + " FROM tareas_torneo WHERE sede_id IN (?) ORDER BY date, COALESCE(time, '99:99'), created_at");
     const gx = await galeriaReady(c.env.DB);
     const cx = await comentariosReady(c.env.DB);
+    const ix = await itemsReady(c.env.DB);
+    const items = ix ? await q('SELECT id, tarea_id, text, done FROM tarea_items WHERE sede_id IN (?) ORDER BY pos') : [];
     const entregas = (await entregasReady(c.env.DB)) ? await q("SELECT id, sede_id, tarea_id, creador_id, filename, mime, size" + (gx ? ', sent_id' : '') + (cx ? ', review, replaces, (SELECT COUNT(*) FROM entrega_comentarios k WHERE k.entrega_id = entregas_torneo.id) AS ncom' : '') + " FROM entregas_torneo WHERE state = 'ok' AND sede_id IN (?) ORDER BY created_at") : [];
     let galerias = [], sedeEv = {};
     if (gx) {
       galerias = (await c.env.DB.prepare('SELECT id, name, parent_id FROM events WHERE owner_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 300').bind(a.user.id).all()).results;
       if (ids.length) for (const r of (await q('SELECT id, event_id FROM sedes WHERE id IN (?)'))) sedeEv[r.id] = r.event_id;
     }
-    return json({ comentarios: cx, galeria: gx ? t.event_id || null : null, galerias, sedes: sedes.map((s) => ({ ...s, event_id: sedeEv[s.id] || null, creadores: creadores.filter((x) => x.sede_id === s.id), tareas: tareas.filter((x) => x.sede_id === s.id).map((t) => ({ ...t, entregas: entregas.filter((e) => e.tarea_id === t.id) })) })) });
+    return json({ checklist: ix, comentarios: cx, galeria: gx ? t.event_id || null : null, galerias, sedes: sedes.map((s) => ({ ...s, event_id: sedeEv[s.id] || null, creadores: creadores.filter((x) => x.sede_id === s.id), tareas: tareas.filter((x) => x.sede_id === s.id).map((t) => ({ ...t, items: items.filter((i) => i.tarea_id === t.id), entregas: entregas.filter((e) => e.tarea_id === t.id) })) })) });
   });
 
   /* ----- Galerías vinculadas ----- */
@@ -307,6 +318,7 @@ export function torneosRoutes(app) {
     const s = await ownSede(c, a.user, c.req.param('id'));
     if (!s) return json({ error: 'nf' }, 404);
     await purge(c, 'sede_id', [s.id]);
+    try { await c.env.DB.prepare('DELETE FROM tarea_items WHERE sede_id = ?').bind(s.id).run(); } catch {}
     await c.env.DB.batch([c.env.DB.prepare('DELETE FROM tareas_torneo WHERE sede_id = ?').bind(s.id), c.env.DB.prepare('DELETE FROM creadores WHERE sede_id = ?').bind(s.id), c.env.DB.prepare('DELETE FROM sedes WHERE id = ?').bind(s.id)]);
     return json({ ok: true });
   });
@@ -343,12 +355,50 @@ export function torneosRoutes(app) {
     const a = await auth(c); if (a.err) return a.err;
     const s = await ownSede(c, a.user, c.req.param('id'));
     if (!s) return json({ error: 'nf' }, 404);
-    const v = cleanTask(await c.req.json().catch(() => ({})));
+    const b0 = await c.req.json().catch(() => ({}));
+    const v = cleanTask(b0);
     if (!v) return json({ error: 'title' }, 400);
     if (v.creador_id && !(await c.env.DB.prepare('SELECT 1 AS ok FROM creadores WHERE id = ? AND sede_id = ?').bind(v.creador_id, s.id).first())) v.creador_id = null;
     const id = randomHex(8);
     await c.env.DB.prepare('INSERT INTO tareas_torneo (id, sede_id, creador_id, kind, title, date, time, notes, done, created_at) VALUES (?,?,?,?,?,?,?,?,0,?)').bind(id, s.id, v.creador_id, v.kind, v.title, v.date, v.time, v.notes, Date.now()).run();
+    await saveItems(c.env.DB, id, s.id, b0.items);
     return json({ tarea: { id, sede_id: s.id, ...v, done: 0 } });
+  });
+
+  // Lista de comprobación: los puntos llegan como líneas de texto; los que ya existían con el mismo texto conservan su estado
+  async function saveItems(db, tareaId, sedeId, lines) {
+    if (!Array.isArray(lines) || !(await itemsReady(db))) return false;
+    const want = [...new Set(lines.map((x) => clip(x, 120)).filter(Boolean))].slice(0, 30);
+    const cur = (await db.prepare('SELECT id, text, done FROM tarea_items WHERE tarea_id = ?').bind(tareaId).all()).results;
+    const st = [];
+    for (const x of cur) if (!want.includes(x.text)) st.push(db.prepare('DELETE FROM tarea_items WHERE id = ?').bind(x.id));
+    want.forEach((text, i) => { const o = cur.find((x) => x.text === text); if (o) st.push(db.prepare('UPDATE tarea_items SET pos = ? WHERE id = ?').bind(i, o.id)); else st.push(db.prepare('INSERT INTO tarea_items (id, tarea_id, sede_id, text, done, pos) VALUES (?,?,?,?,0,?)').bind(randomHex(8), tareaId, sedeId, text, i)); });
+    if (st.length) await db.batch(st);
+    await syncDone(db, tareaId, 'hub');
+    return true;
+  }
+  // Si hay puntos: la tarea se da por hecha cuando están todos marcados, y vuelve a pendiente si se desmarca alguno
+  async function syncDone(db, tareaId, who) {
+    const r = await db.prepare('SELECT COUNT(*) AS n, COALESCE(SUM(done), 0) AS d FROM tarea_items WHERE tarea_id = ?').bind(tareaId).first();
+    if (!r || !r.n) return;
+    const t = await db.prepare('SELECT done FROM tareas_torneo WHERE id = ?').bind(tareaId).first();
+    if (!t) return;
+    if (r.d === r.n && !t.done) {
+      await db.prepare('UPDATE tareas_torneo SET done = 1, done_at = ?2, done_by = ?3 WHERE id = ?1').bind(tareaId, Date.now(), who).run();
+      if (await repetirReady(db)) await db.prepare('UPDATE tareas_torneo SET retry = 0 WHERE id = ?').bind(tareaId).run();
+    } else if (r.d < r.n && t.done) await db.prepare('UPDATE tareas_torneo SET done = 0, done_at = NULL, done_by = NULL WHERE id = ?').bind(tareaId).run();
+  }
+
+  app.put('/api/items/:id', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    const id = c.req.param('id');
+    if (!isHex(id, 16) || !(await itemsReady(c.env.DB))) return json({ error: 'nf' }, 404);
+    const it = await c.env.DB.prepare('SELECT i.id, i.tarea_id FROM tarea_items i JOIN sedes s ON s.id = i.sede_id JOIN torneos t ON t.id = s.torneo_id WHERE i.id = ? AND t.owner_id = ?').bind(id, a.user.id).first();
+    if (!it) return json({ error: 'nf' }, 404);
+    const done = Number((await c.req.json().catch(() => ({}))).done) ? 1 : 0;
+    await c.env.DB.prepare('UPDATE tarea_items SET done = ? WHERE id = ?').bind(done, id).run();
+    await syncDone(c.env.DB, it.tarea_id, 'hub');
+    return json({ ok: true });
   });
 
   async function ownTask(c, user, id) {
@@ -367,6 +417,7 @@ export function torneosRoutes(app) {
     if (v.creador_id && !(await c.env.DB.prepare('SELECT 1 AS ok FROM creadores WHERE id = ? AND sede_id = ?').bind(v.creador_id, cur.sede_id).first())) v.creador_id = null;
     await c.env.DB.prepare('UPDATE tareas_torneo SET kind=?2, title=?3, date=?4, time=?5, notes=?6, creador_id=?7, done=?8, done_at=?9, done_by=?10 WHERE id=?1')
       .bind(cur.id, v.kind, v.title, v.date, v.time, v.notes, v.creador_id, done, done ? (cur.done ? cur.done_at : Date.now()) : null, done ? (cur.done ? cur.done_by : 'hub') : null).run();
+    if (Array.isArray(b.items)) await saveItems(c.env.DB, cur.id, cur.sede_id, b.items);
     return json({ ok: true });
   });
 
@@ -385,6 +436,7 @@ export function torneosRoutes(app) {
     const cur = await ownTask(c, a.user, c.req.param('id'));
     if (!cur) return json({ error: 'nf' }, 404);
     await purge(c, 'tarea_id', [cur.id]);
+    try { await c.env.DB.prepare('DELETE FROM tarea_items WHERE tarea_id = ?').bind(cur.id).run(); } catch {}
     await c.env.DB.prepare('DELETE FROM tareas_torneo WHERE id = ?').bind(cur.id).run();
     return json({ ok: true });
   });
@@ -409,8 +461,10 @@ export function torneosRoutes(app) {
     const rows = (await c.env.DB.prepare("SELECT id, kind, title, date, time, notes, done" + rc + " FROM tareas_torneo WHERE sede_id = ? AND (creador_id IS NULL OR creador_id = ?) ORDER BY date, COALESCE(time, '99:99'), created_at LIMIT 1000").bind(me.sede_id, me.id).all()).results;
     const up = await entregasReady(c.env.DB);
     const cx = up && (await comentariosReady(c.env.DB));
+    const ix = await itemsReady(c.env.DB);
+    const items = ix ? (await c.env.DB.prepare('SELECT id, tarea_id, text, done FROM tarea_items WHERE sede_id = ? ORDER BY pos').bind(me.sede_id).all()).results : [];
     const ent = up ? (await c.env.DB.prepare("SELECT id, tarea_id, filename, mime, size" + (cx ? ', review, replaces, (SELECT COUNT(*) FROM entrega_comentarios k WHERE k.entrega_id = entregas_torneo.id) AS ncom' : '') + " FROM entregas_torneo WHERE sede_id = ? AND creador_id = ? AND state = 'ok' ORDER BY created_at LIMIT 3000").bind(me.sede_id, me.id).all()).results : [];
-    return json({ comentarios: Boolean(cx), subida: up, max: MAX_BYTES, part: PART, tareas: rows.map((t) => ({ ...t, entregas: ent.filter((e) => e.tarea_id === t.id) })) });
+    return json({ checklist: ix, comentarios: Boolean(cx), subida: up, max: MAX_BYTES, part: PART, tareas: rows.map((t) => ({ ...t, items: items.filter((i) => i.tarea_id === t.id), entregas: ent.filter((e) => e.tarea_id === t.id) })) });
   });
 
   app.put('/api/t/:token/tareas/:id', async (c) => {
@@ -425,6 +479,20 @@ export function torneosRoutes(app) {
     if (done && (await repetirReady(c.env.DB))) await c.env.DB.prepare('UPDATE tareas_torneo SET retry = 0 WHERE id = ?').bind(id).run();
     return json({ ok: true });
   });
+  app.put('/api/t/:token/items/:id', async (c) => {
+    const me = await byToken(c);
+    if (!me) return json({ error: 'nf' }, 404);
+    const id = c.req.param('id');
+    if (!isHex(id, 16) || !(await itemsReady(c.env.DB))) return json({ error: 'nf' }, 404);
+    const it = await c.env.DB.prepare('SELECT i.id, i.tarea_id FROM tarea_items i JOIN tareas_torneo k ON k.id = i.tarea_id WHERE i.id = ? AND i.sede_id = ? AND (k.creador_id IS NULL OR k.creador_id = ?)').bind(id, me.sede_id, me.id).first();
+    if (!it) return json({ error: 'nf' }, 404);
+    const done = Number((await c.req.json().catch(() => ({}))).done) ? 1 : 0;
+    await c.env.DB.prepare('UPDATE tarea_items SET done = ? WHERE id = ?').bind(done, id).run();
+    await syncDone(c.env.DB, it.tarea_id, me.name);
+    const t = await c.env.DB.prepare('SELECT done, done_by FROM tareas_torneo WHERE id = ?').bind(it.tarea_id).first();
+    return json({ ok: true, tarea: { id: it.tarea_id, done: t ? t.done : 0, done_by: t ? t.done_by : null } });
+  });
+
   /* ----- Subida de archivos por tarea (creadores, por trozos) ----- */
   async function upCtx(c) {
     const me = await byToken(c);

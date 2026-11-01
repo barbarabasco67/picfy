@@ -1,0 +1,2 @@
+CREATE TABLE IF NOT EXISTS tarea_items (id TEXT PRIMARY KEY, tarea_id TEXT NOT NULL, sede_id TEXT NOT NULL, text TEXT NOT NULL, done INTEGER NOT NULL DEFAULT 0, pos INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS idx_items_tarea ON tarea_items(tarea_id, pos);
