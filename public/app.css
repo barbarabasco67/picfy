@@ -1235,3 +1235,12 @@ dialog.pedit { width: min(94vw, 880px); max-width: calc(100vw - 16px); max-heigh
 .tpgbar { display: block; height: 8px; border-radius: 8px; background: #e6eaf3; overflow: hidden; } .tpgbar u { display: block; height: 100%; background: #edb265; border-radius: 8px; text-decoration: none; transition: width 1s cubic-bezier(.2, .8, .2, 1); } .tpgbar.warn u { background: #ef6b5b; }
 .tpgwait { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; } .tpgwait li { background: rgba(214, 64, 47, .08); border-radius: 12px; padding: 9px 12px; display: flex; flex-direction: column; gap: 1px; } .tpgwait b { font-size: .9rem; } .tpgwait span { font-size: .78rem; color: var(--muted, #6b7280); }
 @media (max-width: 560px) { .tpgrow { grid-template-columns: 1fr auto; } .tpgrow .tpgbar { grid-column: 1 / -1; order: 3; } .tpgl { text-align: left; } }
+
+/* Sedes: botón para abrir la galería y vistazo informativo */
+.tsopen { flex: none; margin-left: auto; white-space: nowrap; }
+.tgalrow .tgalgo { display: none; }
+.tsum { display: flex; flex-direction: column; gap: 10px; }
+.tsumbar { display: flex; align-items: center; gap: 12px; } .tsumbar .tpgbar { flex: 1; } .tsumbar b { font-size: .85rem; font-variant-numeric: tabular-nums; color: #14213d; }
+.tschips { display: flex; flex-wrap: wrap; gap: 8px; }
+.tschip { background: #f2efe8; color: #14213d; font-size: .78rem; font-weight: 600; padding: 5px 11px; border-radius: 99px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tschip.bad { background: rgba(214, 64, 47, .12); color: #c0392b; } .tschip.ok { background: rgba(47, 158, 95, .14); color: #23804b; } .tschip.next { background: rgba(237, 178, 101, .28); }

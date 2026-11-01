@@ -189,6 +189,21 @@
       list.length ? taskList(list, sede) : h('p', { class: 'tnone' }, 'Sin tareas'));
   }
 
+  // Vistazo de la sede: avance, creadores, archivos, retrasos y lo siguiente que toca
+  function sedeSummary(s) {
+    const today = todayStr(), total = s.tareas.length, done = s.tareas.filter((t) => t.done).length;
+    const late = s.tareas.filter((t) => !t.done && t.date && t.date < today).length, files = s.tareas.reduce((n, t) => n + (t.entregas || []).length, 0);
+    const next = s.tareas.filter((t) => !t.done && t.date && t.date >= today).sort((a, b) => (a.date + (a.time || '99:99')).localeCompare(b.date + (b.time || '99:99')))[0];
+    const chip = (txt, cls) => h('span', { class: 'tschip' + (cls ? ' ' + cls : '') }, txt);
+    const n = s.creadores.length;
+    return h('div', { class: 'tsum' },
+      total ? h('div', { class: 'tsumbar' }, bar(done, total, late ? 'warn' : ''), h('b', {}, pct(done, total) + '%')) : null,
+      h('div', { class: 'tschips' },
+        chip(`${n} ${n === 1 ? 'creador' : 'creadores'}`), chip(`${total} ${total === 1 ? 'tarea' : 'tareas'}`), chip(`${files} ${files === 1 ? 'archivo' : 'archivos'}`),
+        late ? chip(`${late} con retraso`, 'bad') : (total && done === total ? chip('Completa', 'ok') : null),
+        next ? chip(`Próxima: ${fmt(next.date)}${next.time ? ' · ' + next.time : ''} · ${next.title}`, 'next') : null));
+  }
+
   function sedeCard(s) {
     const done = s.tareas.filter((t) => t.done).length;
     const card = h('section', { class: 'tsede' + (closed.has(s.id) ? ' closed' : '') });
@@ -197,7 +212,9 @@
     fold.firstChild.replaceWith(Object.assign(document.createElementNS('http://www.w3.org/2000/svg', 'svg'), {}));
     const sv = fold.firstChild; sv.setAttribute('viewBox', '0 0 24 24'); sv.setAttribute('fill', 'none'); sv.setAttribute('stroke', 'currentColor'); sv.setAttribute('stroke-width', '2.2'); sv.setAttribute('stroke-linecap', 'round'); sv.setAttribute('stroke-linejoin', 'round'); sv.innerHTML = '<path d="M6 9l6 6 6-6"/>';
     card.append(h('header', { class: 'tshead' }, fold,
+      s.event_id ? h('a', { class: 'btn primary sm tsopen', href: '/galerias/' + s.event_id }, 'Abrir galería') : null,
       h('button', { class: 'iconbtn', type: 'button', title: 'Borrar sede', 'aria-label': 'Borrar sede', onclick: async () => { if (confirm('¿Borrar la sede con sus tareas y creadores?')) { await api('DELETE', '/api/sedes/' + s.id); load(); } } }, '×')));
+    card.append(sedeSummary(s));
 
     if (data.galerias) card.append(h('div', { class: 'tgalrow' }, galSelect('Galería de la sede', s.event_id, data.galerias.slice().sort((x, y) => (y.parent_id ? 1 : 0) - (x.parent_id ? 1 : 0)), (v) => api('PUT', `/api/sedes/${s.id}/galeria`, { event_id: v }), 'Crear subgalería de la sede')));
 
