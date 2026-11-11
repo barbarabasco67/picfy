@@ -24,7 +24,7 @@ async function settle(p, g) { // esperar a que el navegador termine de rehacer l
   await p.waitForLoadState('load'); await p.waitForTimeout(500);
 }
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1360, height: 900 } }); const p = await ctx.newPage();
   p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; });
   await p.goto(B + '/registro'); await p.fill('input[name=name]', 'Marca'); await p.fill('input[name=email]', `w${Date.now()}@t.es`); await p.fill('input[name=password]', 'clave-larga-123');

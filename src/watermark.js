@@ -67,7 +67,7 @@ async function pending(db, rootId, cfg) {
   const rows = (await db.prepare(
     `SELECT p.id FROM photos p LEFT JOIN photo_wm w ON w.photo_id = p.id
      WHERE p.event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND p.state IN ('approved','pending','rejected')
-       AND COALESCE(w.rev, 0) != ?2 ORDER BY p.uploaded_at DESC LIMIT 5000`,
+       AND p.mime NOT LIKE 'video/%' AND COALESCE(w.rev, 0) != ?2 ORDER BY p.uploaded_at DESC LIMIT 5000`,
   ).bind(rootId, target).all()).results;
   return rows.map((r) => r.id);
 }

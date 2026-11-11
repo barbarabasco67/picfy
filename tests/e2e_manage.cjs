@@ -10,7 +10,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
 const email = `m${Date.now()}@ejemplo.es`;
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
+  const b = await chromium.launch({ args: ['--no-sandbox'] });
   const ctx = await b.newContext({ viewport: { width: 1360, height: 900 }, acceptDownloads: true });
   const p = await ctx.newPage();
   p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; });

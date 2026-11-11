@@ -26,7 +26,7 @@ async function add(p, kind, title, date, x = {}) {
 }
 const api = (p, path, o) => p.evaluate(async ([path, o]) => { const r = await fetch(path, o); return { s: r.status, j: await r.json().catch(() => null) }; }, [path, o]);
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await reg(b, 'Agenda');
   await p.click('a.nav[href="/agenda"]'); await p.waitForURL('**/agenda'); await p.waitForSelector('#agWeek .agday');
   check('semana con 7 días', (await p.$$('#agWeek .agday')).length === 7);

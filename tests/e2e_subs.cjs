@@ -5,7 +5,7 @@ let ok = true;
 const check = (n, c, e = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n, e); ok = ok && !!c; };
 const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/img/p${String(i).padStart(2, '0')}.jpg`);
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
+  const b = await chromium.launch({ args: ['--no-sandbox'] });
   const p = await (await b.newContext({ viewport: { width: 1360, height: 900 } })).newPage();
   p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; });
   p.on('dialog', (d) => d.accept());

@@ -28,7 +28,7 @@ const mock = http.createServer((req, res) => {
 async function fresh(b) { const p = await (await b.newContext()).newPage(); p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; }); return p; }
 (async () => {
   await new Promise((r) => mock.listen(8799, '127.0.0.1', r));
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   let p = await fresh(b);
   await p.goto(B + '/entrar'); check('botón de Google al entrar', !!(await p.$('a[href="/auth/google"]')));
   await p.goto(B + '/registro'); check('botón de Google al crear cuenta', !!(await p.$('a[href="/auth/google"]')));

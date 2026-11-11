@@ -31,6 +31,11 @@ const MAX_ORIGINAL = 60 * 1024 * 1024; // 60 MB
 const MAX_THUMB = 4 * 1024 * 1024;
 const HARD_GUEST_CAP = 1500;
 const MIME_OK = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif']);
+// Vídeos: se suben por trozos (multipart de R2); el cartel (miniatura y foto grande) lo genera el navegador
+const VIDEO_OK = new Set(['video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v']);
+const maxVideo = (env) => (Number(env.MAX_VIDEO_MB) || 1024) * 1024 * 1024;
+const VIDEO_PART = 8 * 1024 * 1024;
+const isVideo = (mime) => /^video\//.test(mime || '');
 
 // Cabeceras de seguridad: los enlaces llevan el token en la URL, así que no se envía Referer.
 app.use('*', async (c, next) => {
@@ -77,6 +82,7 @@ app.get('/m/:id/:size', async (c) => {
     const me = await currentUser(c);
     const own = me ? await c.env.DB.prepare('SELECT 1 AS ok FROM photos p JOIN events e ON e.id = p.event_id WHERE p.id = ? AND e.owner_id = ?').bind(id, me.id).first() : null;
     if (!own) return c.notFound();
+    if (!c.req.query('dl') && isVideo((await c.env.DB.prepare('SELECT mime FROM photos WHERE id = ?').bind(id).first())?.mime)) return streamVideo(c, id, 'private, max-age=3600');
   }
   const obj = await c.env.PHOTOS.get(`p/${id}/${size}`);
   if (!obj) return c.notFound();
@@ -95,6 +101,37 @@ app.get('/m/:id/:size', async (c) => {
     headers.set('content-disposition', `attachment; filename="${name}"`);
   }
   return new Response(obj.body, { headers });
+});
+
+/* ---------- Vídeo: reproducción con rangos (para poder saltar en el reproductor) ---------- */
+
+async function streamVideo(c, id, cache) {
+  const key = `p/${id}/o`;
+  const head = await c.env.PHOTOS.head(key);
+  if (!head) return c.notFound();
+  const total = head.size, range = c.req.header('range');
+  const m = range && /^bytes=(\d*)-(\d*)$/.exec(range);
+  const headers = new Headers({ 'content-type': head.httpMetadata?.contentType || 'video/mp4', 'accept-ranges': 'bytes', 'cache-control': cache });
+  let opts, status = 200;
+  if (m && (m[1] || m[2])) {
+    const start = m[1] ? Number(m[1]) : Math.max(0, total - Number(m[2]));
+    const end = m[1] && m[2] ? Math.min(Number(m[2]), total - 1) : total - 1;
+    if (start > end || start >= total) return new Response('', { status: 416, headers: { 'content-range': `bytes */${total}` } });
+    opts = { range: { offset: start, length: end - start + 1 } }; status = 206;
+    headers.set('content-range', `bytes ${start}-${end}/${total}`); headers.set('content-length', String(end - start + 1));
+  } else headers.set('content-length', String(total));
+  const obj = await c.env.PHOTOS.get(key, opts);
+  if (!obj) return c.notFound();
+  return new Response(obj.body, { status, headers });
+}
+
+app.get('/e/:token/v/:id', async (c) => {
+  const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
+  const id = c.req.param('id');
+  if (!event || !event.gallery_open || !isHex(id, 32) || !(await accessOk(c, event))) return c.notFound();
+  const row = await c.env.DB.prepare(`SELECT mime FROM photos WHERE id = ?1 AND ${famPublic('event_id', '?2', await privacyReady(c.env.DB))} AND state = 'approved'`).bind(id, event.id).first();
+  if (!row || !isVideo(row.mime)) return c.notFound();
+  return streamVideo(c, id, 'private, max-age=3600');
 });
 
 /* ---------- Descargas de invitados (solo si el organizador las permite) ---------- */
@@ -249,8 +286,9 @@ app.post('/api/e/:token/upload/init', async (c) => {
   if (!isHex(b.key, 32)) return json({ error: 'key' }, 400);
   const type = String(b.type || '').toLowerCase();
   const size = Number(b.size);
-  if (!MIME_OK.has(type)) return json({ error: 'type' }, 415);
-  if (!(size > 0 && size <= MAX_ORIGINAL)) return json({ error: 'size' }, 413);
+  const vid = VIDEO_OK.has(type);
+  if (!MIME_OK.has(type) && !vid) return json({ error: 'type' }, 415);
+  if (!(size > 0 && size <= (vid ? maxVideo(c.env) : MAX_ORIGINAL))) return json({ error: 'size' }, 413);
 
   const keyHash = await sha256Hex(b.key);
   const name = String(b.name || '').trim().slice(0, 60);
@@ -273,7 +311,7 @@ app.post('/api/e/:token/upload/init', async (c) => {
   const id = randomHex(16);
   const taken = Number.isFinite(Number(b.taken)) && Number(b.taken) > 0 ? Math.round(Number(b.taken)) : null;
   const num = (v) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Math.round(Number(v)) : null);
-  const crc = Number.isFinite(Number(b.crc)) ? Number(b.crc) >>> 0 : null;
+  const crc = !vid && b.crc != null && Number.isFinite(Number(b.crc)) ? Number(b.crc) >>> 0 : null;
   await c.env.DB.prepare(
     `INSERT INTO photos (id, event_id, guest_id, filename, mime, size, crc32, w, h, taken_at, uploaded_at, state)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'uploading')`,
@@ -291,6 +329,7 @@ app.put('/api/e/:token/upload/:id/:size', async (c) => {
   if (!guest) return json({ error: 'key' }, 403);
   const photo = await c.env.DB.prepare('SELECT * FROM photos WHERE id = ? AND event_id = ? AND guest_id = ?').bind(id, event.id, guest.id).first();
   if (!photo || photo.state !== 'uploading') return json({ error: 'state' }, 409);
+  if (size === 'o' && isVideo(photo.mime)) return json({ error: 'multipart' }, 400);
   const len = Number(c.req.header('content-length') || 0);
   const max = size === 'o' ? MAX_ORIGINAL : MAX_THUMB;
   if (!(len > 0 && len <= max)) return json({ error: 'size' }, 413);
@@ -298,6 +337,41 @@ app.put('/api/e/:token/upload/:id/:size', async (c) => {
   await c.env.PHOTOS.put(`p/${id}/${size}`, c.req.raw.body, {
     httpMetadata: { contentType: size === 'o' ? photo.mime : 'image/jpeg' },
   });
+  return json({ ok: true });
+});
+
+// Vídeo: el original se sube por trozos de 8 MB (empezar → trozos → terminar)
+async function videoCtx(c) {
+  const { token, id } = c.req.param();
+  if (!isHex(id, 32)) return null;
+  const event = await getEventByGuestToken(c.env.DB, token);
+  if (!event) return null;
+  const guest = await guestFor(c.env.DB, event, c.req.header('x-picfy-key') || '');
+  if (!guest) return null;
+  const photo = await c.env.DB.prepare('SELECT * FROM photos WHERE id = ? AND event_id = ? AND guest_id = ?').bind(id, event.id, guest.id).first();
+  if (!photo || photo.state !== 'uploading' || !isVideo(photo.mime)) return null;
+  return { photo, key: `p/${id}/o` };
+}
+app.post('/api/e/:token/upload/:id/o/start', async (c) => {
+  const x = await videoCtx(c); if (!x) return json({ error: 'state' }, 409);
+  const m = await c.env.PHOTOS.createMultipartUpload(x.key, { httpMetadata: { contentType: x.photo.mime } });
+  return json({ u: m.uploadId, part: VIDEO_PART });
+});
+app.put('/api/e/:token/upload/:id/o/part/:n', async (c) => {
+  const x = await videoCtx(c); if (!x) return json({ error: 'state' }, 409);
+  const n = parseInt(c.req.param('n'), 10), u = String(c.req.query('u') || '');
+  const len = Number(c.req.header('content-length') || 0);
+  if (!(n >= 1 && n <= 10000) || !u || !(len > 0 && len <= VIDEO_PART * 2)) return json({ error: 'size' }, 413);
+  const part = await c.env.PHOTOS.resumeMultipartUpload(x.key, u).uploadPart(n, c.req.raw.body);
+  return json({ partNumber: part.partNumber, etag: part.etag });
+});
+app.post('/api/e/:token/upload/:id/o/done', async (c) => {
+  const x = await videoCtx(c); if (!x) return json({ error: 'state' }, 409);
+  const b = await c.req.json().catch(() => ({}));
+  const parts = (b.parts || []).map((p) => ({ partNumber: Number(p.partNumber), etag: String(p.etag) })).sort((a, z) => a.partNumber - z.partNumber);
+  if (!b.u || !parts.length) return json({ error: 'parts' }, 400);
+  const obj = await c.env.PHOTOS.resumeMultipartUpload(x.key, String(b.u)).complete(parts);
+  if (obj.size !== x.photo.size) { await c.env.PHOTOS.delete(x.key); return json({ error: 'size_mismatch' }, 409); }
   return json({ ok: true });
 });
 

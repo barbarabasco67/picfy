@@ -4,7 +4,7 @@ const B = process.env.BASE || 'http://127.0.0.1:8787';
 let ok = true;
 const check = (n, c, e = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n, e); ok = ok && !!c; };
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
+  const b = await chromium.launch({ args: ['--no-sandbox'] });
   const p = await (await b.newContext({ viewport: { width: 1360, height: 900 } })).newPage();
   p.on('pageerror', (e) => { console.log('PAGEERROR', e.message); ok = false; });
   p.on('dialog', (d) => d.accept());

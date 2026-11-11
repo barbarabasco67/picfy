@@ -303,10 +303,10 @@ export function galleryPage({ wm = null, best = null, sels = null, stats = null,
   const guestUrl = origin + glink(event);
   const gname = new Map(guests.map((g) => [g.id, g.name || `Invitado ${g.id.slice(0, 4)}`]));
   const tiles = photos
-    .map((p) => `<div class="tile ph" data-id="${p.id}" data-full="/m/${p.id}/l" data-state="${p.state}" data-flag="${p.flag || ''}" data-fav="${p.fav ? 1 : 0}" data-name="${esc((p.filename || '').toLowerCase())}" data-guest="${p.guest_id}" data-day="${dayOf(p.ts)}" title="${esc(gname.get(p.guest_id) || '')}${p.event_id !== event.id && p.ename ? ' · ' + esc(p.ename) : ''}">
+    .map((p) => `<div class="tile ph${/^video\//.test(p.mime || '') ? ' isvid' : ''}" data-id="${p.id}" data-full="/m/${p.id}/l"${/^video\//.test(p.mime || '') ? ` data-video="/m/${p.id}/o"` : ''} data-state="${p.state}" data-flag="${p.flag || ''}" data-fav="${p.fav ? 1 : 0}" data-name="${esc((p.filename || '').toLowerCase())}" data-guest="${p.guest_id}" data-day="${dayOf(p.ts)}" title="${esc(gname.get(p.guest_id) || '')}${p.event_id !== event.id && p.ename ? ' · ' + esc(p.ename) : ''}">
 ${p.event_id !== event.id && p.ename ? `<span class="sedechip">${esc(p.ename)}</span>` : ''}
 <input class="chk" type="checkbox" aria-label="Seleccionar foto">
-<img src="/m/${p.id}/l" loading="lazy" decoding="async" alt="">
+<img src="/m/${p.id}/l" loading="lazy" decoding="async" alt="">${/^video\//.test(p.mime || '') ? '<span class="vbadge" aria-label="Vídeo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span>' : ''}
 <button class="mk flagb" type="button" data-mk="flag" aria-label="Bandera">${ICON.flag}</button>
 <button class="mk favb ${p.fav ? 'on' : ''}" type="button" data-mk="fav" aria-label="Destacada" title="Destacada (mejor foto)">${ICON.heart}</button>
 <button class="mk dlb" type="button" data-mk="dl" aria-label="Descargar foto" title="Descargar">${ICON.down}</button>

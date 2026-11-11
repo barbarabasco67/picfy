@@ -10,7 +10,7 @@ const hook = async (type, object, bad) => { const raw = JSON.stringify({ type, d
   const r = await fetch(B + '/webhook/stripe', { method: 'POST', headers: { 'stripe-signature': `t=${t},v1=${bad ? 'x' + sig.slice(1) : sig}` }, body: raw }); return r.status; };
 (async () => {
   await new Promise((r) => mock.listen(9911, r));
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await (await b.newContext({ viewport: { width: 1280, height: 900 } })).newPage(); const errs = []; p.on('pageerror', (e) => errs.push(e.message)); await p.route('https://stripe.test/**', (r) => r.fulfill({ body: 'stripe' }));
   await p.goto(B + '/registro'); await p.fill('input[name=name]', 'Plan'); await p.fill('input[name=email]', `pl${Date.now()}@t.es`); await p.fill('input[name=password]', 'clave12345'); await p.click('.au-submit'); await p.waitForURL('**/inicio');
   const uid = await p.evaluate(async () => 0); const email = await (async () => { await p.goto(B + '/cuenta/datos'); return p.inputValue('input[name=email]'); })();

@@ -2,7 +2,7 @@ const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const B = 'http://127.0.0.1:8787';
 const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   for (const [w, h] of [[1440, 900], [390, 844]]) {
     const p = await (await b.newContext({ viewport: { width: w, height: h } })).newPage(); const errs = []; p.on('pageerror', (e) => errs.push(e.message));
     const r = await p.goto(B + '/'); ok(r.status() === 200, 'status 200');

@@ -352,7 +352,7 @@ export function appRoutes(app) {
     const db = c.env.DB;
     const [ph, gs] = await Promise.all([
       db.prepare(
-        `SELECT id, guest_id, event_id, (SELECT name FROM events x WHERE x.id = photos.event_id) AS ename, filename, state, flag, fav, size, COALESCE(taken_at, uploaded_at) AS ts FROM photos
+        `SELECT id, guest_id, event_id, (SELECT name FROM events x WHERE x.id = photos.event_id) AS ename, filename, mime, state, flag, fav, size, COALESCE(taken_at, uploaded_at) AS ts FROM photos
          WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND state IN ('approved','pending','rejected')
          ORDER BY ${orderSql(event.sort_mode)} LIMIT 3000`,
       ).bind(event.id).all(),

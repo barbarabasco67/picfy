@@ -4,6 +4,11 @@
   if (!lb) return;
   const img = lb.querySelector('img');
   let list = [], i = 0;
+  // Vídeos: el tile que abre el visor lleva data-video con la dirección del vídeo; la imagen (cartel) se ve hasta darle al play
+  const vid = lb.querySelector('.lbvid');
+  const vurl = (src) => { const t = [...document.querySelectorAll('[data-video]')].find((e) => e.dataset.full === src); return t ? t.dataset.video : ''; };
+  function stopVid() { if (!vid) return; try { vid.pause(); } catch (e) { /* sin reproductor */ } vid.removeAttribute('src'); vid.removeAttribute('poster'); vid.hidden = true; img.classList.remove('isv'); }
+  function playVid(src) { const v = vid && vurl(src); if (!v) { stopVid(); return; } vid.hidden = false; img.classList.add('isv'); vid.poster = src; if (vid.getAttribute('src') !== v) vid.src = v; }
 
   let from = null;
   document.addEventListener('click', (e) => { from = e.target.closest ? e.target.closest('.tile, .gcard img, .ph') : null; }, true);
@@ -15,11 +20,11 @@
     lb.style.setProperty('--ts', Math.max(.08, Math.min(.9, r.width / Math.min(innerWidth * .9, 900))).toFixed(3));
     return true;
   }
-  function show(dir) { const wasOpen = lb.classList.contains('open'); img.classList.remove('nx', 'pv', 'from'); void img.offsetWidth; if (dir) img.classList.add(dir > 0 ? 'nx' : 'pv'); else if (!wasOpen && flip()) img.classList.add('from'); img.src = list[i]; lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); lb.dispatchEvent(new CustomEvent('lbshow', { detail: { i } })); }
+  function show(dir) { const wasOpen = lb.classList.contains('open'); img.classList.remove('nx', 'pv', 'from'); void img.offsetWidth; if (dir) img.classList.add(dir > 0 ? 'nx' : 'pv'); else if (!wasOpen && flip()) img.classList.add('from'); img.src = list[i]; playVid(list[i]); lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); lb.dispatchEvent(new CustomEvent('lbshow', { detail: { i } })); }
   const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function close() {
     if (!lb.classList.contains('open') || lb.classList.contains('closing')) return;
-    const done = () => { lb.classList.remove('open', 'closing'); img.removeAttribute('src'); };
+    const done = () => { lb.classList.remove('open', 'closing'); img.removeAttribute('src'); stopVid(); };
     lb.setAttribute('aria-hidden', 'true'); lb.dispatchEvent(new Event('lbhide'));
     if (rm) done(); else { lb.classList.add('closing'); setTimeout(done, 190); }
   }

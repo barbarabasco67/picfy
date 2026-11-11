@@ -2,7 +2,7 @@ const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const B = 'http://127.0.0.1:8787';
 const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const anon = await (await b.newContext()).newPage();
   await anon.goto(B + '/inicio'); ok(new URL(anon.url()).pathname === '/entrar', 'sin sesión va a entrar');
   for (const [w, h] of [[1440, 900], [390, 844]]) {

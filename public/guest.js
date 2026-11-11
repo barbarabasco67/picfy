@@ -120,6 +120,43 @@
     return await new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('thumb'))), 'image/jpeg', quality));
   }
 
+  /* ---------- vídeos ---------- */
+  const VTYPES = ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v'];
+  const videoType = (f) => {
+    if (VTYPES.includes(f.type)) return f.type;
+    const e = (f.name.split('.').pop() || '').toLowerCase();
+    return { mov: 'video/quicktime', mp4: 'video/mp4', m4v: 'video/x-m4v', webm: 'video/webm' }[e] || '';
+  };
+  const isVid = (f) => Boolean(videoType(f));
+  // Cartel del vídeo: un fotograma. Si el navegador no puede leerlo (p. ej. HEVC en algunos equipos), se usa un fondo liso con el símbolo de play.
+  async function videoPoster(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+      await new Promise((res, rej) => { v.onloadeddata = res; v.onerror = () => rej(new Error('decode')); setTimeout(() => rej(new Error('decode')), 15000); });
+      if (!v.videoWidth || !v.videoHeight) throw new Error('decode');
+      const t = Math.min(1, (v.duration || 0) / 3);
+      if (t > 0) await new Promise((res) => { v.onseeked = res; v.currentTime = t; setTimeout(res, 4000); });
+      const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0);
+      return c;
+    } catch (e) {
+      const c = document.createElement('canvas'); c.width = 1280; c.height = 720; const g = c.getContext('2d');
+      g.fillStyle = '#14213d'; g.fillRect(0, 0, 1280, 720); g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.moveTo(560, 270); g.lineTo(560, 450); g.lineTo(730, 360); g.closePath(); g.fill();
+      return c;
+    } finally { URL.revokeObjectURL(url); }
+  }
+  // El original del vídeo sube por trozos de 8 MB
+  async function uploadVideoFile(base, id, f, onProgress) {
+    const st = await retry(() => api(`${base}/upload/${id}/o/start`, { method: 'POST', headers: { 'x-picfy-key': myKey() } }));
+    const n = Math.ceil(f.size / st.part), parts = []; let sent = 0;
+    for (let k = 0; k < n; k++) {
+      const blob = f.slice(k * st.part, (k + 1) * st.part);
+      const r = await retry(() => put(`${base}/upload/${id}/o/part/${k + 1}?u=${encodeURIComponent(st.u)}`, blob, (p) => onProgress((sent + blob.size * p) / f.size)));
+      parts.push(r); sent += blob.size;
+    }
+    await retry(() => api(`${base}/upload/${id}/o/done`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-picfy-key': myKey() }, body: JSON.stringify({ u: st.u, parts }) }));
+  }
+
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   class HttpErr extends Error { constructor(s, body) { super('http' + s); this.status = s; this.body = body; } }
 
@@ -147,7 +184,7 @@
       x.open('PUT', url);
       x.setRequestHeader('x-picfy-key', myKey());
       x.upload.onprogress = (e) => { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
-      x.onload = () => (x.status >= 200 && x.status < 300 ? resolve() : reject(new HttpErr(x.status)));
+      x.onload = () => { if (x.status >= 200 && x.status < 300) { let d = null; try { d = JSON.parse(x.responseText); } catch (e) { /* sin json */ } resolve(d); } else reject(new HttpErr(x.status)); };
       x.onerror = () => reject(new Error('network'));
       x.ontimeout = () => reject(new Error('timeout'));
       x.send(blob);
@@ -162,7 +199,7 @@
   function count() {
     const waiting = items.filter((i) => i.state === 'wait' || i.state === 'err').length;
     const picked = items.filter((i) => i.picked).length;
-    $('upCount').textContent = items.length ? `${items.length} fotos${picked ? ` · ${picked} marcadas` : ''}` : '';
+    $('upCount').textContent = items.length ? `${items.length} ${items.some((i) => isVid(i.file)) ? 'archivos' : 'fotos'}${picked ? ` · ${picked} marcadas` : ''}` : '';
     tools.classList.toggle('hidden', !items.length);
     startBtn.disabled = uploading || !waiting || Boolean(consentBox && !consentBox.checked);
   }
@@ -171,10 +208,11 @@
 
   function addFiles(files) {
     for (const f of files) {
-      if (!f.type.startsWith('image/')) continue;
-      const el = document.createElement('div'); el.className = 'up-item';
-      const img = document.createElement('img'); img.alt = '';
-      img.src = URL.createObjectURL(f);
+      const vf = isVid(f);
+      if (!vf && !f.type.startsWith('image/')) continue;
+      const el = document.createElement('div'); el.className = 'up-item' + (vf ? ' isvid' : '');
+      const img = document.createElement(vf ? 'video' : 'img');
+      if (vf) { img.muted = true; img.preload = 'metadata'; img.playsInline = true; img.src = URL.createObjectURL(f) + '#t=0.5'; } else { img.alt = ''; img.src = URL.createObjectURL(f); }
       const chk = document.createElement('input'); chk.type = 'checkbox'; chk.className = 'chk'; chk.setAttribute('aria-label', 'Marcar');
       const st = document.createElement('div'); st.className = 'st'; st.textContent = 'Lista';
       const bar = document.createElement('div'); bar.className = 'bar';
@@ -222,16 +260,45 @@
       if (code === 'consent') return 'Marca la casilla de consentimiento para subir.';
       if (code === 'access') return 'Esta galería ya no admite fotos.';
       if (code === 'closed') return 'La subida de fotos está cerrada.';
-      if (code === 'type') return 'Formato no admitido (usa JPG, PNG, WebP o HEIC).';
-      if (code === 'size') return 'La foto es demasiado grande.';
+      if (code === 'type') return 'Formato no admitido (usa JPG, PNG, WebP, HEIC, MP4, MOV o WebM).';
+      if (code === 'size') return 'El archivo es demasiado grande.';
       return 'Error ' + e.message;
     }
-    return e && e.message === 'decode' ? 'No se pudo leer esta foto (prueba con JPG)' : 'Sin conexión estable';
+    return e && e.message === 'decode' ? 'No se pudo leer este archivo (prueba con JPG o MP4)' : 'Sin conexión estable';
   };
+
+  async function uploadVideoItem(it) {
+    const f = it.file;
+    const cv = await videoPoster(f);
+    const w = cv.width, h = cv.height;
+    const WM = window.PicfyWm ? PicfyWm.pageCfg() : null;
+    let logo = null;
+    if (WM && WM.logoUrl) { wmLogo = wmLogo || PicfyWm.loadImg(WM.logoUrl); logo = await wmLogo; }
+    const [m, l] = WM
+      ? [await PicfyWm.render(cv, 480, 0.8, WM, logo), await PicfyWm.render(cv, 1600, 0.85, WM, logo)]
+      : [await thumb(cv, 480, 0.8), await thumb(cv, 1600, 0.85)];
+    const base = `/api/e/${UP}`;
+    setStatus(it, 'Subiendo…');
+    const init = await retry(() => api(`${base}/upload/init`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ key: myKey(), name: nameInput.value.trim(), filename: f.name, type: videoType(f), size: f.size, w, h, consent: Boolean(consentBox && consentBox.checked) }),
+    }));
+    const id = init.id;
+    await retry(() => put(`${base}/upload/${id}/m`, m));
+    await retry(() => put(`${base}/upload/${id}/l`, l));
+    await uploadVideoFile(base, id, f, (p) => { it.bar.style.width = Math.round(p * 100) + '%'; });
+    const done = await retry(() => api(`${base}/upload/${id}/commit`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key: myKey(), wm: WM ? WM.rev : 0 }),
+    }), 5);
+    it.state = 'ok'; it.bar.style.width = '100%';
+    setStatus(it, done.state === 'pending' ? 'En revisión' : 'Subida', 'ok');
+    it.chk.remove();
+  }
 
   async function uploadOne(it) {
     it.state = 'busy'; setStatus(it, 'Preparando…');
     const f = it.file;
+    if (isVid(f)) return uploadVideoItem(it);
     const [taken, buf] = await Promise.all([readTaken(f), f.arrayBuffer()]);
     const bmp = await decode(f);
     const w = bmp.width, h = bmp.height;
@@ -283,7 +350,7 @@
     const bad = items.filter((i) => i.state === 'err').length;
     if (!fatal && !bad && ok) {
       // Todo subido: cerramos la ventana y recargamos para ver las fotos.
-      try { sessionStorage.setItem('picfy_upok', AUTO ? `¡Listo! ${ok} fotos subidas y publicadas.` : `¡Listo! ${ok} fotos subidas. Aparecerán cuando el organizador las apruebe.`); } catch { /* sin almacenamiento */ }
+      try { sessionStorage.setItem('picfy_upok', items.some((i) => isVid(i.file)) ? (AUTO ? `¡Listo! ${ok} archivos subidos y publicados.` : `¡Listo! ${ok} archivos subidos. Aparecerán cuando el organizador los apruebe.`) : (AUTO ? `¡Listo! ${ok} fotos subidas y publicadas.` : `¡Listo! ${ok} fotos subidas. Aparecerán cuando el organizador las apruebe.`)); } catch { /* sin almacenamiento */ }
       dlg.close(); location.reload(); return;
     }
     if (fatal) showMsg(errText(fatal), 'err');

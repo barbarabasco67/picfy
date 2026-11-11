@@ -2,7 +2,7 @@ const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const B = 'http://127.0.0.1:8787';
 const ok = (c, m) => { if (!c) { console.log('FALLO:', m); process.exit(1); } };
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1200, height: 900 } }); const p = await ctx.newPage();
   await p.goto(B + '/registro'); await p.fill('[name=name]', 'E'); await p.fill('[name=email]', 'e' + Date.now() + '@e.es'); await p.fill('[name=password]', 'clave-12345');
   const sc = await p.$('[name=code]'); if (sc) await sc.fill('codigo');

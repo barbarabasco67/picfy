@@ -196,3 +196,10 @@ th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line
 .colname { font-weight: 800; font-size: 1.05rem; padding: 0 6px; }
 .coldesc { color: var(--muted); font-size: .9rem; padding: 0 6px; }
 .colmeta { color: var(--muted); font-size: .82rem; padding: 0 6px; }
+/* Vídeos en galerías */
+.up-item video { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.tile .vbadge { position: absolute; right: 8px; bottom: 8px; width: 30px; height: 30px; border-radius: 50%; background: rgba(20,33,61,.78); color: #fff; display: grid; place-items: center; pointer-events: none; z-index: 1; }
+.tile .vbadge svg { width: 14px; height: 14px; margin-left: 2px; }
+.lb .lbvid { max-width: min(96vw, 1400px); max-height: 88vh; width: auto; height: auto; background: #000; border-radius: 10px; }
+.lb .lbvid[hidden] { display: none; }
+.lb img.isv { display: none; }

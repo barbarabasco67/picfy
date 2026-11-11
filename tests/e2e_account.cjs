@@ -3,7 +3,7 @@ const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const B = 'http://127.0.0.1:8787';
 const assert = (c, m) => { if (!c) { console.error('FALLO:', m); process.exitCode = 1; throw new Error(m); } };
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await (await b.newContext()).newPage();
   const email = `cta${Date.now()}@ejemplo.es`;
   await p.goto(B + '/registro');
