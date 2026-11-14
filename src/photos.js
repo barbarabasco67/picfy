@@ -139,13 +139,15 @@ export const famPublic = (col, p, ready) => `${col} IN (SELECT id FROM events WH
 
 export const GUEST_ORDERS = { recientes: 'time_desc', antiguas: 'time', nombre: 'name', autor: 'author' };
 
+function kindSql(k) { return k === 'videos' ? " AND p.mime LIKE 'video/%'" : k === 'fotos' ? " AND (p.mime IS NULL OR p.mime NOT LIKE 'video/%')" : ''; }
+
 export async function listApproved(db, event, limit, offset, order = '', opt = {}) {
   const ready = await privacyReady(db);
   const rows = await db
     .prepare(
       `SELECT p.id, p.w, p.h, p.mime, p.taken_at, p.uploaded_at, g.name AS gname FROM photos p
        JOIN guests g ON g.id = p.guest_id
-       WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'${opt.onlyBest ? ' AND p.fav = 1' : ''}
+       WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'${opt.onlyBest ? ' AND p.fav = 1' : ''}${kindSql(opt.kind)}
        ORDER BY ${opt.bestFirst ? 'p.fav DESC, ' : ''}${order === 'autor' ? "g.name COLLATE NOCASE ASC, COALESCE(p.taken_at, p.uploaded_at) ASC, p.id ASC" : orderSql(GUEST_ORDERS[order] || event.sort_mode, 'p')} LIMIT ?2 OFFSET ?3`,
     )
     .bind(event.id, limit, offset)
@@ -155,7 +157,7 @@ export async function listApproved(db, event, limit, offset, order = '', opt = {
 
 export async function countApproved(db, eventId, opt = {}) {
   const ready = await privacyReady(db);
-  const r = await db.prepare(`SELECT COUNT(*) AS n FROM photos p WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'${opt.onlyBest ? ' AND p.fav = 1' : ''}`).bind(eventId).first();
+  const r = await db.prepare(`SELECT COUNT(*) AS n FROM photos p WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'${opt.onlyBest ? ' AND p.fav = 1' : ''}${kindSql(opt.kind)}`).bind(eventId).first();
   return r ? r.n : 0;
 }
 

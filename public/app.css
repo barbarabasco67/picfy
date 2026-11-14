@@ -1357,3 +1357,9 @@ body.app .tcreator > header .tcopy { padding: 5px 12px; font-size: .76rem; font-
 .tshare input { width: 100%; box-sizing: border-box; }
 .tshare-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .tnewcreator input[type=email] { width: 100%; box-sizing: border-box; }
+
+.ktog { display: inline-flex; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(20,33,61,.06); margin-right: auto; }
+.ktog button { border: 0; background: none; font: inherit; font-weight: 600; font-size: .9rem; color: var(--muted); padding: 7px 14px; border-radius: 9px; cursor: pointer; box-shadow: none; }
+.ktog button.on { background: var(--accent); color: var(--accent-ink, #fff); }
+.gbar .gsub { margin-right: 14px; }
+@media (max-width: 720px) { .ktog { order: 2; flex: 1 1 100%; } .ktog button { flex: 1; } }

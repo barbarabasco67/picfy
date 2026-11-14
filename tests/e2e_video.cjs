@@ -25,6 +25,11 @@ const V1 = process.env.VID_BIG || '/tmp/vid/grande.mp4', V2 = process.env.VID_SM
   await p.click('#openShare'); await p.waitForTimeout(400); const gl = (await p.textContent('#guestLink')).trim(); await p.keyboard.press('Escape');
   const g = await (await b.newContext({ viewport: { width: 1280, height: 900 } })).newPage(); g.on('pageerror', (e) => errs.push(e.message)); await g.goto(gl.replace(/^https?:\/\/[^/]+/, B));
   await g.waitForSelector('.tile.isvid .vbadge'); ok((await g.locator('.tile.isvid').count()) === 2, 'galería pública con vídeos marcados');
+  ok((await g.locator('.ktog button').allTextContents()).join('|') === 'Todo|Fotos|Vídeos', 'barra Todo/Fotos/Vídeos siempre visible');
+  await g.click('.ktog [data-kind=fotos]'); await g.waitForSelector('.tile'); ok((await g.locator('.tile').count()) === 1 && (await g.locator('.tile.isvid').count()) === 0, 'filtro Fotos: solo la foto');
+  await g.click('.ktog [data-kind=videos]'); await g.waitForSelector('.tile.isvid'); ok((await g.locator('.tile').count()) === 2 && (await g.locator('.ktog button.on').textContent()) === 'Vídeos' && /2 vídeos/.test(await g.textContent('.gsub')), 'filtro Vídeos: solo vídeos');
+  await g.click('.ktog [data-kind=""]'); await g.waitForSelector('.tile'); ok((await g.locator('.tile').count()) === 3, 'Todo vuelve a mostrar todo');
+  await g.locator('.gbar').screenshot({ path: '/tmp/picfy_shots/bar.png' });
   const gv = await g.locator('.tile.isvid').first().getAttribute('data-video'); ok(/\/e\/[0-9a-f]{32}\/v\//.test(gv), 'enlace de vídeo público ' + gv);
   const gs = await g.evaluate(async (u) => (await fetch(u, { headers: { range: 'bytes=0-9' } })).status, gv); ok(gs === 206, 'el invitado reproduce con rangos');
   const bad = await g.evaluate(async (u) => (await fetch(u.replace(/\/v\/[0-9a-f]{32}/, '/v/' + '0'.repeat(32)))).status, gv); ok(bad === 404, 'vídeo inexistente 404');

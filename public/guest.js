@@ -456,3 +456,12 @@
     close(); location.href = u.toString();
   }));
 })();
+
+// Filtro Todo / Fotos / Vídeos (lo resuelve el servidor)
+(() => {
+  document.querySelectorAll('.ktog button').forEach((b) => b.addEventListener('click', () => {
+    const u = new URL(location.href); u.searchParams.delete('page');
+    if (b.dataset.kind) u.searchParams.set('tipo', b.dataset.kind); else u.searchParams.delete('tipo');
+    location.href = u.toString();
+  }));
+})();
