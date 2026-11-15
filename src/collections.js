@@ -12,6 +12,12 @@ export async function colReady(db) {
   catch { st = { v: false, t: Date.now() }; }
   return st.v;
 }
+let cst = { v: null, t: 0 };
+export async function colCoverReady(db) {
+  if (cst.v === true || (cst.v === false && Date.now() - cst.t < 30000)) return cst.v;
+  try { await db.prepare('SELECT cover_v FROM collections LIMIT 1').first(); cst = { v: true, t: Date.now() }; } catch { cst = { v: false, t: Date.now() }; }
+  return cst.v;
+}
 const go = (to) => new Response(null, { status: 303, headers: { location: to } });
 const COVER = `(SELECT p.id FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'approved' ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 1)`;
 const COUNT = `(SELECT COUNT(*) FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'approved')`;
@@ -28,7 +34,7 @@ export function collectionRoutes(app) {
     const db = c.env.DB, ready = await colReady(db);
     let rows = [];
     if (ready) rows = (await db.prepare(
-      `SELECT c.id, c.name, c.lead, (SELECT COUNT(*) FROM collection_items i JOIN events e ON e.id = i.event_id WHERE i.collection_id = c.id AND e.deleted_at IS NULL) AS n,
+      `SELECT c.id, c.name, c.lead, ${(await colCoverReady(db)) ? 'c.cover_v, c.token,' : '0 AS cover_v, c.token,'} (SELECT COUNT(*) FROM collection_items i JOIN events e ON e.id = i.event_id WHERE i.collection_id = c.id AND e.deleted_at IS NULL) AS n,
         (SELECT ${COVER} FROM collection_items i JOIN events e ON e.id = i.event_id WHERE i.collection_id = c.id AND e.deleted_at IS NULL ORDER BY i.sort_order LIMIT 1) AS cover
        FROM collections c WHERE c.owner_id = ? ORDER BY c.created_at DESC`,
     ).bind(user.id).all()).results;
@@ -61,6 +67,27 @@ export function collectionRoutes(app) {
       `SELECT e.id, e.name, e.event_date, ${COUNT} AS n FROM events e WHERE e.owner_id = ? AND e.parent_id IS NULL AND e.deleted_at IS NULL ORDER BY e.created_at DESC`,
     ).bind(user.id).all()).results;
     return html(collectionPage({ user, col, items, available: all.filter((g) => !inIds.has(g.id)), origin: new URL(c.req.url).origin, ok: c.req.query('ok') || '' }));
+  });
+
+  // Portada de la colección (imagen ya redimensionada en el navegador)
+  app.put('/api/col/:id/cover', async (c) => {
+    const user = await currentUser(c); if (!user) return json({ error: 'auth' }, 403);
+    const col = await mine(c, user); if (!col) return json({ error: 'notfound' }, 404);
+    if (!(await colCoverReady(c.env.DB))) return json({ error: 'migration' }, 500);
+    const buf = await c.req.arrayBuffer();
+    if (!buf.byteLength || buf.byteLength > 3 * 1024 * 1024) return json({ error: 'size' }, 400);
+    await c.env.PHOTOS.put(`col/${col.id}/cover`, buf, { httpMetadata: { contentType: 'image/jpeg' } });
+    const v = Date.now();
+    await c.env.DB.prepare('UPDATE collections SET cover_v = ? WHERE id = ?').bind(v, col.id).run();
+    return json({ ok: true, v });
+  });
+  app.delete('/api/col/:id/cover', async (c) => {
+    const user = await currentUser(c); if (!user) return json({ error: 'auth' }, 403);
+    const col = await mine(c, user); if (!col) return json({ error: 'notfound' }, 404);
+    if (!(await colCoverReady(c.env.DB))) return json({ error: 'migration' }, 500);
+    await c.env.PHOTOS.delete(`col/${col.id}/cover`);
+    await c.env.DB.prepare('UPDATE collections SET cover_v = NULL WHERE id = ?').bind(col.id).run();
+    return json({ ok: true });
   });
 
   app.post('/colecciones/:id/ajustes', async (c) => {
@@ -114,12 +141,22 @@ export function collectionRoutes(app) {
     const col = await mine(c, user); if (!col) return go('/colecciones');
     await c.env.DB.prepare('DELETE FROM collection_items WHERE collection_id = ?').bind(col.id).run();
     await c.env.DB.prepare('DELETE FROM collections WHERE id = ?').bind(col.id).run();
+    await c.env.PHOTOS.delete(`col/${col.id}/cover`).catch(() => {});
     return go(`/colecciones?ok=${encodeURIComponent('Colección eliminada. Las galerías no se han tocado.')}`);
   });
 }
 
 // Página pública de una colección.
 export function publicCollectionRoute(app) {
+  app.get('/col/:token/cover', async (c) => {
+    const token = c.req.param('token');
+    if (!isHex(token, 32)) return c.notFound();
+    const col = await c.env.DB.prepare('SELECT id FROM collections WHERE token = ?').bind(token).first();
+    const obj = col && await c.env.PHOTOS.get(`col/${col.id}/cover`);
+    if (!obj) return c.notFound();
+    return new Response(obj.body, { headers: { 'content-type': 'image/jpeg', 'cache-control': 'public, max-age=31536000, immutable', etag: obj.httpEtag } });
+  });
+
   app.get('/col/:token', async (c) => {
     const token = c.req.param('token');
     const db = c.env.DB;

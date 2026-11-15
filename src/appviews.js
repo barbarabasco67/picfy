@@ -207,7 +207,7 @@ export function galleriesPage({ user, events, origin, defaults = {}, ok = '', st
   const cards = events
     .map(
       (e) => `<a class="gcard glass" href="/galerias/${e.id}" data-name="${esc(e.name.toLowerCase())}">
-<div class="cover">${e.cover ? `<img src="/m/${e.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}
+<div class="cover">${e.thumb_v && e.guest_token ? `<img src="/c/${e.guest_token}/thumb?v=${e.thumb_v}" alt="" loading="lazy">` : e.cover ? `<img src="/m/${e.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.gal}</span>`}
 ${e.new_sel ? `<span class="chip newsel">${e.new_sel === 1 ? 'Selección nueva' : e.new_sel + ' selecciones nuevas'}</span>` : ''}${e.pending ? `<span class="chip warn">${e.pending} por revisar</span>` : ''}${e.subs ? `<span class="chip subc">${e.subs} subgalería${e.subs === 1 ? '' : 's'}</span>` : ''}</div>
 <div class="gmeta"><strong>${esc(e.name)}</strong><span>${e.approved}</span></div>
 <div class="gdate">${e.event_date ? esc(fmtDate(e.event_date)) + ' · ' : ''}${fmtSize(sizeOf(e.bytes, e.nph))}</div>
@@ -382,7 +382,7 @@ ${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid">${tiles}</di
 <span class="menuwrap"><button class="sb ic" type="button" id="flagMenuBtn" title="Bandera" aria-label="Bandera">${ICON.flag}</button><div class="menu glass hidden" id="flagMenu">${flagMenu}</div></span>
 <button class="sb ic" type="button" data-act="fav" title="Destacar" aria-label="Destacar">${ICON.heart}</button>
 ${folders.length > 1 ? `<select id="folderTo" aria-label="Mover a carpeta"><option value="">Mover a…</option>${folders.map((f) => `<option value="${f.id}">${f.parent_id ? esc(f.name) : esc(f.name) + ' (principal)'}</option>`).join('')}</select>` : ''}
-${event.parent_id ? `<button class="sb" type="button" id="asCover" title="Usar la foto seleccionada como portada del cuadro de esta subgalería">Usar de portada</button>` : ''}
+<button class="sb" type="button" id="asCover" title="Usar la foto seleccionada como portada del cuadro de esta galería">Usar de portada</button>
 ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><option value="">Pasar al álbum de…</option>${opts}</select>` : ''}
 <button class="sb ic" type="button" data-act="download" title="Descargar" aria-label="Descargar">${ICON.down}</button>
 <button class="sb ic danger" type="button" data-act="delete" title="Borrar" aria-label="Borrar">${ICON.trash}</button>
@@ -580,7 +580,7 @@ const noTables = '<div class="alert">Colecciones aún no está activado en la ba
 
 export function collectionsPage({ user, collections = [], ready = true, ok = '' }) {
   const cards = collections.map((c) => `<a class="gcard glass" href="/colecciones/${c.id}">
-<div class="cover">${c.cover ? `<img src="/m/${c.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.coll}</span>`}<span class="chip subc">${c.n} ${c.n === 1 ? 'galería' : 'galerías'}</span></div>
+<div class="cover">${c.cover_v ? `<img src="/col/${c.token}/cover?v=${c.cover_v}" alt="" loading="lazy">` : c.cover ? `<img src="/m/${c.cover}/m" alt="" loading="lazy">` : `<span class="nocover">${ICON.coll}</span>`}<span class="chip subc">${c.n} ${c.n === 1 ? 'galería' : 'galerías'}</span></div>
 <div class="gmeta"><strong>${esc(c.name)}</strong></div>${c.lead ? `<div class="gdate">${esc(c.lead)}</div>` : ''}</a>`).join('');
   return appPage({
     title: 'Colecciones',
@@ -620,6 +620,7 @@ export function collectionPage({ user, col, items = [], available = [], origin, 
       main: `${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}<div class="head"><div><h1>${esc(col.name)}</h1>${col.lead ? `<p class="muted">${esc(col.lead)}</p>` : ''}</div></div>
 <div class="glass colshare"><span class="muted small">Enlace para tu cliente</span><div class="linkbox" id="colLink">${esc(url)}</div>
 <div class="colbtns"><button class="btn primary" type="button" id="copyCol">Copiar enlace</button><a class="btn" href="/col/${col.token}" target="_blank" rel="noopener">${ICON.eye} Vista previa</a><button class="btn" type="button" data-open="editCol">Editar nombre</button></div></div>
+<div class="glass colcoverbox"><div class="colcoverprev">${col.cover_v ? `<img id="colCoverImg" src="/col/${col.token}/cover?v=${col.cover_v}" alt="">` : `<img id="colCoverImg" alt="" hidden>`}</div><div><b>Portada de la colección</b><div class="colbtns"><label class="btn" for="colCoverFile">Elegir foto</label><input type="file" id="colCoverFile" accept="image/*" data-col="${col.id}" hidden><button class="btn" type="button" id="colCoverDel" data-col="${col.id}"${col.cover_v ? '' : ' hidden'}>Quitar</button></div></div></div>
 <h2 class="sec">Galerías de la colección</h2>
 <button class="btn" type="button" data-open="addGal">${ICON.plus} Añadir galerías</button>
 ${items.length ? `<div class="collist">${cards}</div>` : '<div class="glass emptybox">Esta colección está vacía. Añade galerías para que tu cliente las vea juntas.</div>'}
@@ -718,7 +719,7 @@ export function dashPage({ user, today, galleries, totals, days, perDay, agenda,
   };
   const list = (rows, empty) => rows.length ? `<ul class="dlist">${rows.map(chip).join('')}</ul>` : `<p class="dempty">${empty}</p>`;
   const cards = galleries.slice(0, 3).map((e) => `<a class="dgal" href="/galerias/${e.id}" data-name="${esc(e.name.toLowerCase())}">
-<div class="dcov">${e.cover ? `<img src="/m/${e.cover}/m" alt="" loading="lazy">` : `<span>${ICON.gal}</span>`}${e.pending ? `<b class="dwarn">${e.pending} por revisar</b>` : ''}</div>
+<div class="dcov">${e.thumb_v && e.guest_token ? `<img src="/c/${e.guest_token}/thumb?v=${e.thumb_v}" alt="" loading="lazy">` : e.cover ? `<img src="/m/${e.cover}/m" alt="" loading="lazy">` : `<span>${ICON.gal}</span>`}${e.pending ? `<b class="dwarn">${e.pending} por revisar</b>` : ''}</div>
 <strong>${esc(e.name)}</strong><span>${e.approved} fotos${e.event_date ? ' · ' + esc(fmtDate(e.event_date)) : ''}</span></a>`).join('');
   return appPage({
     title: 'Inicio',

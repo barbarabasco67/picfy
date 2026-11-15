@@ -19,7 +19,7 @@ export function dashboardRoutes(app) {
     const today = ymd(new Date());
 
     const gal = (await db.prepare(
-      `SELECT e.id, e.name, e.event_date,
+      `SELECT e.id, e.name, e.event_date, e.thumb_v, e.guest_token,
          (SELECT COUNT(*) FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'approved') AS approved,
          (SELECT COUNT(*) FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'pending') AS pending,
          (SELECT p.id FROM photos p WHERE p.event_id IN (SELECT id FROM events x WHERE x.id = e.id OR x.parent_id = e.id) AND p.state = 'approved'

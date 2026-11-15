@@ -258,7 +258,7 @@ export function collectionPublicPage({ col, items = [] }) {
 <span class="colname">${esc(g.name)}</span>${g.lead ? `<span class="coldesc">${esc(g.lead)}</span>` : ''}<span class="colmeta">${g.n} ${g.n === 1 ? 'foto' : 'fotos'}${g.event_date ? ' · ' + esc(fmtDate(g.event_date)) : ''}</span></a>`).join('');
   return layout({
     title: `${col.name} · Picfy`,
-    body: `<header class="hero"><div class="hero-body"><h1>${esc(col.name)}</h1>${col.lead ? `<p class="lead">${esc(col.lead)}</p>` : ''}</div></header>
+    body: `<header class="hero ${col.cover_v ? 'has-cover' : ''}">${col.cover_v ? `<div class="hero-cover" style="background-image:url('/col/${col.token}/cover?v=${col.cover_v}')"></div>` : ''}<div class="hero-body"><h1>${esc(col.name)}</h1>${col.lead ? `<p class="lead">${esc(col.lead)}</p>` : ''}</div></header>
 <main class="wrap">${items.length ? `<div class="colgrid">${cards}</div>` : '<div class="empty">Aún no hay galerías disponibles.</div>'}</main>
 <p class="brand">Picfy</p>`,
   });
