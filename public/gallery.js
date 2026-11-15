@@ -140,11 +140,6 @@
     try { await post(api + '/folder', { ids, target: to }); toast(`${ids.length} fotos movidas a «${fo.selectedOptions[0].textContent.replace(/\s*\(principal\)$/, '')}»`); setTimeout(() => location.reload(), 700); }
     catch { err(); fo.value = ''; }
   });
-  const hdr = $('asHeader');
-  if (hdr) hdr.addEventListener('click', async () => {
-    const ids = sort.picked(); if (ids.length !== 1) { toast('Elige una sola foto'); return; }
-    try { await post(api + '/cover-from', { id: ids[0] }); toast('Foto de cabecera actualizada'); } catch { err(); }
-  });
   const cov = $('asCover');
   if (cov) cov.addEventListener('click', async () => {
     const ids = sort.picked(); if (ids.length !== 1) { toast('Elige una sola foto'); return; }
@@ -170,15 +165,22 @@
     const cv = document.createElement('canvas'); cv.width = w; cv.height = h; cv.getContext('2d').drawImage(bmp, 0, 0, w, h);
     return new Promise((r, j) => cv.toBlob((b) => (b ? r(b) : j(new Error('enc'))), 'image/jpeg', 0.85));
   }
-  document.querySelectorAll('[data-thumb]').forEach((inp) => inp.addEventListener('change', async () => {
-    const f = inp.files[0]; if (!f) return;
+  const tdlg = document.getElementById('thumbDlg'), tgrid = document.getElementById('thumbGrid'); let tid = '';
+  document.querySelectorAll('[data-thumbpick]').forEach((b) => b.addEventListener('click', async () => {
+    tid = b.dataset.thumbpick; tdlg.showModal(); tgrid.textContent = '';
     try {
-      const blob = await resize(f);
-      const r = await fetch(`/api/g/${inp.dataset.thumb}/brand/thumb`, { method: 'PUT', headers: { 'content-type': 'image/jpeg' }, body: blob });
+      const r = await (await fetch(`/api/g/${tid}/photos`)).json();
+      tgrid.innerHTML = r.ids && r.ids.length ? r.ids.map((id) => `<button type="button" class="covpick" data-id="${id}"><img src="/m/${id}/m" alt="" loading="lazy"></button>`).join('') : '<p class="muted">Esta galería aún no tiene fotos.</p>';
+    } catch (x) { tgrid.innerHTML = '<p class="muted">No se pudieron cargar las fotos.</p>'; }
+  }));
+  if (tgrid) tgrid.addEventListener('click', async (e) => {
+    const b = e.target.closest('.covpick'); if (!b) return;
+    try {
+      const r = await fetch(`/api/g/${tid}/thumb-from`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: b.dataset.id }) });
       if (!r.ok) throw new Error(r.status);
       location.reload();
-    } catch (x) { toast('No se pudo guardar la portada (¿falta la migración 0007?)'); }
-  }));
+    } catch (x) { toast('No se pudo guardar la portada'); }
+  });
   document.querySelectorAll('[data-thumbdel]').forEach((b) => b.addEventListener('click', async () => {
     await fetch(`/api/g/${b.dataset.thumbdel}/brand/thumb`, { method: 'DELETE' }); location.reload();
   }));

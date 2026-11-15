@@ -51,7 +51,7 @@ const imgs = (n) => Array.from({ length: n }, (_, i) => `${process.cwd()}/tests/
   // subir portada de una sede desde el panel y copiar enlace
   await p.goto(parentUrl);
   check('botones de sede', (await p.$$('.cardtools [data-sharelink]')).length === 2);
-  await p.setInputFiles('[data-thumb] >> nth=0', `${process.cwd()}/tests/img/p05.jpg`);
+  await p.click('[data-thumbpick] >> nth=0'); await p.waitForSelector('#thumbGrid .covpick'); await p.click('#thumbGrid .covpick >> nth=0');
   await p.waitForSelector('.gcard-wrap [data-thumbdel]');
   check('portada de sede guardada', true);
   await gp.goto(pl);
