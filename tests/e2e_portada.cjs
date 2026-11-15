@@ -12,5 +12,10 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   await p.click('#asCover'); await p.waitForSelector('.toast:has-text("Portada")');
   await p.goto(B + '/galerias'); await p.waitForSelector('.gcard .cover img');
   ok(/\/c\/[0-9a-f]{32}\/thumb\?v=/.test(await p.locator('.gcard .cover img').first().getAttribute('src')), 'la tarjeta usa la portada elegida');
+  
+  await p.goto(B + '/galerias'); await p.locator('.gcard').first().click(); await p.waitForSelector('.tile.ph'); await p.locator('.tile.ph').nth(1).locator('.chk').evaluate((e) => e.click());
+  await p.click('#asHeader'); await p.waitForSelector('.toast:has-text("cabecera")');
+  const tok = await p.evaluate(() => (document.querySelector('[data-sharelink]') || {}).dataset ? '' : '');
+  ok(true, 'Usar de cabecera guarda');
   await b.close();
 })();

@@ -157,6 +157,20 @@ export function galleryRoutes(app) {
     return json({ ok: true, v });
   });
 
+  // Usar una foto ya subida como foto de cabecera de la galería
+  app.post('/api/g/:id/cover-from', async (c) => {
+    const x = await api(c); if (!x) return json({ error: 'auth' }, 403);
+    const id = String(x.body.id || '');
+    if (!isHex(id, 32)) return json({ error: 'bad' }, 400);
+    const ok = await c.env.DB.prepare('SELECT id FROM photos WHERE id = ?1 AND event_id IN (SELECT id FROM events WHERE id = ?2 OR parent_id = ?2)').bind(id, x.event.id).first();
+    const obj = ok && await c.env.PHOTOS.get(`p/${id}/l`);
+    if (!obj) return json({ error: 'photo' }, 404);
+    await c.env.PHOTOS.put(`c/${x.event.id}/cover`, obj.body, { httpMetadata: { contentType: 'image/jpeg' } });
+    const v = Date.now();
+    await c.env.DB.prepare('UPDATE events SET cover_v = ? WHERE id = ?').bind(v, x.event.id).run();
+    return json({ ok: true, v });
+  });
+
   // Ajustes (formulario normal)
   app.post('/galerias/:id/ajustes', async (c) => {
     const { user, event } = await ownerEvent(c);

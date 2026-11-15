@@ -140,6 +140,11 @@
     try { await post(api + '/folder', { ids, target: to }); toast(`${ids.length} fotos movidas a «${fo.selectedOptions[0].textContent.replace(/\s*\(principal\)$/, '')}»`); setTimeout(() => location.reload(), 700); }
     catch { err(); fo.value = ''; }
   });
+  const hdr = $('asHeader');
+  if (hdr) hdr.addEventListener('click', async () => {
+    const ids = sort.picked(); if (ids.length !== 1) { toast('Elige una sola foto'); return; }
+    try { await post(api + '/cover-from', { id: ids[0] }); toast('Foto de cabecera actualizada'); } catch { err(); }
+  });
   const cov = $('asCover');
   if (cov) cov.addEventListener('click', async () => {
     const ids = sort.picked(); if (ids.length !== 1) { toast('Elige una sola foto'); return; }

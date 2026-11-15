@@ -382,6 +382,7 @@ ${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid">${tiles}</di
 <span class="menuwrap"><button class="sb ic" type="button" id="flagMenuBtn" title="Bandera" aria-label="Bandera">${ICON.flag}</button><div class="menu glass hidden" id="flagMenu">${flagMenu}</div></span>
 <button class="sb ic" type="button" data-act="fav" title="Destacar" aria-label="Destacar">${ICON.heart}</button>
 ${folders.length > 1 ? `<select id="folderTo" aria-label="Mover a carpeta"><option value="">Mover a…</option>${folders.map((f) => `<option value="${f.id}">${f.parent_id ? esc(f.name) : esc(f.name) + ' (principal)'}</option>`).join('')}</select>` : ''}
+<button class="sb" type="button" id="asHeader" title="Usar la foto seleccionada como foto de cabecera de la galería">Usar de cabecera</button>
 <button class="sb" type="button" id="asCover" title="Usar la foto seleccionada como portada del cuadro de esta galería">Usar de portada</button>
 ${guests.length ? `<select id="moveTo" aria-label="Pasar al álbum de…"><option value="">Pasar al álbum de…</option>${opts}</select>` : ''}
 <button class="sb ic" type="button" data-act="download" title="Descargar" aria-label="Descargar">${ICON.down}</button>
@@ -619,8 +620,10 @@ export function collectionPage({ user, col, items = [], available = [], origin, 
       user, active: 'colecciones', crumbs: `<a href="/colecciones">Colecciones</a>`,
       main: `${ok ? `<div class="alert ok">${esc(ok)}</div>` : ''}<div class="head"><div><h1>${esc(col.name)}</h1>${col.lead ? `<p class="muted">${esc(col.lead)}</p>` : ''}</div></div>
 <div class="glass colshare"><span class="muted small">Enlace para tu cliente</span><div class="linkbox" id="colLink">${esc(url)}</div>
-<div class="colbtns"><button class="btn primary" type="button" id="copyCol">Copiar enlace</button><a class="btn" href="/col/${col.token}" target="_blank" rel="noopener">${ICON.eye} Vista previa</a><button class="btn" type="button" data-open="editCol">Editar nombre</button></div></div>
-<div class="glass colcoverbox"><div class="colcoverprev">${col.cover_v ? `<img id="colCoverImg" src="/col/${col.token}/cover?v=${col.cover_v}" alt="">` : `<img id="colCoverImg" alt="" hidden>`}</div><div><b>Portada de la colección</b><div class="colbtns"><label class="btn" for="colCoverFile">Elegir foto</label><input type="file" id="colCoverFile" accept="image/*" data-col="${col.id}" hidden><button class="btn" type="button" id="colCoverDel" data-col="${col.id}"${col.cover_v ? '' : ' hidden'}>Quitar</button></div></div></div>
+<div class="colbtns"><button class="btn primary" type="button" id="copyCol">Copiar enlace</button><a class="btn" href="/col/${col.token}" target="_blank" rel="noopener">${ICON.eye} Vista previa</a><button class="btn" type="button" data-open="editCol">Editar nombre</button><button class="btn" type="button" id="colCoverOpen" data-col="${col.id}">Elegir portada</button></div></div>
+<dialog id="colCoverDlg" class="glassdlg"><div class="dlgbox"><header><h2>Portada de la colección</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div class="covgrid" id="colCoverGrid"></div>
+<footer><button class="btn" type="button" id="colCoverDel" data-col="${col.id}"${col.cover_v ? '' : ' hidden'}>Quitar portada</button><button class="btn" type="button" data-close>Cerrar</button></footer></div></dialog>
 <h2 class="sec">Galerías de la colección</h2>
 <button class="btn" type="button" data-open="addGal">${ICON.plus} Añadir galerías</button>
 ${items.length ? `<div class="collist">${cards}</div>` : '<div class="glass emptybox">Esta colección está vacía. Añade galerías para que tu cliente las vea juntas.</div>'}

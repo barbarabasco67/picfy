@@ -9,23 +9,24 @@
     catch { const r = document.createRange(); r.selectNodeContents($('colLink')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); }
     const old = cp.textContent; cp.textContent = '¡Copiado!'; setTimeout(() => { cp.textContent = old; }, 1600);
   });
-  // Portada de la colección
-  const cf = $('colCoverFile'), cd = $('colCoverDel'), ci = $('colCoverImg');
-  async function shrink(file) {
-    const bmp = await createImageBitmap(file); const w = Math.min(1600, bmp.width), h = Math.round(bmp.height * w / bmp.width);
-    const cv = document.createElement('canvas'); cv.width = w; cv.height = h; cv.getContext('2d').drawImage(bmp, 0, 0, w, h);
-    return new Promise((r, j2) => cv.toBlob((b) => (b ? r(b) : j2(new Error('enc'))), 'image/jpeg', 0.85));
-  }
+  // Portada de la colección: se elige entre las fotos ya subidas
+  const open = $('colCoverOpen'), dlg = $('colCoverDlg'), grid = $('colCoverGrid'), cd = $('colCoverDel');
   const say = (t) => { const m = document.createElement('div'); m.className = 'toast'; m.textContent = t; document.body.append(m); setTimeout(() => m.remove(), 2200); };
-  if (cf) cf.addEventListener('change', async () => {
-    const f = cf.files[0]; if (!f) return;
+  if (open) open.addEventListener('click', async () => {
+    dlg.showModal(); grid.textContent = '';
     try {
-      const r = await fetch(`/api/col/${cf.dataset.col}/cover`, { method: 'PUT', headers: { 'content-type': 'image/jpeg' }, body: await shrink(f) });
+      const r = await (await fetch(`/api/col/${open.dataset.col}/photos`)).json();
+      if (!r.ids || !r.ids.length) { grid.innerHTML = '<p class="muted">Aún no hay fotos en las galerías de esta colección.</p>'; return; }
+      grid.innerHTML = r.ids.map((id) => `<button type="button" class="covpick" data-id="${id}"><img src="/m/${id}/m" alt="" loading="lazy"></button>`).join('');
+    } catch { grid.innerHTML = '<p class="muted">No se pudieron cargar las fotos.</p>'; }
+  });
+  if (grid) grid.addEventListener('click', async (e) => {
+    const b = e.target.closest('.covpick'); if (!b) return;
+    try {
+      const r = await fetch(`/api/col/${open.dataset.col}/cover-from`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: b.dataset.id }) });
       if (!r.ok) throw new Error(r.status);
-      ci.src = URL.createObjectURL(f); ci.hidden = false; cd.hidden = false; say('Portada guardada');
+      dlg.close(); say('Portada guardada'); if (cd) cd.hidden = false;
     } catch { say('No se pudo guardar la portada.'); }
   });
-  if (cd) cd.addEventListener('click', async () => {
-    await fetch(`/api/col/${cd.dataset.col}/cover`, { method: 'DELETE' }); ci.hidden = true; cd.hidden = true; say('Portada quitada');
-  });
+  if (cd) cd.addEventListener('click', async () => { await fetch(`/api/col/${cd.dataset.col}/cover`, { method: 'DELETE' }); cd.hidden = true; dlg.close(); say('Portada quitada'); });
 })();

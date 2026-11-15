@@ -81,6 +81,27 @@ export function collectionRoutes(app) {
     await c.env.DB.prepare('UPDATE collections SET cover_v = ? WHERE id = ?').bind(v, col.id).run();
     return json({ ok: true, v });
   });
+  const FAM = `(SELECT e.id FROM events e WHERE e.id IN (SELECT event_id FROM collection_items WHERE collection_id = ?1) OR e.parent_id IN (SELECT event_id FROM collection_items WHERE collection_id = ?1))`;
+  app.get('/api/col/:id/photos', async (c) => {
+    const user = await currentUser(c); if (!user) return json({ error: 'auth' }, 403);
+    const col = await mine(c, user); if (!col) return json({ error: 'notfound' }, 404);
+    const rows = (await c.env.DB.prepare(`SELECT p.id FROM photos p WHERE p.state = 'approved' AND (p.mime IS NULL OR p.mime NOT LIKE 'video/%') AND p.event_id IN ${FAM} ORDER BY COALESCE(p.taken_at, p.uploaded_at) ASC LIMIT 300`).bind(col.id).all()).results;
+    return json({ ids: rows.map((r) => r.id) });
+  });
+  app.post('/api/col/:id/cover-from', async (c) => {
+    const user = await currentUser(c); if (!user) return json({ error: 'auth' }, 403);
+    const col = await mine(c, user); if (!col) return json({ error: 'notfound' }, 404);
+    if (!(await colCoverReady(c.env.DB))) return json({ error: 'migration' }, 500);
+    const id = String((await c.req.json().catch(() => ({}))).id || '');
+    if (!isHex(id, 32)) return json({ error: 'bad' }, 400);
+    const ok = await c.env.DB.prepare(`SELECT p.id FROM photos p WHERE p.id = ?2 AND p.event_id IN ${FAM}`).bind(col.id, id).first();
+    const obj = ok && await c.env.PHOTOS.get(`p/${id}/l`);
+    if (!obj) return json({ error: 'photo' }, 404);
+    await c.env.PHOTOS.put(`col/${col.id}/cover`, obj.body, { httpMetadata: { contentType: 'image/jpeg' } });
+    const v = Date.now();
+    await c.env.DB.prepare('UPDATE collections SET cover_v = ? WHERE id = ?').bind(v, col.id).run();
+    return json({ ok: true, v });
+  });
   app.delete('/api/col/:id/cover', async (c) => {
     const user = await currentUser(c); if (!user) return json({ error: 'auth' }, 403);
     const col = await mine(c, user); if (!col) return json({ error: 'notfound' }, 404);
