@@ -260,34 +260,48 @@
 })();
 
 // Calcula el CRC de originales antiguos (para que sus ZIP los abra bien el Mac). Lo hace el servidor por trozos.
-// Si hay algo pendiente, el botón de descargar espera a que termine.
+// Si hay algo pendiente, el botón de descargar espera a que termine; si falla, lo dice.
 (() => {
   const m = location.pathname.match(/^\/galerias\/([0-9a-f]{16})$/); if (!m) return;
   const id = m[1];
-  window.__crcPending = (async () => {
+  const state = { pending: null, error: '', done: 0, total: 0 };
+  window.__crc = state;
+  const post = (u, b) => fetch(u, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) });
+  async function one(pid) {
+    let off = 0, st = null, fails = 0;
+    for (;;) {
+      let r; try { r = await post(`/api/g/${id}/crc-step`, { id: pid, off, st }); } catch { r = null; }
+      if (!r || !r.ok) { if (++fails > 4) throw new Error(r ? 'HTTP ' + r.status : 'sin conexión'); await new Promise((x) => setTimeout(x, 700 * fails)); continue; }
+      fails = 0; const d = await r.json(); if (d.done) return; off = d.off; st = d.st;
+    }
+  }
+  const run = () => { state.total = 0; state.done = 0; state.pending = (async () => {
     try {
-      for (let round = 0; round < 100; round++) {
+      for (let round = 0; round < 200; round++) {
         const { ids } = await (await fetch(`/api/g/${id}/nocrc`)).json();
         if (!ids || !ids.length) break;
-        for (const pid of ids) {
-          let off = 0, st = null;
-          for (;;) {
-            const r = await fetch(`/api/g/${id}/crc-step`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: pid, off, st }) });
-            if (!r.ok) throw new Error('crc');
-            const d = await r.json(); if (d.done) break; off = d.off; st = d.st;
-          }
-        }
+        state.total += ids.length;
+        await Promise.all(ids.map((pid) => one(pid).then(() => { state.done++; })));
       }
-    } catch { /* se descarga igualmente */ }
-    window.__crcPending = null;
-  })();
+    } catch (e) { state.error = String(e.message || e); }
+    state.pending = null;
+  })(); };
+  run();
   document.addEventListener('click', async (e) => {
     const a = e.target.closest('a[data-zipa], [data-zipall]');
-    if (!a || !window.__crcPending) return;
+    if (!a) return;
+    if (!state.pending && !state.error && !state.retry) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    const label = a.textContent; a.textContent = 'Preparando vídeos…'; a.setAttribute('aria-busy', 'true');
-    await window.__crcPending;
-    a.textContent = label; a.removeAttribute('aria-busy');
-    a.click();
+    const label = a.dataset.lbl || a.textContent; a.dataset.lbl = label;
+    if (state.retry) { state.retry = false; state.error = ''; run(); }
+    a.setAttribute('aria-busy', 'true');
+    const tick = setInterval(() => { a.textContent = `Preparando vídeos… ${state.done}/${state.total || '?'}`; }, 400);
+    if (state.pending) await state.pending;
+    clearInterval(tick); a.removeAttribute('aria-busy');
+    if (state.error) {
+      a.textContent = `No se pudieron preparar los vídeos (${state.error}). Toca para reintentar`;
+      state.error = ''; state.retry = true; return;
+    }
+    a.textContent = label; a.click();
   }, true);
 })();

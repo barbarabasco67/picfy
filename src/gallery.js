@@ -172,7 +172,7 @@ export function galleryRoutes(app) {
   });
 
   // CRC por pasos (servidor lee un trozo de R2 y devuelve el estado; el navegador lo va guardando)
-  const CRC_STEP = 16 * 1024 * 1024;
+  const CRC_STEP = 2 * 1024 * 1024;
   const crcT = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
   app.post('/api/g/:id/crc-step', async (c) => {
     const x = await api(c); if (!x) return json({ error: 'auth' }, 403);
