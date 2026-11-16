@@ -57,9 +57,12 @@ function endRecord(count, cdSize, cdOffset) {
 
 // Calcula el CRC de los archivos que no lo tienen guardado (el Mac no abre ZIPs sin CRC en la cabecera).
 // Lo guarda con save(entry, crc) cuando se puede, para que solo se haga una vez.
-export async function fillCrc(bucket, entries, save) {
+export async function fillCrc(bucket, entries, save, budget = 16 * 1024 * 1024) {
+  // Tope de bytes por petición: calcular el CRC gasta CPU y Cloudflare corta el Worker (error 1102).
   for (const e of entries) {
     if (e.crc != null) continue;
+    if (e.size > budget) continue;
+    budget -= e.size;
     const obj = await bucket.get(e.key);
     if (!obj) continue;
     const r = obj.body.getReader(); let c = 0xffffffff;
