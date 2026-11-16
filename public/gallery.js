@@ -259,15 +259,16 @@
   });
 })();
 
-// Calcula en segundo plano el CRC de originales antiguos (para que sus ZIP los abra bien el Mac). Lo hace el servidor por trozos.
+// Calcula el CRC de originales antiguos (para que sus ZIP los abra bien el Mac). Lo hace el servidor por trozos.
+// Si hay algo pendiente, el botón de descargar espera a que termine.
 (() => {
   const m = location.pathname.match(/^\/galerias\/([0-9a-f]{16})$/); if (!m) return;
   const id = m[1];
-  (async () => {
+  window.__crcPending = (async () => {
     try {
-      for (let round = 0; round < 50; round++) {
+      for (let round = 0; round < 100; round++) {
         const { ids } = await (await fetch(`/api/g/${id}/nocrc`)).json();
-        if (!ids || !ids.length) return;
+        if (!ids || !ids.length) break;
         for (const pid of ids) {
           let off = 0, st = null;
           for (;;) {
@@ -277,6 +278,16 @@
           }
         }
       }
-    } catch { /* segundo plano */ }
+    } catch { /* se descarga igualmente */ }
+    window.__crcPending = null;
   })();
+  document.addEventListener('click', async (e) => {
+    const a = e.target.closest('a[data-zipa], [data-zipall]');
+    if (!a || !window.__crcPending) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    const label = a.textContent; a.textContent = 'Preparando vídeos…'; a.setAttribute('aria-busy', 'true');
+    await window.__crcPending;
+    a.textContent = label; a.removeAttribute('aria-busy');
+    a.click();
+  }, true);
 })();

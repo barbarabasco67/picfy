@@ -10,7 +10,11 @@ const q = (s) => JSON.parse(execSync(`npx wrangler d1 execute picfy --local --pe
   const b = await chromium.launch({ args: ['--no-sandbox'] }); const p = await (await b.newContext()).newPage();
   await p.goto(B + '/entrar'); await p.fill('input[name=email]', owner); await p.fill('input[name=password]', 'clave12345'); await p.click('button[type=submit]'); await p.waitForTimeout(1500);
   await p.goto(B + '/galerias/' + ev);
-  for (let i = 0; i < 30; i++) { if (!q(`SELECT COUNT(*) n FROM photos WHERE event_id='${ev}' AND crc32 IS NULL`)[0].n) break; await p.waitForTimeout(1000); }
-  ok(q(`SELECT COUNT(*) n FROM photos WHERE event_id='${ev}' AND crc32 IS NULL`)[0].n === 0, 'CRC calculado por el servidor');
+  await p.click('[data-open=zipDlg]');
+  const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 60000 }), p.click('#zipDlg a[data-zipa] >> nth=0')]);
+  await dl.saveAs('/tmp/vid/crcfill.zip');
+  ok(q(`SELECT COUNT(*) n FROM photos WHERE event_id='${ev}' AND crc32 IS NULL`)[0].n === 0, 'CRC calculado antes de descargar');
+  const r = require('child_process').spawnSync('unzip', ['-tq', '/tmp/vid/crcfill.zip']).stdout.toString();
+  ok(/No errors/.test(r), 'unzip -t sin errores: ' + r.trim());
   await b.close(); console.log('ALL OK');
 })();
