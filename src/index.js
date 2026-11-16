@@ -23,7 +23,7 @@ import { legalRoutes } from './legal.js';
 import { currentUser, hashPassword } from './auth.js';
 import { getWm, wmAttr } from './watermark.js';
 import { getBest } from './best.js';
-import { buildZip, splitParts, fillCrc } from './zip.js';
+import { buildZip, splitParts, fillCrc, kindSql, zipTipo, zipPlan } from './zip.js';
 
 const app = new Hono();
 
@@ -158,10 +158,11 @@ app.get('/e/:token/zip', async (c) => {
   const ready = await privacyReady(c.env.DB);
   const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
   const part = Math.max(1, parseInt(c.req.query('part') || '1', 10) || 1);
+  const tipo = zipTipo(c.req.query('tipo'));
   const pick = [...new Set(String(c.req.query('ids') || '').split(',').filter((x) => isHex(x, 32)))].slice(0, partSize);
   const rows = (await c.env.DB.prepare(
-    `SELECT p.id, p.filename, p.size, p.crc32, p.taken_at, p.uploaded_at FROM photos p
-     WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved' ${pick.length ? `AND p.id IN (${pick.map((x) => `'${x}'`).join(',')})` : ''}
+    `SELECT p.id, p.filename, p.size, p.mime, p.crc32, p.taken_at, p.uploaded_at FROM photos p
+     WHERE ${famPublic('p.event_id', '?1', ready)} AND p.state = 'approved'${kindSql(tipo)} ${pick.length ? `AND p.id IN (${pick.map((x) => `'${x}'`).join(',')})` : ''}
      ORDER BY ${orderSql(event.sort_mode, 'p')}`,
   ).bind(event.id).all()).results;
   const parts = pick.length ? [rows] : splitParts(rows, partSize);
@@ -180,7 +181,8 @@ app.get('/e/:token/zip', async (c) => {
   await fillCrc(c.env.PHOTOS, entries, (e, crc) => c.env.DB.prepare('UPDATE photos SET crc32 = ? WHERE id = ?').bind(crc, e.id).run());
   const { stream, length } = buildZip(c.env.PHOTOS, entries);
   const label = safe(event.name).replace(/\s+/g, '-') || 'galeria';
-  const fname = pick.length ? `${label}-seleccion.zip` : parts.length > 1 ? `${label}-parte${part}.zip` : `${label}.zip`;
+  const sfx = tipo ? `-${tipo}` : '';
+  const fname = pick.length ? `${label}-seleccion.zip` : parts.length > 1 ? `${label}${sfx}-parte${part}.zip` : `${label}${sfx}.zip`;
   return new Response(stream, { headers: { 'content-type': 'application/zip', 'content-length': String(length), 'content-disposition': `attachment; filename="${fname}"`, 'cache-control': 'no-store' } });
 });
 
@@ -260,7 +262,7 @@ async function guestView(c, event) {
   let parent = null;
   if (event.parent_id) { parent = await c.env.DB.prepare('SELECT id, name, guest_token FROM events WHERE id = ?').bind(event.parent_id).first(); await attachSlugs(c.env.DB, [parent]); }
   const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
-  return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, kind, dl: event.allow_download ? { parts: Math.max(1, Math.ceil(totalAll / partSize)), partSize, total: totalAll } : null, best: favN ? { title: best.title, n: favN, all: totalAll, on: onlyBest } : null, wm: wmAttr(await getWm(c.env.DB, event)) }));
+  return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, kind, dl: event.allow_download ? { plan: zipPlan((await c.env.DB.prepare(`SELECT p.size, p.mime FROM photos p WHERE ${famPublic('p.event_id', '?1', await privacyReady(c.env.DB))} AND p.state = 'approved'`).bind(event.id).all()).results, partSize), total: totalAll } : null, best: favN ? { title: best.title, n: favN, all: totalAll, on: onlyBest } : null, wm: wmAttr(await getWm(c.env.DB, event)) }));
 }
 
 socialRoutes(app, { accessOk, ownsEvent });

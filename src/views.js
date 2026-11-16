@@ -2,6 +2,7 @@ import { ASSET_V } from './version.js';
 // Páginas HTML (renderizadas en el servidor).
 
 import { esc, themeStyle, glink } from './util.js';
+import { zipGroups } from './zip.js';
 
 export const PER_PAGE = 60;
 
@@ -241,7 +242,7 @@ ${event.upload_open ? `<button class="btn primary" id="openUpload" type="button"
 ${lightbox(event.social !== 0, false, Boolean(event.selection || dl))}
 ${event.selection || dl ? selectionUi(event, dl) : ''}
 ${uploadDialog(event, subs, event.consent ? (event.consent_text || DEFAULT_CONSENT) : '')}
-${dl ? `<dialog id="dlDlg"><div class="dlg"><header><h2>Descargar fotos</h2><button class="btn sm" type="button" data-close>Cerrar</button></header><div class="body"><p class="muted small">${dl.total} fotos en ${dl.parts} ${dl.parts === 1 ? 'archivo ZIP' : 'archivos ZIP'}. También puedes elegir unas cuantas fotos con el círculo de cada una y descargarlas.</p>${Array.from({ length: dl.parts }, (_, k) => `<a class="btn ${k === 0 ? 'primary' : ''}" style="display:block;margin:8px 0;text-align:center" href="/e/${event.guest_token}/zip?part=${k + 1}">${dl.parts === 1 ? 'Descargar todas (ZIP)' : `Parte ${k + 1}: fotos ${k * dl.partSize + 1}–${Math.min(dl.total, (k + 1) * dl.partSize)}`}</a>`).join('')}</div></div></dialog>` : ''}
+${dl ? `<dialog id="dlDlg"><div class="dlg"><header><h2>Descargar</h2><button class="btn sm" type="button" data-close>Cerrar</button></header><div class="body zipbox">${zipGroups(dl.plan, `/e/${event.guest_token}/zip`, esc)}</div></div></dialog>` : ''}
 ${subs.length ? `<dialog id="subShare"><div class="dlg"><header class="dlg-h"><h2 id="subShareName">Compartir</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header><div class="qrbox"><div class="qr" id="subQr"></div></div><div class="linkrow"><code id="subShareUrl"></code></div><footer class="sharefoot"><button class="btn primary" id="subCopy" type="button">Copiar enlace</button><button class="btn" id="subNative" type="button" hidden>Compartir…</button></footer></div></dialog>` : ''}`,
   });
 }

@@ -3,7 +3,7 @@
 import { isHex, json, html, randomHex } from './util.js';
 import { currentUser, hashPassword } from './auth.js';
 import { slugify, slugReady, applyOrder, deletePhotos, trashPhotos, orderSql, setSortMode, SORTS } from './photos.js';
-import { buildZip, splitParts, fillCrc } from './zip.js';
+import { buildZip, splitParts, fillCrc, kindSql, zipTipo } from './zip.js';
 import { saveWm } from './watermark.js';
 import { saveBest } from './best.js';
 import { notFoundPage } from './views.js';
@@ -280,10 +280,11 @@ export function galleryRoutes(app) {
     if (!event) return html(notFoundPage(), 404);
     const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
     const part = Math.max(1, parseInt(c.req.query('part') || '1', 10) || 1);
+    const tipo = zipTipo(c.req.query('tipo'));
     const pick = validIds(String(c.req.query('ids') || '').split(',')).slice(0, partSize);
     const rows = (await c.env.DB.prepare(
-      `SELECT p.id, p.filename, p.size, p.crc32, p.taken_at, p.uploaded_at
-       FROM photos p WHERE p.event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND p.state IN ('approved','pending','rejected') ${pick.length ? `AND p.id IN (${inList(pick)})` : `AND p.state = 'approved'`}
+      `SELECT p.id, p.filename, p.size, p.mime, p.crc32, p.taken_at, p.uploaded_at
+       FROM photos p WHERE p.event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND p.state IN ('approved','pending','rejected') ${pick.length ? `AND p.id IN (${inList(pick)})` : `AND p.state = 'approved'${kindSql(tipo)}`}
        ORDER BY ${orderSql(event.sort_mode, 'p')}`,
     ).bind(event.id).all()).results;
     const parts = pick.length ? [rows] : splitParts(rows, partSize);
@@ -301,7 +302,8 @@ export function galleryRoutes(app) {
     await fillCrc(c.env.PHOTOS, entries, (e, crc) => c.env.DB.prepare('UPDATE photos SET crc32 = ? WHERE id = ?').bind(crc, e.id).run());
     const { stream, length } = buildZip(c.env.PHOTOS, entries);
     const label = safe(event.name).replace(/\s+/g, '-') || 'galeria';
-    const fname = pick.length ? `picfy-${label}-seleccion.zip` : parts.length > 1 ? `picfy-${label}-parte${part}.zip` : `picfy-${label}.zip`;
+    const sfx = tipo ? `-${tipo}` : '';
+    const fname = pick.length ? `picfy-${label}-seleccion.zip` : parts.length > 1 ? `picfy-${label}${sfx}-parte${part}.zip` : `picfy-${label}${sfx}.zip`;
     return new Response(stream, {
       headers: {
         'content-type': 'application/zip', 'content-length': String(length),

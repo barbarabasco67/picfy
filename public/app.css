@@ -1369,3 +1369,10 @@ body.app .tcreator > header .tcopy { padding: 5px 12px; font-size: .76rem; font-
 .covpick { padding: 0; border: 0; border-radius: 10px; overflow: hidden; aspect-ratio: 1; cursor: pointer; background: rgba(20,33,61,.06); box-shadow: none; }
 .covpick img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .covpick:hover { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+.zipbox .zipgrp { margin: 14px 0 6px; }
+.zipbox h3 { font-size: 1rem; margin: 0 0 8px; }
+.zipbox h3 .muted { font-weight: 500; margin-left: 6px; }
+.zipbox .zipgrp > .btn.primary { margin-bottom: 8px; }
+.zipbox .zips { display: flex; flex-direction: column; gap: 8px; }
+.zipbox .zips .btn { text-align: center; }

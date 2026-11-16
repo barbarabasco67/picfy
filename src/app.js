@@ -15,7 +15,7 @@ import { torneosRoutes } from './torneos.js';
 import { habitsRoutes } from './habits.js';
 import { googleRoutes, googleOn } from './google.js';
 import { createUser, signupOpen } from './accounts.js';
-import { splitParts } from './zip.js';
+import { zipPlan } from './zip.js';
 import { socialReady, loadStats, viewsReady } from './social.js';
 import { loadSelections, selSeenReady, NEW_SEL_SQL } from './selection.js';
 import { withLimit, canCreateGallery } from './billing.js';
@@ -401,7 +401,7 @@ export function appRoutes(app) {
     ).bind(rootId, user.id).all()).results;
     const approved = photos.filter((p) => p.state === 'approved');
     const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
-    const zipParts = splitParts(approved, partSize).map((p) => ({ count: p.length }));
+    const zipParts = zipPlan(approved, partSize);
     let sels = { ready: false, sends: [] };
     try { sels = await loadSelections(db, event); } catch { /* sin selecciones */ }
     let stats = null;

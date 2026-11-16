@@ -154,3 +154,25 @@ export function splitParts(rows, maxCount, maxBytes = 3.2 * 1024 ** 3) {
   if (cur.length) parts.push(cur);
   return parts;
 }
+
+// Fotos y vídeos por separado
+const isVidMime = (m) => /^video\//.test(m || '');
+export const kindSql = (tipo, a = 'p') => tipo === 'videos' ? ` AND ${a}.mime LIKE 'video/%'` : tipo === 'fotos' ? ` AND (${a}.mime IS NULL OR ${a}.mime NOT LIKE 'video/%')` : '';
+export const zipTipo = (v) => (v === 'fotos' || v === 'videos' ? v : '');
+// Partes de ZIP por tipo (todo / fotos / vídeos) a partir de {size, mime}
+export function zipPlan(rows, partSize) {
+  const mk = (f) => splitParts(rows.filter(f), partSize).map((p) => ({ count: p.length }));
+  return { all: mk(() => true), fotos: mk((r) => !isVidMime(r.mime)), videos: mk((r) => isVidMime(r.mime)) };
+}
+// Bloque HTML con los botones de descarga (la parte de «todo de una vez» la hace el navegador)
+export function zipGroups(plan, href, esc = (x) => x) {
+  const group = (key, title, parts) => {
+    if (!parts.length) return '';
+    const n = parts.reduce((s, p) => s + p.count, 0);
+    const q = key === 'all' ? '' : `tipo=${key}&`;
+    const links = parts.map((p, i) => `<a class="btn" href="${esc(href)}?${q}part=${i + 1}" data-zipa>${parts.length > 1 ? `Parte ${i + 1} de ${parts.length} · ${p.count} archivos` : `Descargar · ${p.count} ${p.count === 1 ? 'archivo' : 'archivos'}`}</a>`).join('');
+    return `<section class="zipgrp"><h3>${title} <span class="muted">${n}</span></h3>${parts.length > 1 ? `<button class="btn primary" type="button" data-zipall>Descargar todo de una vez</button>` : ''}<div class="zips">${links}</div></section>`;
+  };
+  const both = plan.fotos.length && plan.videos.length;
+  return group('all', both ? 'Todo' : plan.videos.length ? 'Vídeos' : 'Fotos', plan.all) + (both ? group('fotos', 'Solo fotos', plan.fotos) + group('videos', 'Solo vídeos', plan.videos) : '');
+}

@@ -3,6 +3,7 @@
 import { esc, glink } from './util.js';
 import { layout, fmtDate, lightbox, uploadDialog, DEFAULT_CONSENT } from './views.js';
 import { PLANES, PASE, fmtGB, fmtEur } from './plans.js';
+import { zipGroups } from './zip.js';
 
 const ICON = {
   gal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></svg>',
@@ -320,9 +321,7 @@ ${p.state !== 'approved' ? `<span class="st ${p.state}">${p.state === 'pending' 
   const opts = guests.map((g) => `<option value="${g.id}">${esc(g.name || `Invitado ${g.id.slice(0, 4)}`)} (${g.n})</option>`).join('');
   const mode = event.sort_mode;
   const sel = (m, t) => `<option value="${m}" ${mode === m ? 'selected' : ''}>${t}</option>`;
-  const zipList = zipParts.length
-    ? zipParts.map((z, i) => `<a class="btn" href="/galerias/${event.id}/zip?part=${i + 1}">${zipParts.length > 1 ? `Parte ${i + 1} de ${zipParts.length} · ${z.count} fotos` : `Descargar todo · ${z.count} fotos`}</a>`).join('')
-    : '<p class="muted">Todavía no hay fotos publicadas.</p>';
+  const zipList = zipParts.all.length ? zipGroups(zipParts, `/galerias/${event.id}/zip`, esc) : '<p class="muted">Todavía no hay archivos publicados.</p>';
   return appPage({
     title: event.name,
     bodyAttrs: `data-gapi="/api/g/${event.id}" data-gid="${event.id}" data-part="${partSize}" data-token="${event.guest_token}" data-limit="0" data-auto="1" data-owner="1" data-owner-name="${esc(user.name || 'Organizador')}"${wm && wm.on ? ` data-wm="${esc(JSON.stringify({ on: 1, text: wm.text || wm.name || '', pos: wm.pos, op: wm.op, logoUrl: wm.logoUrl, rev: wm.rev }))}"` : ''}`,
@@ -409,8 +408,8 @@ ${uploadDialog(event.parent_id ? null : event, subs.map((s) => ({ ...s, upload_o
 
 <dialog id="zipDlg" class="glassdlg"><div class="dlgbox">
 <header><h2>Descargar</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
-<p class="muted">Fotos originales publicadas, en el orden de la galería. En galerías grandes se reparten en varias partes.</p>
-<div class="zips">${zipList}</div>
+<p class="muted">Originales publicados, en el orden de la galería. En galerías grandes se reparten en varias partes.</p>
+<div class="zipbox">${zipList}</div>
 </div></dialog>
 
 <dialog id="setDlg" class="glassdlg wide"><form method="post" action="/galerias/${event.id}/ajustes" class="dlgbox" >

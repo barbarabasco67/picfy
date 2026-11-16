@@ -38,6 +38,18 @@ const V1 = process.env.VID_BIG || '/tmp/vid/grande.mp4', V2 = process.env.VID_SM
     const out = require('child_process').spawnSync('python3', ['-c', "import zipfile,sys;z=zipfile.ZipFile('/tmp/vid/g.zip');print(z.testzip());print(sum(1 for i in z.infolist() if i.flag_bits & 8))"]).stdout.toString().trim().split('\n');
     ok(out[0] === 'None' && out[1] === '0', 'zip válido y sin descriptores: ' + out.join(','));
   }
+  { // descargas por tipo
+    const gid = (p.url().match(/galerias\/([0-9a-f]{16})/) || [])[1];
+    await p.goto(B + '/galerias/' + gid); await p.click('[data-open=zipDlg]');
+    const heads = (await p.locator('#zipDlg .zipgrp h3').allTextContents()).map((t) => t.replace(/\s+\d+$/, '').trim()).join('|');
+    ok(heads === 'Todo|Solo fotos|Solo vídeos', 'grupos de descarga: ' + heads);
+    for (const [tipo, n] of [['videos', 2], ['fotos', 1]]) {
+      const b64 = await p.evaluate(async (u) => { const r = await fetch(u); const a = new Uint8Array(await r.arrayBuffer()); let s = ''; for (let i = 0; i < a.length; i += 32768) s += String.fromCharCode.apply(null, a.subarray(i, i + 32768)); return btoa(s); }, `/galerias/${gid}/zip?tipo=${tipo}&part=1`);
+      require('fs').writeFileSync('/tmp/vid/t.zip', Buffer.from(b64, 'base64'));
+      const cnt = require('child_process').spawnSync('python3', ['-c', "import zipfile;print(len(zipfile.ZipFile('/tmp/vid/t.zip').namelist()))"]).stdout.toString().trim();
+      ok(cnt === String(n), `zip solo ${tipo}: ${cnt} archivos`);
+    }
+  }
   const gv = await g.locator('.tile.isvid').first().getAttribute('data-video'); ok(/\/e\/[0-9a-f]{32}\/v\//.test(gv), 'enlace de vídeo público ' + gv);
   const gs = await g.evaluate(async (u) => (await fetch(u, { headers: { range: 'bytes=0-9' } })).status, gv); ok(gs === 206, 'el invitado reproduce con rangos');
   const bad = await g.evaluate(async (u) => (await fetch(u.replace(/\/v\/[0-9a-f]{32}/, '/v/' + '0'.repeat(32)))).status, gv); ok(bad === 404, 'vídeo inexistente 404');

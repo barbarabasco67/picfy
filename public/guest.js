@@ -477,3 +477,10 @@
     location.href = u.toString();
   }));
 })();
+
+// «Descargar todo de una vez»: lanza una detrás de otra todas las partes del grupo
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-zipall]'); if (!b) return;
+  const links = [...b.closest('.zipgrp').querySelectorAll('a[data-zipa]')];
+  links.forEach((a, k) => setTimeout(() => { const x = document.createElement('a'); x.href = a.href; document.body.append(x); x.click(); x.remove(); }, k * 1500));
+});
