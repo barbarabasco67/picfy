@@ -2,7 +2,7 @@
 import { randomHex, sha256Hex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
 import { canCreateTorneo } from './billing.js';
-import { buildZip } from './zip.js';
+import { buildZip, fillCrc } from './zip.js';
 import { sendMail } from './mail.js';
 import { entregaPage } from './entrega.js';
 import { informePage } from './informe.js';
@@ -654,6 +654,7 @@ export function torneosRoutes(app) {
       used.add(name);
       return { key: keyOf(r), name, size: r.size, crc: null, ms: r.created_at };
     });
+    await fillCrc(c.env.PHOTOS, entries);
     const { stream, length } = buildZip(c.env.PHOTOS, entries);
     const label = safe(sede.name).replace(/\s+/g, '-') || 'sede';
     const who = cr && list[0] ? '-' + (safe(list[0].cname).replace(/\s+/g, '-') || 'creador') : '';

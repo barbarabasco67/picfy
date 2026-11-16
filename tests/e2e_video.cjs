@@ -30,6 +30,14 @@ const V1 = process.env.VID_BIG || '/tmp/vid/grande.mp4', V2 = process.env.VID_SM
   await g.click('.ktog [data-kind=videos]'); await g.waitForSelector('.tile.isvid'); ok((await g.locator('.tile').count()) === 2 && (await g.locator('.ktog button.on').textContent()) === 'Vídeos' && /2 vídeos/.test(await g.textContent('.gsub')), 'filtro Vídeos: solo vídeos');
   await g.click('.ktog [data-kind=""]'); await g.waitForSelector('.tile'); ok((await g.locator('.tile').count()) === 3, 'Todo vuelve a mostrar todo');
   await g.locator('.gbar').screenshot({ path: '/tmp/picfy_shots/bar.png' });
+  { // el ZIP de la galería no debe usar descriptores (el Mac da error 79) y debe pasar unzip -t
+    const zurl = '/galerias/' + (p.url().match(/galerias\/([0-9a-f]{16})/) || [])[1] + '/zip';
+    ok(!!zurl, 'enlace de zip: ' + zurl);
+    const b64 = await p.evaluate(async (u) => { const r = await fetch(u); const a = new Uint8Array(await r.arrayBuffer()); let s = ''; for (let i = 0; i < a.length; i += 32768) s += String.fromCharCode.apply(null, a.subarray(i, i + 32768)); return btoa(s); }, zurl);
+    require('fs').writeFileSync('/tmp/vid/g.zip', Buffer.from(b64, 'base64'));
+    const out = require('child_process').spawnSync('python3', ['-c', "import zipfile,sys;z=zipfile.ZipFile('/tmp/vid/g.zip');print(z.testzip());print(sum(1 for i in z.infolist() if i.flag_bits & 8))"]).stdout.toString().trim().split('\n');
+    ok(out[0] === 'None' && out[1] === '0', 'zip válido y sin descriptores: ' + out.join(','));
+  }
   const gv = await g.locator('.tile.isvid').first().getAttribute('data-video'); ok(/\/e\/[0-9a-f]{32}\/v\//.test(gv), 'enlace de vídeo público ' + gv);
   const gs = await g.evaluate(async (u) => (await fetch(u, { headers: { range: 'bytes=0-9' } })).status, gv); ok(gs === 206, 'el invitado reproduce con rangos');
   const bad = await g.evaluate(async (u) => (await fetch(u.replace(/\/v\/[0-9a-f]{32}/, '/v/' + '0'.repeat(32)))).status, gv); ok(bad === 404, 'vídeo inexistente 404');

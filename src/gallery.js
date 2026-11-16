@@ -3,7 +3,7 @@
 import { isHex, json, html, randomHex } from './util.js';
 import { currentUser, hashPassword } from './auth.js';
 import { slugify, slugReady, applyOrder, deletePhotos, trashPhotos, orderSql, setSortMode, SORTS } from './photos.js';
-import { buildZip, splitParts } from './zip.js';
+import { buildZip, splitParts, fillCrc } from './zip.js';
 import { saveWm } from './watermark.js';
 import { saveBest } from './best.js';
 import { notFoundPage } from './views.js';
@@ -282,8 +282,9 @@ export function galleryRoutes(app) {
       let name = `${String(offset + i + 1).padStart(4, '0')}_${safe(r.filename) || r.id + '.jpg'}`;
       while (used.has(name)) name = name.replace(/(\.[^.]*)?$/, `_${r.id.slice(0, 4)}$1`);
       used.add(name);
-      return { key: `p/${r.id}/o`, name, size: r.size, crc: r.crc32, ms: r.taken_at ?? r.uploaded_at };
+      return { id: r.id, key: `p/${r.id}/o`, name, size: r.size, crc: r.crc32, ms: r.taken_at ?? r.uploaded_at };
     });
+    await fillCrc(c.env.PHOTOS, entries, (e, crc) => c.env.DB.prepare('UPDATE photos SET crc32 = ? WHERE id = ?').bind(crc, e.id).run());
     const { stream, length } = buildZip(c.env.PHOTOS, entries);
     const label = safe(event.name).replace(/\s+/g, '-') || 'galeria';
     const fname = pick.length ? `picfy-${label}-seleccion.zip` : parts.length > 1 ? `picfy-${label}-parte${part}.zip` : `picfy-${label}.zip`;

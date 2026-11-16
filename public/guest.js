@@ -54,6 +54,17 @@
     return (c ^ 0xffffffff) >>> 0;
   }
 
+  // CRC de un archivo grande (vídeo), por trozos, para que el ZIP lo abra bien el Mac
+  async function crcFile(f, onProgress) {
+    let c = 0xffffffff; const CH = 8 * 1024 * 1024;
+    for (let o = 0; o < f.size; o += CH) {
+      const u = new Uint8Array(await f.slice(o, o + CH).arrayBuffer());
+      for (let i = 0; i < u.length; i++) c = crcTable[(c ^ u[i]) & 0xff] ^ (c >>> 8);
+      if (onProgress) onProgress(Math.min(1, (o + CH) / f.size));
+    }
+    return (c ^ 0xffffffff) >>> 0;
+  }
+
   // Hora de captura (EXIF DateTimeOriginal) de un JPEG. Devuelve milisegundos "tal cual en la cámara", o null.
   async function readTaken(file) {
     try {
@@ -154,7 +165,8 @@
       const r = await retry(() => put(`${base}/upload/${id}/o/part/${k + 1}?u=${encodeURIComponent(st.u)}`, blob, (p) => onProgress((sent + blob.size * p) / f.size)));
       parts.push(r); sent += blob.size;
     }
-    await retry(() => api(`${base}/upload/${id}/o/done`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-picfy-key': myKey() }, body: JSON.stringify({ u: st.u, parts }) }));
+    const crc = await crcFile(f);
+    await retry(() => api(`${base}/upload/${id}/o/done`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-picfy-key': myKey() }, body: JSON.stringify({ u: st.u, parts, crc }) }));
   }
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

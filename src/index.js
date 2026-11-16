@@ -23,7 +23,7 @@ import { legalRoutes } from './legal.js';
 import { currentUser, hashPassword } from './auth.js';
 import { getWm, wmAttr } from './watermark.js';
 import { getBest } from './best.js';
-import { buildZip, splitParts } from './zip.js';
+import { buildZip, splitParts, fillCrc } from './zip.js';
 
 const app = new Hono();
 
@@ -174,9 +174,10 @@ app.get('/e/:token/zip', async (c) => {
     let name = `${String(offset + k + 1).padStart(4, '0')}_${safe(r.filename) || r.id + '.jpg'}`;
     while (used.has(name)) name = name.replace(/(\.[^.]*)?$/, `_${r.id.slice(0, 4)}$1`);
     used.add(name);
-    return { key: `p/${r.id}/o`, name, size: r.size, crc: r.crc32, ms: r.taken_at ?? r.uploaded_at };
+    return { id: r.id, key: `p/${r.id}/o`, name, size: r.size, crc: r.crc32, ms: r.taken_at ?? r.uploaded_at };
   });
   if (!(await ownsEvent(c, event))) await countDownload(c.env.DB, event, entries.length);
+  await fillCrc(c.env.PHOTOS, entries, (e, crc) => c.env.DB.prepare('UPDATE photos SET crc32 = ? WHERE id = ?').bind(crc, e.id).run());
   const { stream, length } = buildZip(c.env.PHOTOS, entries);
   const label = safe(event.name).replace(/\s+/g, '-') || 'galeria';
   const fname = pick.length ? `${label}-seleccion.zip` : parts.length > 1 ? `${label}-parte${part}.zip` : `${label}.zip`;
@@ -373,6 +374,7 @@ app.post('/api/e/:token/upload/:id/o/done', async (c) => {
   if (!b.u || !parts.length) return json({ error: 'parts' }, 400);
   const obj = await c.env.PHOTOS.resumeMultipartUpload(x.key, String(b.u)).complete(parts);
   if (obj.size !== x.photo.size) { await c.env.PHOTOS.delete(x.key); return json({ error: 'size_mismatch' }, 409); }
+  if (b.crc != null && Number.isFinite(Number(b.crc))) await c.env.DB.prepare('UPDATE photos SET crc32 = ? WHERE id = ?').bind(Number(b.crc) >>> 0, x.photo.id).run();
   return json({ ok: true });
 });
 

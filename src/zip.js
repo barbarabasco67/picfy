@@ -55,6 +55,23 @@ function endRecord(count, cdSize, cdOffset) {
   return b;
 }
 
+// Calcula el CRC de los archivos que no lo tienen guardado (el Mac no abre ZIPs sin CRC en la cabecera).
+// Lo guarda con save(entry, crc) cuando se puede, para que solo se haga una vez.
+export async function fillCrc(bucket, entries, save) {
+  for (const e of entries) {
+    if (e.crc != null) continue;
+    const obj = await bucket.get(e.key);
+    if (!obj) continue;
+    const r = obj.body.getReader(); let c = 0xffffffff;
+    for (;;) {
+      const { done, value } = await r.read(); if (done) break;
+      for (let i = 0; i < value.length; i++) c = crcTable[(c ^ value[i]) & 0xff] ^ (c >>> 8);
+    }
+    e.crc = (c ^ 0xffffffff) >>> 0;
+    if (save) { try { await save(e, e.crc); } catch { /* sin guardar */ } }
+  }
+}
+
 // entries: [{ key, name, size, crc|null, ms }]. Devuelve { stream, length }.
 export function buildZip(bucket, entries) {
   const list = entries.map((e) => {
