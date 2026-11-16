@@ -179,7 +179,7 @@ app.get('/e/:token/zip', async (c) => {
   });
   if (!(await ownsEvent(c, event))) await countDownload(c.env.DB, event, entries.length);
   await fillCrc(c.env.PHOTOS, entries, (e, crc) => c.env.DB.prepare('UPDATE photos SET crc32 = ? WHERE id = ?').bind(crc, e.id).run());
-  const { stream, length } = buildZip(c.env.PHOTOS, entries);
+  const { stream, length } = buildZip(c.env.PHOTOS, entries, c.executionCtx);
   const label = safe(event.name).replace(/\s+/g, '-') || 'galeria';
   const sfx = tipo ? `-${tipo}` : '';
   const fname = pick.length ? `${label}-seleccion.zip` : parts.length > 1 ? `${label}${sfx}-parte${part}.zip` : `${label}${sfx}.zip`;

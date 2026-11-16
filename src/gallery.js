@@ -326,7 +326,7 @@ export function galleryRoutes(app) {
       return { id: r.id, key: `p/${r.id}/o`, name, size: r.size, crc: r.crc32, ms: r.taken_at ?? r.uploaded_at };
     });
     await fillCrc(c.env.PHOTOS, entries, (e, crc) => c.env.DB.prepare('UPDATE photos SET crc32 = ? WHERE id = ?').bind(crc, e.id).run());
-    const { stream, length } = buildZip(c.env.PHOTOS, entries);
+    const { stream, length } = buildZip(c.env.PHOTOS, entries, c.executionCtx);
     const label = safe(event.name).replace(/\s+/g, '-') || 'galeria';
     const sfx = tipo ? `-${tipo}` : '';
     const fname = pick.length ? `picfy-${label}-seleccion.zip` : parts.length > 1 ? `picfy-${label}${sfx}-parte${part}.zip` : `picfy-${label}${sfx}.zip`;

@@ -664,7 +664,7 @@ export function torneosRoutes(app) {
       return { id: r.id, key: keyOf(r), name, size: r.size, crc: r.crc32 ?? null, ms: r.created_at };
     });
     await fillCrc(c.env.PHOTOS, entries, (await crcReady(c.env.DB)) ? (e, crc) => c.env.DB.prepare('UPDATE entregas_torneo SET crc32 = ?2 WHERE id = ?1').bind(e.id, crc).run() : undefined);
-    const { stream, length } = buildZip(c.env.PHOTOS, entries);
+    const { stream, length } = buildZip(c.env.PHOTOS, entries, c.executionCtx);
     const label = safe(sede.name).replace(/\s+/g, '-') || 'sede';
     const who = cr && list[0] ? '-' + (safe(list[0].cname).replace(/\s+/g, '-') || 'creador') : '';
     return new Response(stream, { headers: { 'content-type': 'application/zip', 'content-length': String(length), 'content-disposition': `attachment; filename="picfy-${label}${who}${parts.length > 1 ? '-parte' + part : ''}.zip"`, 'cache-control': 'no-store' } });

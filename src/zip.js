@@ -76,71 +76,49 @@ export async function fillCrc(bucket, entries, save, budget = 16 * 1024 * 1024) 
 }
 
 // entries: [{ key, name, size, crc|null, ms }]. Devuelve { stream, length }.
-export function buildZip(bucket, entries) {
+// Los bytes de R2 pasan por pipeTo (sin JavaScript por trozo) hacia un FixedLengthStream: así el
+// navegador conoce la longitud exacta y detecta cortes, y el Worker casi no gasta CPU.
+export function buildZip(bucket, entries, ctx) {
   const list = entries.map((e) => {
     const { time, date } = dosTime(e.ms || Date.now());
     return { ...e, time, date, descriptor: e.crc == null };
   });
-  // Longitud total conocida de antemano.
   let length = 0;
   for (const e of list) length += 30 + enc.encode(e.name).length + e.size + (e.descriptor ? 16 : 0);
   for (const e of list) length += 46 + enc.encode(e.name).length;
   length += 22;
 
-  let i = 0, offset = 0, reader = null, cur = null, crc = 0, sent = 0;
-  const central = [];
-  let finished = false;
-
-  const stream = new ReadableStream({
-    async pull(ctrl) {
-      if (finished) return;
-      try {
-        if (!reader) {
-          if (i >= list.length) {
-            let cdSize = 0;
-            for (const c of central) { ctrl.enqueue(c); cdSize += c.length; }
-            ctrl.enqueue(endRecord(list.length, cdSize, offset));
-            finished = true; ctrl.close(); return;
-          }
-          cur = list[i];
-          const obj = await bucket.get(cur.key);
-          const head = localHeader(cur, cur.descriptor);
-          cur.offset = offset;
-          ctrl.enqueue(head); offset += head.length;
-          crc = 0; sent = 0;
-          if (!obj) { reader = { missing: true, left: cur.size }; return; }
-          reader = obj.body.getReader();
-          return;
+  const { readable, writable } = new FixedLengthStream(length);
+  const put = async (bytes) => { const w = writable.getWriter(); try { await w.write(bytes); } finally { w.releaseLock(); } };
+  const run = (async () => {
+    try {
+      let offset = 0; const central = [];
+      for (const cur of list) {
+        const head = localHeader(cur, cur.descriptor);
+        cur.offset = offset;
+        await put(head); offset += head.length;
+        const obj = cur.size > 0 ? await bucket.get(cur.key, { range: { offset: 0, length: cur.size } }) : null;
+        let got = 0;
+        if (obj) { got = Math.min(cur.size, obj.size); await obj.body.pipeTo(writable, { preventClose: true, preventAbort: true }); }
+        if (got < cur.size) await put(new Uint8Array(cur.size - got)); // falta el objeto: se rellena con ceros
+        offset += cur.size;
+        if (cur.descriptor) {
+          const d = new Uint8Array(16); const v = new DataView(d.buffer);
+          v.setUint32(0, SIG_DESC, true); v.setUint32(4, 0, true); v.setUint32(8, cur.size, true); v.setUint32(12, cur.size, true);
+          await put(d); offset += 16;
         }
-        if (reader.missing) { // objeto que falta: se rellena con ceros para no romper la estructura
-          const n = Math.min(65536, reader.left);
-          if (n > 0) { ctrl.enqueue(new Uint8Array(n)); offset += n; sent += n; reader.left -= n; }
-          if (reader.left <= 0) finishEntry(ctrl);
-          return;
-        }
-        const { done, value } = await reader.read();
-        if (done) { finishEntry(ctrl); return; }
-        ctrl.enqueue(value); offset += value.length; sent += value.length;
-      } catch (err) {
-        ctrl.error(err);
+        central.push(centralEntry(cur, cur.descriptor ? 0 : cur.crc, cur.offset));
       }
-    },
-    cancel() { try { reader && reader.cancel && reader.cancel(); } catch { /* nada */ } },
-  });
-
-  function finishEntry(ctrl) {
-    const crcFinal = cur.descriptor ? crc : cur.crc;
-    if (cur.descriptor) {
-      const d = new Uint8Array(16); const v = new DataView(d.buffer);
-      v.setUint32(0, SIG_DESC, true); v.setUint32(4, crcFinal, true); v.setUint32(8, sent, true); v.setUint32(12, sent, true);
-      ctrl.enqueue(d); offset += 16;
-      cur.size = sent;
+      let cdSize = 0;
+      for (const c of central) { await put(c); cdSize += c.length; }
+      await put(endRecord(list.length, cdSize, offset));
+      await writable.close();
+    } catch (err) {
+      try { await writable.abort(err); } catch { /* ya cerrado */ }
     }
-    central.push(centralEntry(cur, crcFinal, cur.offset));
-    reader = null; i++;
-  }
-
-  return { stream, length };
+  })();
+  if (ctx && ctx.waitUntil) ctx.waitUntil(run);
+  return { stream: readable, length };
 }
 
 // Reparte las fotos en partes (por número y por tamaño) para respetar los límites de Cloudflare.
