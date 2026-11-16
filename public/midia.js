@@ -14,6 +14,7 @@
   const PART = 10 * 1024 * 1024, MAX = 1024 * 1024 * 1024;
   const prog = {};  // por tarea: [{ name, pct, error }]
   const size = (b) => (b >= 1048576 ? (b / 1048576).toFixed(b >= 104857600 ? 0 : 1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB');
+  const CRCT = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
   const api = (m, u, body, raw) => fetch(u, { method: m, headers: raw ? {} : { 'content-type': 'application/json' }, body: raw || (body ? JSON.stringify(body) : undefined) });
   function bar(tid) { const el = document.querySelector(`[data-prog="${tid}"]`); if (!el) return; const list = prog[tid] || []; el.replaceChildren(...list.map((p) => h('div', { class: 'mdup' + (p.error ? ' err' : '') }, h('span', {}, p.error ? `${p.name}: ${p.error}` : `${p.name} · ${p.pct}%`), p.error ? null : h('i', {}, h('u', { style: `width:${p.pct}%` }))))); }
 
@@ -37,7 +38,9 @@
         if (!ok) throw new Error('parte');
         partes.push({ partNumber: ok.partNumber, etag: ok.etag }); p.pct = Math.round(((i + 1) / n) * 100); bar(t.id);
       }
-      const r3 = await api('POST', `/api/t/${token}/entregas/${id}/fin`, { partes });
+      let crc = 0xffffffff; for (let o = 0; o < file.size; o += 8 << 20) { const u = new Uint8Array(await file.slice(o, o + (8 << 20)).arrayBuffer()); for (let k = 0; k < u.length; k++) crc = CRCT[(crc ^ u[k]) & 0xff] ^ (crc >>> 8); }
+      crc = (crc ^ 0xffffffff) >>> 0;
+      const r3 = await api('POST', `/api/t/${token}/entregas/${id}/fin`, { partes, crc });
       if (!r3.ok) throw new Error('fin');
       t.entregas = (t.entregas || []).concat((await r3.json()).entrega);
       prog[t.id] = (prog[t.id] || []).filter((x) => x !== p); draw();

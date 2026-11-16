@@ -1,0 +1,1 @@
+ALTER TABLE entregas_torneo ADD COLUMN crc32 INTEGER;

@@ -70,6 +70,12 @@ export async function repetirReady(db) {
 const COLORS = ['#14213d', '#e5604f', '#2f9e6f', '#4a63d6', '#c9376e', '#1f9fb3', '#8e5bd6', '#e5964c'];
 const MAX_BYTES = 1024 * 1024 * 1024, PART = 10 * 1024 * 1024;
 const okType = (m) => /^(image|video)\//.test(String(m || ''));
+let crcSt = { v: null, t: 0 };
+async function crcReady(db) {
+  if (crcSt.v === true || (crcSt.v === false && Date.now() - crcSt.t < 30000)) return crcSt.v;
+  try { await db.prepare('SELECT crc32 FROM entregas_torneo LIMIT 1').first(); crcSt = { v: true, t: Date.now() }; } catch { crcSt = { v: false, t: Date.now() }; }
+  return crcSt.v;
+}
 const keyOf = (e) => `torneo/${e.sede_id}/${e.id}`;
 
 const reDate = /^\d{4}-\d{2}-\d{2}$/;
@@ -579,10 +585,13 @@ export function torneosRoutes(app) {
     if (!me) return json({ error: 'nf' }, 404);
     const e = await ownEntrega(c, me, c.req.param('id'));
     if (!e || e.state !== 'uploading') return json({ error: 'nf' }, 404);
-    const parts = ((await c.req.json().catch(() => ({}))).partes || []).map((p) => ({ partNumber: Number(p.partNumber), etag: String(p.etag) })).sort((a, b) => a.partNumber - b.partNumber);
+    const fb = await c.req.json().catch(() => ({}));
+    const parts = (fb.partes || []).map((p) => ({ partNumber: Number(p.partNumber), etag: String(p.etag) })).sort((a, b) => a.partNumber - b.partNumber);
     if (!parts.length) return json({ error: 'parts' }, 400);
     const obj = await c.env.PHOTOS.resumeMultipartUpload(keyOf(e), e.upload_id).complete(parts);
     await c.env.DB.prepare("UPDATE entregas_torneo SET state = 'ok', upload_id = NULL, size = ?2 WHERE id = ?1").bind(e.id, obj.size).run();
+    const crcIn = fb.crc;
+    if (crcIn != null && Number.isFinite(Number(crcIn)) && (await crcReady(c.env.DB))) await c.env.DB.prepare('UPDATE entregas_torneo SET crc32 = ?2 WHERE id = ?1').bind(e.id, Number(crcIn) >>> 0).run();
     await avisoHub(c, me.torneo_id, 'Archivo nuevo', `${me.name} (${me.sede}) ha subido «${e.filename}».`);
     return json({ entrega: { id: e.id, tarea_id: e.tarea_id, filename: e.filename, mime: e.mime, size: obj.size, review: null, replaces: e.replaces || null, ncom: 0 } });
   });
@@ -634,7 +643,7 @@ export function torneosRoutes(app) {
     const cr = approved ? '' : String(c.req.query('creador') || '');
     const only = approved && (await comentariosReady(c.env.DB)) ? " AND e.review = 'ok'" : '';
     const rows = (await c.env.DB.prepare(
-      `SELECT e.id, e.filename, e.size, e.created_at, e.sede_id, c.name AS cname, t.title, t.date
+      `SELECT e.id, e.filename, e.size, e.created_at, e.sede_id, ${(await crcReady(c.env.DB)) ? 'e.crc32' : 'NULL'} AS crc32, c.name AS cname, t.title, t.date
        FROM entregas_torneo e JOIN tareas_torneo t ON t.id = e.tarea_id LEFT JOIN creadores c ON c.id = e.creador_id
        WHERE e.sede_id = ? AND e.state = 'ok'${only} ${cr ? 'AND e.creador_id = ?' : ''} ORDER BY COALESCE(c.name, ''), t.date, t.created_at, e.created_at, e.id`,
     ).bind(...(cr ? [sede.id, cr] : [sede.id])).all()).results;
@@ -652,9 +661,9 @@ export function torneosRoutes(app) {
       let name = `${safe(r.cname) || 'Sin asignar'}/${r.date ? r.date + '_' : ''}${safe(r.title) || 'tarea'}/${safe(r.filename) || r.id}`;
       while (used.has(name)) name = name.replace(/(\.[^./]*)?$/, `_${r.id.slice(0, 4)}$1`);
       used.add(name);
-      return { key: keyOf(r), name, size: r.size, crc: null, ms: r.created_at };
+      return { id: r.id, key: keyOf(r), name, size: r.size, crc: r.crc32 ?? null, ms: r.created_at };
     });
-    await fillCrc(c.env.PHOTOS, entries);
+    await fillCrc(c.env.PHOTOS, entries, (await crcReady(c.env.DB)) ? (e, crc) => c.env.DB.prepare('UPDATE entregas_torneo SET crc32 = ?2 WHERE id = ?1').bind(e.id, crc).run() : undefined);
     const { stream, length } = buildZip(c.env.PHOTOS, entries);
     const label = safe(sede.name).replace(/\s+/g, '-') || 'sede';
     const who = cr && list[0] ? '-' + (safe(list[0].cname).replace(/\s+/g, '-') || 'creador') : '';

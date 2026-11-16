@@ -157,6 +157,20 @@ export function galleryRoutes(app) {
     return json({ ok: true, v });
   });
 
+  // Archivos sin CRC guardado (vídeos antiguos): el navegador del dueño lo calcula una vez
+  app.get('/api/g/:id/nocrc', async (c) => {
+    const { event } = await ownerEvent(c); if (!event) return json({ error: 'auth' }, 403);
+    const rows = (await c.env.DB.prepare(`SELECT p.id FROM photos p WHERE p.crc32 IS NULL AND p.state IN ('approved','pending','rejected') AND p.size > 0 AND p.event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) LIMIT 20`).bind(event.id).all()).results;
+    return json({ ids: rows.map((r) => r.id) });
+  });
+  app.post('/api/g/:id/crc', async (c) => {
+    const x = await api(c); if (!x) return json({ error: 'auth' }, 403);
+    const id = String(x.body.id || ''); const crc = Number(x.body.crc);
+    if (!isHex(id, 32) || !Number.isFinite(crc)) return json({ error: 'bad' }, 400);
+    await c.env.DB.prepare('UPDATE photos SET crc32 = ?3 WHERE id = ?1 AND crc32 IS NULL AND event_id IN (SELECT id FROM events WHERE id = ?2 OR parent_id = ?2)').bind(id, x.event.id, crc >>> 0).run();
+    return json({ ok: true });
+  });
+
   // Fotos de una galería (y sus subgalerías) para elegir portada
   app.get('/api/g/:id/photos', async (c) => {
     const { event } = await ownerEvent(c); if (!event) return json({ error: 'auth' }, 403);
