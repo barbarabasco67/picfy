@@ -259,19 +259,23 @@
   });
 })();
 
-// Calcula en segundo plano el CRC de originales antiguos (para que sus ZIP los abra bien el Mac)
+// Calcula en segundo plano el CRC de originales antiguos (para que sus ZIP los abra bien el Mac). Lo hace el servidor por trozos.
 (() => {
   const m = location.pathname.match(/^\/galerias\/([0-9a-f]{16})$/); if (!m) return;
   const id = m[1];
-  const T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
   (async () => {
     try {
-      const { ids } = await (await fetch(`/api/g/${id}/nocrc`)).json();
-      for (const pid of ids || []) {
-        const r = await fetch(`/m/${pid}/o?dl=1`); if (!r.ok) continue;
-        const rd = r.body.getReader(); let c = 0xffffffff;
-        for (;;) { const { done, value } = await rd.read(); if (done) break; for (let i = 0; i < value.length; i++) c = T[(c ^ value[i]) & 0xff] ^ (c >>> 8); }
-        await fetch(`/api/g/${id}/crc`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: pid, crc: (c ^ 0xffffffff) >>> 0 }) });
+      for (let round = 0; round < 50; round++) {
+        const { ids } = await (await fetch(`/api/g/${id}/nocrc`)).json();
+        if (!ids || !ids.length) return;
+        for (const pid of ids) {
+          let off = 0, st = null;
+          for (;;) {
+            const r = await fetch(`/api/g/${id}/crc-step`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: pid, off, st }) });
+            if (!r.ok) throw new Error('crc');
+            const d = await r.json(); if (d.done) break; off = d.off; st = d.st;
+          }
+        }
       }
     } catch { /* segundo plano */ }
   })();

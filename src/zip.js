@@ -114,14 +114,13 @@ export function buildZip(bucket, entries) {
         }
         if (reader.missing) { // objeto que falta: se rellena con ceros para no romper la estructura
           const n = Math.min(65536, reader.left);
-          if (n > 0) { ctrl.enqueue(new Uint8Array(n)); offset += n; sent += n; reader.left -= n; if (cur.descriptor) crc = crcUpdate(crc, new Uint8Array(n)); }
+          if (n > 0) { ctrl.enqueue(new Uint8Array(n)); offset += n; sent += n; reader.left -= n; }
           if (reader.left <= 0) finishEntry(ctrl);
           return;
         }
         const { done, value } = await reader.read();
         if (done) { finishEntry(ctrl); return; }
         ctrl.enqueue(value); offset += value.length; sent += value.length;
-        if (cur.descriptor) crc = crcUpdate(crc, value);
       } catch (err) {
         ctrl.error(err);
       }

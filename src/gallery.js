@@ -171,6 +171,32 @@ export function galleryRoutes(app) {
     return json({ ok: true });
   });
 
+  // CRC por pasos (servidor lee un trozo de R2 y devuelve el estado; el navegador lo va guardando)
+  const CRC_STEP = 16 * 1024 * 1024;
+  const crcT = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  app.post('/api/g/:id/crc-step', async (c) => {
+    const x = await api(c); if (!x) return json({ error: 'auth' }, 403);
+    const id = String(x.body.id || ''); const off = Math.max(0, Number(x.body.off) || 0);
+    let st = x.body.st == null ? 0xffffffff : Number(x.body.st) >>> 0;
+    if (!isHex(id, 32)) return json({ error: 'bad' }, 400);
+    const p = await c.env.DB.prepare('SELECT id, size, crc32 FROM photos WHERE id = ?1 AND event_id IN (SELECT id FROM events WHERE id = ?2 OR parent_id = ?2)').bind(id, x.event.id).first();
+    if (!p) return json({ error: 'nf' }, 404);
+    if (p.crc32 != null) return json({ done: true });
+    const len = Math.min(CRC_STEP, p.size - off);
+    if (len > 0) {
+      const obj = await c.env.PHOTOS.get(`p/${id}/o`, { range: { offset: off, length: len } });
+      if (!obj) return json({ error: 'nf' }, 404);
+      const r = obj.body.getReader();
+      for (;;) { const { done, value } = await r.read(); if (done) break; for (let i = 0; i < value.length; i++) st = crcT[(st ^ value[i]) & 0xff] ^ (st >>> 8); }
+    }
+    const next = off + Math.max(0, len);
+    if (next >= p.size) {
+      await c.env.DB.prepare('UPDATE photos SET crc32 = ?2 WHERE id = ?1 AND crc32 IS NULL').bind(id, (st ^ 0xffffffff) >>> 0).run();
+      return json({ done: true });
+    }
+    return json({ off: next, st: st >>> 0 });
+  });
+
   // Fotos de una galería (y sus subgalerías) para elegir portada
   app.get('/api/g/:id/photos', async (c) => {
     const { event } = await ownerEvent(c); if (!event) return json({ error: 'auth' }, 403);
