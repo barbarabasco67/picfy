@@ -10,7 +10,8 @@ function page() {
 button{background:#14213d;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:inherit;cursor:pointer}button:disabled{opacity:.5}
 input{font:inherit;padding:9px;border:1px solid #d9d3c7;border-radius:10px;width:100%;box-sizing:border-box}</style></head><body>
 <h1>Importar del plugin antiguo</h1>
-<input id="em" value="pablo.garcia.alvarez91@gmail.com" aria-label="Correo de tu cuenta Picfy">
+<select id="em" style="font:inherit;padding:9px;border:1px solid #d9d3c7;border-radius:10px;width:100%" aria-label="Cuenta"></select>
+<p><button id="mv">Juntar galerías importadas en esta cuenta</button> <span id="ms"></span></p>
 <div id="l"><p>Buscando…</p></div>
 <script>
 const $=s=>document.querySelector(s);const L=$('#l');
@@ -33,6 +34,8 @@ async function run(b){document.querySelectorAll('button').forEach(x=>x.disabled=
   if(r.error){st.textContent='Error: '+r.error;return}
   ev=r.event;cur=r.cursor;done+=r.done;fail+=r.fail||0;st.textContent='Importadas '+done+(fail?' · fallidas '+fail:'')+'…';
   if(!cur){st.innerHTML='Listo: '+done+' fotos. <a href="/galerias/'+ev+'">Abrir galería</a>';return}}}
+fetch('/admin/import/users').then(r=>r.json()).then(u=>{$('#em').innerHTML=(u.users||[]).map(x=>'<option value="'+x.email+'">'+x.email+' · '+x.n+' galerías</option>').join('')});
+$('#mv').onclick=async()=>{const r=await (await fetch('/admin/import/merge',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:$('#em').value})})).json();$('#ms').textContent=r.error||('Listo: '+r.moved+' fotos en '+r.galleries+' galería(s)')};
 albums();
 </script></body></html>`;
 }
@@ -55,6 +58,40 @@ export function importRoutes(app, { isAdmin }) {
     let raiz = [];
     if (!c.req.query('cursor') && !l.objects.length) raiz = (await c.env.PHOTOS.list({ delimiter: '/', limit: 50 })).delimitedPrefixes;
     return json({ albums, keys: l.objects.length, raiz, cursor: l.truncated ? l.cursor : '' });
+  });
+
+  app.get('/admin/import/users', async (c) => {
+    if (!(await isAdmin(c))) return json({ error: 'admin' }, 401);
+    const r = await c.env.DB.prepare('SELECT u.email, (SELECT COUNT(*) FROM events e WHERE e.owner_id = u.id AND e.parent_id IS NULL) AS n FROM users u ORDER BY n DESC, u.created_at DESC LIMIT 200').all();
+    return json({ users: r.results });
+  });
+
+  // Junta todas las galerías "Importado (álbum X)" de cualquier cuenta en una sola por álbum, dentro de la cuenta elegida.
+  app.post('/admin/import/merge', async (c) => {
+    if (!(await isAdmin(c))) return json({ error: 'admin' }, 401);
+    const b = await c.req.json().catch(() => ({}));
+    const db = c.env.DB;
+    const u = await db.prepare('SELECT id FROM users WHERE email = ?').bind(String(b.email || '').trim().toLowerCase()).first();
+    if (!u) return json({ error: 'No existe esa cuenta' }, 404);
+    const evs = (await db.prepare("SELECT id, name FROM events WHERE name LIKE 'Importado (álbum %' AND parent_id IS NULL ORDER BY created_at").all()).results;
+    const byName = {};
+    for (const e of evs) (byName[e.name] = byName[e.name] || []).push(e.id);
+    let moved = 0; let galleries = 0;
+    for (const ids of Object.values(byName)) {
+      const keep = ids[0]; galleries++;
+      await db.prepare('UPDATE events SET owner_id = ? WHERE id = ?').bind(u.id, keep).run();
+      const gid = `imp${keep}`.slice(0, 24);
+      await db.prepare('INSERT OR IGNORE INTO guests (id, event_id, key_hash, name, created_at) VALUES (?, ?, ?, ?, ?)').bind(gid, keep, 'imp-merge', 'Importado', Date.now()).run();
+      for (const other of ids.slice(1)) {
+        const r = await db.prepare('UPDATE photos SET event_id = ?, guest_id = ? WHERE event_id = ? AND filename NOT IN (SELECT filename FROM photos WHERE event_id = ?)').bind(keep, gid, other, keep).run();
+        moved += (r.meta && r.meta.changes) || 0;
+        const rest = (await db.prepare('SELECT id FROM photos WHERE event_id = ?').bind(other).all()).results;
+        for (const p of rest) { await c.env.PHOTOS.delete(['o', 'm', 'l'].map((s) => `p/${p.id}/${s}`)); await db.prepare('DELETE FROM photos WHERE id = ?').bind(p.id).run(); }
+        await db.prepare('DELETE FROM guests WHERE event_id = ?').bind(other).run();
+        await db.prepare('DELETE FROM events WHERE id = ?').bind(other).run();
+      }
+    }
+    return json({ moved, galleries });
   });
 
   app.post('/admin/import/run', async (c) => {
