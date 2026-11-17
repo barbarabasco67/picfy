@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Propuesta Web Clínica López Azpúrua</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Direccion: medicina estetica sofisticada. Verde salvia de la marca, blanco roto, un toque arena.
+   Layout: hero fotografico con retrato de la doctora, tratamientos en mosaico, bloque de la doctora,
+   opiniones, primera consulta gratuita y visita. Fotos y logo: los de su web actual. */
+:root{
+  --sage:#6f867c;
+  --sage-deep:#43564e;
+  --sage-ink:#26332e;
+  --mist:#eef2ef;
+  --cream:#f8f6f1;
+  --sand:#b9a47f;
+  --ink:#26302c;
+  --muted:#66746e;
+  --line:rgba(67,86,78,.18);
+  --display:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  --body:'Montserrat',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink);font:400 16px/1.65 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.02;text-wrap:balance;letter-spacing:-.005em}
+h1{font-size:clamp(2.7rem,6vw,5rem)}
+h2{font-size:clamp(2.1rem,4.4vw,3.3rem)}
+h3{font-size:1.65rem}
+em{font-style:italic;font-weight:500;color:var(--sand)}
+p{max-width:58ch}
+section{padding:96px 0;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:12px;font-size:.72rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--sage-deep)}
+.eyebrow::before{content:"";width:30px;height:1px;background:var(--sand)}
+.ico{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.rv{transition:transform .9s var(--ease)}
+.rv.pre{transform:translateY(34px)}
+.rv.pre.in{transform:none}
+
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 30px;border-radius:999px;font:500 .84rem var(--body);letter-spacing:.12em;text-transform:uppercase;border:1.5px solid transparent;cursor:pointer;white-space:nowrap;overflow:hidden;isolation:isolate;transition:transform .35s var(--ease),box-shadow .35s var(--ease),background .35s,color .35s}
+.btn .ico{width:17px;height:17px;transition:transform .35s var(--ease)}
+.btn:hover .arrow{transform:translateX(4px)}
+.btn-primary{background:var(--sage);color:#fff;box-shadow:0 12px 28px -12px rgba(67,86,78,.8)}
+.btn-primary::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.3) 50%,transparent 70%);transform:translateX(-120%);transition:transform .8s var(--ease);z-index:-1}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-primary:hover::before{transform:translateX(120%)}
+.btn-white{background:#fff;color:var(--sage-deep)}
+.btn-white:hover{transform:translateY(-2px)}
+.btn-line{border-color:rgba(255,255,255,.7);color:#fff}
+.btn-line:hover{background:#fff;color:var(--sage-deep)}
+.btn.sm{min-height:44px;padding:0 22px;font-size:.74rem}
+.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--sand);outline-offset:3px}
+
+/* Barra y cabecera */
+.topbar{background:var(--sage);color:#eef5f1;font-size:.78rem;letter-spacing:.02em}
+.topbar .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 24px;padding-top:10px;padding-bottom:10px}
+.topbar span{display:inline-flex;align-items:center;gap:8px}
+.topbar .ico{width:14px;height:14px}
+header.main{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--line)}
+header.main .wrap{display:flex;align-items:center;justify-content:space-between;height:84px;gap:24px}
+.brand img{height:62px;width:auto;mix-blend-mode:multiply}
+nav.menu{display:none;gap:30px;font-size:.78rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
+nav.menu a{position:relative;color:var(--muted);transition:color .3s}
+nav.menu a::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:1px;background:var(--sand);transform:scaleX(0);transform-origin:left;transition:transform .4s var(--ease)}
+nav.menu a:hover{color:var(--sage-deep)}
+nav.menu a:hover::after{transform:scaleX(1)}
+@media(min-width:1040px){nav.menu{display:flex}}
+
+/* Hero */
+.hero{padding:0;color:#fff;overflow:hidden;background:var(--sage-ink)}
+.hero-bg{position:absolute;inset:0;background:url(img/hero.jpg) center/cover no-repeat;animation:kb 26s ease-in-out infinite alternate}
+@keyframes kb{to{transform:scale(1.08)}}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(32,45,39,.9) 8%,rgba(46,64,56,.62) 55%,rgba(60,80,71,.4)),radial-gradient(60% 80% at 80% 30%,rgba(185,164,127,.18),transparent)}
+.hero .wrap{position:relative;z-index:2;display:grid;gap:56px;align-items:center;padding-top:84px;padding-bottom:104px}
+@media(min-width:960px){.hero .wrap{grid-template-columns:1.1fr .9fr;gap:72px}}
+.pill{display:inline-flex;align-items:center;gap:10px;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(8px);font-size:.74rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--sand);animation:ping 2.4s infinite}
+@keyframes ping{70%{box-shadow:0 0 0 10px rgba(185,164,127,0)}0%{box-shadow:0 0 0 0 rgba(185,164,127,.6)}}
+.hero h1{margin-top:26px}
+.hero .lead{font-size:1.1rem;color:#dfe8e3;margin-top:24px;font-weight:400}
+.hero .row{display:flex;flex-wrap:wrap;gap:14px;margin-top:38px}
+.trust{display:flex;flex-wrap:wrap;gap:12px 32px;margin-top:44px;padding-top:28px;border-top:1px solid rgba(255,255,255,.22)}
+.trust div{display:flex;align-items:center;gap:12px;font-size:.84rem;color:#d3dfd9}
+.trust b{display:block;color:#fff;font-weight:500;font-size:1rem;line-height:1.2}
+.trust .ico{color:var(--sand);width:30px;height:30px}
+.stage{position:relative;max-width:440px;width:100%;margin:0 auto}
+.portrait{position:relative;overflow:hidden;aspect-ratio:4/5;border-radius:220px 220px 22px 22px;box-shadow:0 40px 90px -40px rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.25)}
+.portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 24%;animation:kb 24s ease-in-out infinite alternate}
+.glass{background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.85);backdrop-filter:blur(14px) saturate(1.3);border-radius:18px;box-shadow:0 18px 40px -20px rgba(38,51,46,.4);color:var(--ink)}
+.fcard{position:absolute;display:flex;align-items:center;gap:14px;padding:14px 18px;animation:float 7s ease-in-out infinite}
+.fcard .ic{width:42px;height:42px;border-radius:12px;background:var(--sage);color:#fff;display:grid;place-items:center}
+.fcard b{display:block;font-weight:600;line-height:1.25;font-size:.86rem}
+.fcard span{font-size:.76rem;color:var(--muted)}
+.hero .glass{background:rgba(255,255,255,.86)}
+.f1{left:-34px;bottom:14%}
+.f2{right:-22px;top:12%;animation-delay:-3.5s}
+@keyframes float{50%{transform:translateY(-12px)}}
+@media(max-width:600px){.f1{left:-6px}.f2{right:-6px}}
+
+/* Marquee */
+.marquee{background:var(--sand);color:#fff;padding:20px 0;overflow:hidden;white-space:nowrap;transform:rotate(-1.2deg);margin:-20px -20px 0;position:relative;z-index:3;box-shadow:0 20px 40px -26px rgba(38,51,46,.5)}
+.track{display:inline-flex;animation:slide 40s linear infinite}
+.track span{display:inline-flex;align-items:center;gap:26px;padding-right:26px;font-family:var(--display);font-size:1.7rem;font-style:italic}
+.track .ico{width:18px;height:18px}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* Tratamientos */
+.treat{padding-top:112px}
+.head{display:grid;gap:18px;margin-bottom:52px}
+.head p{color:var(--muted)}
+@media(min-width:900px){.head{grid-template-columns:1fr 1fr;align-items:end;gap:72px}}
+.mosaic{display:grid;gap:18px}
+@media(min-width:640px){.mosaic{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1000px){.mosaic{grid-template-columns:repeat(4,1fr);grid-auto-rows:260px}.mosaic .big{grid-column:span 2;grid-row:span 2}}
+.tc{position:relative;overflow:hidden;border-radius:22px;min-height:280px;display:flex;align-items:flex-end;padding:18px;color:#fff;isolation:isolate;cursor:pointer}
+.tc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transition:transform 1.2s var(--ease)}
+.tc::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(32,45,39,.82),rgba(32,45,39,.05) 62%)}
+.tc:hover img{transform:scale(1.08)}
+.tc .cap{width:100%;display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
+.tc h3{font-size:1.55rem;color:#fff}
+.tc p{font-size:.84rem;color:#dbe6e0;margin-top:6px;max-width:30ch}
+.tc .go{flex:none;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.5);backdrop-filter:blur(8px);display:grid;place-items:center;transition:transform .5s var(--ease),background .4s}
+.tc:hover .go{transform:rotate(-45deg);background:var(--sand)}
+.tc.plain{background:linear-gradient(160deg,var(--sage),var(--sage-deep))}
+@media(min-width:1000px){.tc.plain{grid-column:span 2}}
+.tc.plain::before{display:none}
+.tc.plain .big-ico{position:absolute;right:-20px;top:-10px;width:170px;height:170px;stroke-width:.7;color:rgba(255,255,255,.18)}
+.tc.big h3{font-size:2.3rem}
+.tc.big p{font-size:.95rem}
+
+/* Doctora */
+.doc{background:var(--mist)}
+.doc .wrap{display:grid;gap:56px;align-items:center}
+@media(min-width:940px){.doc .wrap{grid-template-columns:.85fr 1.15fr;gap:88px}}
+.docimg{position:relative;max-width:420px;margin:0 auto;width:100%}
+.docimg .frame{aspect-ratio:2/3;border-radius:22px;overflow:hidden;box-shadow:0 40px 80px -44px rgba(38,51,46,.7)}
+.docimg img{width:100%;height:100%;object-fit:cover}
+.docimg::before{content:"";position:absolute;inset:-18px 18px 18px -18px;border:1px solid var(--sand);border-radius:26px;z-index:-1}
+.docimg .badge{position:absolute;right:-18px;bottom:36px;padding:16px 20px}
+.docimg .badge b{display:block;font-family:var(--display);font-size:2.2rem;line-height:1;color:var(--sage-deep)}
+.docimg .badge span{font-size:.76rem;color:var(--muted)}
+.doc h2{margin:16px 0 20px}
+.doc p{color:var(--muted)}
+.cred{list-style:none;padding:0;margin-top:30px;display:grid;gap:14px}
+.cred li{display:flex;gap:16px;align-items:flex-start;padding:18px 20px;border-radius:16px;background:#fff;border:1px solid var(--line)}
+.cred .ico{color:var(--sage);margin-top:2px}
+.cred b{display:block;font-weight:600;font-size:.94rem}
+.cred span{color:var(--muted);font-size:.88rem}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.pills span{padding:10px 18px;border-radius:999px;border:1px solid var(--sage);color:var(--sage-deep);font-size:.78rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;transition:all .35s var(--ease)}
+.pills span:hover{background:var(--sage);color:#fff}
+
+/* Opiniones */
+.rev{background:var(--sage-ink);color:#eaf0ed;overflow:hidden}
+.rev::before{content:"";position:absolute;width:620px;height:620px;left:-200px;bottom:-260px;border-radius:50%;background:radial-gradient(closest-side,rgba(185,164,127,.22),transparent)}
+.rev .wrap{position:relative;display:grid;gap:48px;align-items:center}
+@media(min-width:900px){.rev .wrap{grid-template-columns:.8fr 1.2fr;gap:80px}}
+.rev .eyebrow{color:#d8c8a6}
+.score{font-family:var(--display);font-size:clamp(6rem,14vw,9.5rem);line-height:.9;font-weight:600;color:#fff}
+.score small{font-size:.28em;color:#c3d2ca;font-family:var(--body);letter-spacing:.1em}
+.stars{display:flex;gap:4px;color:var(--sand);margin:14px 0 10px}
+.stars .ico{width:22px;height:22px;fill:currentColor;stroke:none}
+.rev .src{color:#c3d2ca;font-size:.9rem}
+.themes{display:grid;gap:16px}
+@media(min-width:640px){.themes{grid-template-columns:repeat(3,1fr)}}
+.th{padding:28px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px);transition:transform .5s var(--ease),background .5s}
+.th:hover{transform:translateY(-8px);background:rgba(255,255,255,.1)}
+.th .ico{color:var(--sand);width:30px;height:30px;margin-bottom:18px}
+.th h3{color:#fff;font-size:1.4rem;margin-bottom:8px}
+.th p{color:#c9d7d0;font-size:.9rem}
+
+/* Primera consulta */
+.book{background:linear-gradient(160deg,#eef2ef,#e3ebe6)}
+.book .wrap{display:grid;gap:52px;align-items:center}
+@media(min-width:940px){.book .wrap{grid-template-columns:1fr 1fr;gap:88px}}
+.book h2{margin:16px 0 20px}
+.book p{color:var(--muted)}
+.perks{list-style:none;padding:0;margin-top:28px;display:grid;gap:14px}
+.perks li{display:flex;align-items:center;gap:14px;font-size:.95rem}
+.perks .ico{width:24px;height:24px;color:var(--sage-deep);background:#fff;border-radius:50%;padding:5px;stroke-width:2}
+.form{padding:36px;border-radius:26px;background:rgba(255,255,255,.75)}
+.form h3{margin-bottom:6px}
+.form .sub{font-size:.88rem;color:var(--muted);margin-bottom:24px}
+.field{display:grid;gap:7px;margin-bottom:16px}
+.field label{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sage-deep)}
+.field input,.field select{width:100%;min-height:52px;padding:0 16px;border-radius:14px;border:1px solid var(--line);background:#fff;font:inherit;font-size:.95rem;color:var(--ink);transition:border-color .3s,box-shadow .3s}
+.field input:focus,.field select:focus{border-color:var(--sage);box-shadow:0 0 0 4px rgba(111,134,124,.18);outline:none}
+.form .btn{width:100%;margin-top:6px}
+.form .note{font-size:.8rem;color:var(--muted);margin-top:14px;text-align:center}
+
+/* Visita */
+.visit .wrap{display:grid;gap:52px}
+@media(min-width:940px){.visit .wrap{grid-template-columns:1fr 1.1fr;gap:80px;align-items:center}}
+.info{display:grid;gap:18px;margin-top:32px}
+.info div{display:flex;gap:16px;align-items:flex-start}
+.info .ic{width:48px;height:48px;border-radius:14px;background:var(--mist);color:var(--sage-deep);display:grid;place-items:center;flex:none}
+.info b{display:block;font-weight:600;font-size:.95rem}
+.info span{color:var(--muted);font-size:.9rem}
+.map{position:relative;aspect-ratio:5/4;border-radius:26px;border:1px solid var(--line);overflow:hidden;
+  background:linear-gradient(var(--line) 1px,transparent 1px) 0 0/52px 52px,linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/52px 52px,linear-gradient(160deg,#eef2ef,#e0e9e4)}
+.road{position:absolute;background:#fff;border-radius:8px;box-shadow:0 0 0 1px var(--line)}
+.r1{left:-5%;top:58%;width:110%;height:16px;transform:rotate(-8deg)}
+.r2{left:44%;top:-5%;width:16px;height:110%;transform:rotate(12deg)}
+.pin{position:absolute;left:50%;top:44%;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center}
+.pin .dot{width:52px;height:52px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--sage);display:grid;place-items:center;box-shadow:0 14px 24px -8px rgba(38,51,46,.6);animation:bob 2.6s ease-in-out infinite}
+.pin .dot i{width:16px;height:16px;border-radius:50%;background:var(--cream);display:block}
+@keyframes bob{50%{transform:rotate(-45deg) translate(-4px,4px)}}
+.pin .lab{margin-top:14px;padding:9px 18px;border-radius:999px;font-size:.78rem;font-weight:500;color:var(--sage-deep);white-space:nowrap}
+
+footer.site{background:var(--sage-ink);color:#b9c8c0;padding:44px 0;font-size:.85rem}
+footer.site .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 32px}
+footer.site .flogo{height:54px;width:auto;border-radius:10px;background:#fff;padding:6px 12px}
+footer.site nav{display:flex;gap:22px;flex-wrap:wrap}
+footer.site a:hover{color:#fff}
+.wa{position:fixed;right:18px;bottom:18px;z-index:60;width:58px;height:58px;border-radius:50%;background:var(--sage);color:#fff;display:grid;place-items:center;box-shadow:0 14px 30px -10px rgba(38,51,46,.7);transition:transform .4s var(--ease)}
+.wa:hover{transform:scale(1.08)}
+.wa .ico{width:26px;height:26px}
+
+@media(max-width:600px){
+  section{padding:68px 0}
+  .btn{width:100%}
+  header.main .btn{width:auto;padding:0 16px}
+  .brand img{height:50px}
+  .track span{font-size:1.35rem}
+  .tc{min-height:260px}
+  .docimg .badge{right:-4px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.6-3.3 7.8-8 9-4.7-1.2-8-4.4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3c.6 4.6 3.4 7.4 8 8-4.6.6-7.4 3.4-8 8-.6-4.6-3.4-7.4-8-8 4.6-.6 7.4-3.4 8-8z"/></symbol>
+  <symbol id="i-cap" viewBox="0 0 24 24"><path d="M3 9l9-4 9 4-9 4z"/><path d="M7 11.5V16c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4.5M21 9v5"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-7 4-13 15-14-1 12-7 16-13 14zM5 19c3-4 6-7 10-9"/></symbol>
+  <symbol id="i-chat2" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
+  <symbol id="i-vein" viewBox="0 0 24 24"><path d="M8 3c3 3 1 6 4 9s1 6 4 9M16 3c-3 3-1 6-4 9"/></symbol>
+</svg>
+
+<div class="topbar">
+  <div class="wrap">
+    <span><svg class="ico"><use href="#i-mail"/></svg>info@clinicalopezazpurua.com</span>
+    <span><svg class="ico"><use href="#i-phone"/></svg>Teléfono: 655 92 03 69</span>
+  </div>
+</div>
+
+<header class="main">
+  <div class="wrap">
+    <a class="brand" href="#inicio" aria-label="Clínica López-Azpúrua, inicio"><img src="img/logo.jpg" alt="Clínica López-Azpúrua, medicina estética" width="170" height="62"></a>
+    <nav class="menu" aria-label="Principal">
+      <a href="#tratamientos">Tratamientos</a>
+      <a href="#clinica">La clínica</a>
+      <a href="#pacientes">Pacientes</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+    <a class="btn btn-primary sm" href="#cita">Solicitar cita</a>
+  </div>
+</header>
+
+<main id="inicio">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="wrap">
+      <div>
+        <span class="pill"><i></i>Medicina estética en Chamberí, Madrid</span>
+        <h1>Realza tu belleza, mantén tu <em>esencia</em></h1>
+        <p class="lead">Medicina estética sofisticada, natural y personalizada. Menos es más: resultados que se notan en ti, no en el tratamiento.</p>
+        <div class="row">
+          <a class="btn btn-white" href="#cita">Pedir cita <svg class="ico arrow"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-line" href="#tratamientos">Ver tratamientos</a>
+        </div>
+        <div class="trust">
+          <div><svg class="ico"><use href="#i-star"/></svg><span><b>5 sobre 5</b>142 opiniones en Doctoralia</span></div>
+          <div><svg class="ico"><use href="#i-shield"/></svg><span><b>Primera consulta gratuita</b>Sin compromiso</span></div>
+        </div>
+      </div>
+      <div class="stage tilt" data-tilt="6">
+        <div class="portrait"><img src="img/equipo.jpg" alt="Dra. Alexandra López Azpúrua" width="440" height="663"></div>
+        <div class="fcard glass f2">
+          <span class="ic"><svg class="ico"><use href="#i-cap"/></svg></span>
+          <div><b>Dra. Alexandra López Azpúrua</b><span>Médico cirujano</span></div>
+        </div>
+        <div class="fcard glass f1">
+          <span class="ic"><svg class="ico"><use href="#i-leaf"/></svg></span>
+          <div><b>Enfoque personalizado</b><span>Resultados naturales</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIRA -->
+  <div class="marquee" aria-hidden="true">
+    <div class="track">
+      <span>Ácido hialurónico<svg class="ico"><use href="#i-spark"/></svg>Mesoterapia<svg class="ico"><use href="#i-spark"/></svg>Neuromoduladores<svg class="ico"><use href="#i-spark"/></svg>Estimuladores de colágeno<svg class="ico"><use href="#i-spark"/></svg>Endolaser<svg class="ico"><use href="#i-spark"/></svg>Aquapure<svg class="ico"><use href="#i-spark"/></svg>Microneedling<svg class="ico"><use href="#i-spark"/></svg>Esclerosis de varices<svg class="ico"><use href="#i-spark"/></svg></span>
+      <span>Ácido hialurónico<svg class="ico"><use href="#i-spark"/></svg>Mesoterapia<svg class="ico"><use href="#i-spark"/></svg>Neuromoduladores<svg class="ico"><use href="#i-spark"/></svg>Estimuladores de colágeno<svg class="ico"><use href="#i-spark"/></svg>Endolaser<svg class="ico"><use href="#i-spark"/></svg>Aquapure<svg class="ico"><use href="#i-spark"/></svg>Microneedling<svg class="ico"><use href="#i-spark"/></svg>Esclerosis de varices<svg class="ico"><use href="#i-spark"/></svg></span>
+    </div>
+  </div>
+
+  <!-- TRATAMIENTOS -->
+  <section class="treat" id="tratamientos">
+    <div class="wrap">
+      <div class="head rv">
+        <div>
+          <span class="eyebrow">Tratamientos</span>
+          <h2 style="margin-top:16px">Medicina estética sin <em>artificio</em></h2>
+        </div>
+        <p>Tratamientos no quirúrgicos y antienvejecimiento, elegidos tras una valoración médica y adaptados a lo que tú necesitas.</p>
+      </div>
+      <div class="mosaic">
+        <a class="tc big rv" href="#cita"><img src="img/hialuronico.jpg" alt="Tratamiento con ácido hialurónico" loading="lazy"><div class="cap"><div><h3>Ácido hialurónico</h3><p>Volumen, hidratación y definición con resultado natural.</p></div><span class="go"><svg class="ico"><use href="#i-arrow"/></svg></span></div></a>
+        <a class="tc rv" href="#cita"><img src="img/mesoterapia.jpg" alt="Mesoterapia facial" loading="lazy"><div class="cap"><div><h3>Mesoterapia</h3><p>Hidratación y luminosidad.</p></div><span class="go"><svg class="ico"><use href="#i-arrow"/></svg></span></div></a>
+        <a class="tc rv" href="#cita"><img src="img/neuromoduladores.jpg" alt="Tratamiento con neuromoduladores" loading="lazy"><div class="cap"><div><h3>Neuromoduladores</h3><p>Suaviza las líneas de expresión.</p></div><span class="go"><svg class="ico"><use href="#i-arrow"/></svg></span></div></a>
+        <a class="tc rv" href="#cita"><img src="img/colageno.jpg" alt="Estimuladores de colágeno" loading="lazy"><div class="cap"><div><h3>Estimuladores de colágeno</h3><p>Firmeza y calidad de la piel.</p></div><span class="go"><svg class="ico"><use href="#i-arrow"/></svg></span></div></a>
+        <a class="tc rv" href="#cita"><img src="img/endolaser.jpg" alt="Endolaser y endolifting" loading="lazy"><div class="cap"><div><h3>Endolaser</h3><p>Efecto lifting sin cirugía.</p></div><span class="go"><svg class="ico"><use href="#i-arrow"/></svg></span></div></a>
+        <a class="tc rv" href="#cita"><img src="img/aquapure.jpg" alt="Tratamiento Aquapure" loading="lazy"><div class="cap"><div><h3>Aquapure</h3><p>Limpieza e hidratación profunda.</p></div><span class="go"><svg class="ico"><use href="#i-arrow"/></svg></span></div></a>
+        <a class="tc rv" href="#cita"><img src="img/microneedling.jpg" alt="Microneedling" loading="lazy"><div class="cap"><div><h3>Microneedling</h3><p>Renueva la textura de la piel.</p></div><span class="go"><svg class="ico"><use href="#i-arrow"/></svg></span></div></a>
+        <a class="tc plain rv" href="#cita"><svg class="ico big-ico"><use href="#i-vein"/></svg><div class="cap"><div><h3>Esclerosis de varices</h3><p>Tratamiento de varices y arañas vasculares.</p></div><span class="go"><svg class="ico"><use href="#i-arrow"/></svg></span></div></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCTORA -->
+  <section class="doc" id="clinica">
+    <div class="wrap">
+      <div class="docimg rv">
+        <div class="frame"><img src="img/equipo.jpg" alt="Dra. Alexandra López Azpúrua en la clínica" loading="lazy" width="440" height="663"></div>
+        <div class="badge glass"><b>5,0</b><span>en Doctoralia</span></div>
+      </div>
+      <div class="rv">
+        <span class="eyebrow">Equipo médico</span>
+        <h2>Dra. Alexandra <em>López Azpúrua</em></h2>
+        <p>Médico cirujano con un enfoque cercano y personalizado. Cada consulta empieza escuchándote y explicándote con claridad qué es posible, qué te conviene y qué no hace falta.</p>
+        <ul class="cred">
+          <li><svg class="ico"><use href="#i-cap"/></svg><div><b>Médico cirujano</b><span>Universidad Central de Venezuela</span></div></li>
+          <li><svg class="ico"><use href="#i-cap"/></svg><div><b>Máster en Medicina Estética y Antienvejecimiento</b><span>Universidad Complutense de Madrid</span></div></li>
+        </ul>
+        <div class="pills"><span>Natural</span><span>Personalizada</span><span>Cercana</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPINIONES -->
+  <section class="rev" id="pacientes">
+    <div class="wrap">
+      <div class="rv">
+        <span class="eyebrow">Pacientes</span>
+        <div class="score">5<small> / 5</small></div>
+        <div class="stars" aria-label="5 de 5">
+          <svg class="ico"><use href="#i-star"/></svg><svg class="ico"><use href="#i-star"/></svg><svg class="ico"><use href="#i-star"/></svg><svg class="ico"><use href="#i-star"/></svg><svg class="ico"><use href="#i-star"/></svg>
+        </div>
+        <p class="src">Valoración media en Doctoralia, a partir de 142 opiniones.</p>
+      </div>
+      <div class="themes">
+        <div class="th rv"><svg class="ico"><use href="#i-chat2"/></svg><h3>Explicaciones claras</h3><p>Tiempo para resolver dudas y entender cada tratamiento.</p></div>
+        <div class="th rv"><svg class="ico"><use href="#i-shield"/></svg><h3>Confianza</h3><p>Un trato cercano que hace sentir seguridad desde la primera visita.</p></div>
+        <div class="th rv"><svg class="ico"><use href="#i-leaf"/></svg><h3>Naturalidad</h3><p>Resultados que realzan, sin cambiar tu esencia.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIMERA CONSULTA -->
+  <section class="book" id="cita">
+    <div class="wrap">
+      <div class="rv">
+        <span class="eyebrow">Primera consulta</span>
+        <h2>Primera consulta <em>gratuita</em></h2>
+        <p>Cuéntanos qué te gustaría mejorar. Te respondemos por WhatsApp y concretamos tu cita, sin compromiso.</p>
+        <ul class="perks">
+          <li><svg class="ico"><use href="#i-check"/></svg>Valoración médica personalizada</li>
+          <li><svg class="ico"><use href="#i-check"/></svg>Plan claro, sin tratamientos innecesarios</li>
+          <li><svg class="ico"><use href="#i-check"/></svg>Respuesta rápida por WhatsApp</li>
+        </ul>
+      </div>
+      <div class="form glass rv">
+        <h3>Pide tu cita</h3>
+        <p class="sub">Tres datos y se abre WhatsApp con tu mensaje listo.</p>
+        <div class="field"><label for="f-nombre">Nombre</label><input id="f-nombre" type="text" placeholder="Tu nombre" autocomplete="given-name"></div>
+        <div class="field"><label for="f-tel">Teléfono</label><input id="f-tel" type="tel" placeholder="600 000 000" autocomplete="tel"></div>
+        <div class="field"><label for="f-int">Me interesa</label>
+          <select id="f-int"><option>Primera consulta gratuita</option><option>Ácido hialurónico</option><option>Mesoterapia</option><option>Neuromoduladores</option><option>Estimuladores de colágeno</option><option>Endolaser / Endolifting</option><option>Aquapure</option><option>Microneedling</option><option>Esclerosis de varices</option></select>
+        </div>
+        <a class="btn btn-primary" id="f-go" href="https://wa.me/34655920369">Reservar por WhatsApp <svg class="ico arrow"><use href="#i-arrow"/></svg></a>
+        <p class="note">O llámanos al <a href="tel:+34655920369"><b>655 92 03 69</b></a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISITA -->
+  <section class="visit" id="contacto">
+    <div class="wrap">
+      <div class="rv">
+        <span class="eyebrow">Contacto</span>
+        <h2 style="margin-top:16px">En el corazón de <em>Chamberí</em></h2>
+        <div class="info">
+          <div><span class="ic"><svg class="ico"><use href="#i-pin"/></svg></span><p><b>Calle Blasco de Garay, 75</b><span>28003 Madrid</span></p></div>
+          <div><span class="ic"><svg class="ico"><use href="#i-phone"/></svg></span><p><b>655 92 03 69</b><span>Llamadas y WhatsApp</span></p></div>
+          <div><span class="ic"><svg class="ico"><use href="#i-mail"/></svg></span><p><b>info@clinicalopezazpurua.com</b><span>Escríbenos cuando quieras</span></p></div>
+        </div>
+      </div>
+      <!-- Sustituir por el mapa embebido de Google Maps -->
+      <div class="map rv" role="img" aria-label="Ubicación de la clínica">
+        <div class="road r1"></div><div class="road r2"></div>
+        <div class="pin"><div class="dot"><i></i></div><span class="lab glass">Clínica López-Azpúrua</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <img class="flogo" src="img/logo.jpg" alt="Clínica López-Azpúrua" width="147" height="54">
+    <span>© 2026 Clínica Estética López Azpúrua · Chamberí, Madrid</span>
+    <nav aria-label="Legal"><a href="#">Aviso legal</a><a href="#">Política de privacidad</a><a href="#">Política de cookies</a></nav>
+  </div>
+</footer>
+
+<a class="wa" href="https://wa.me/34655920369" aria-label="Escribir por WhatsApp"><svg class="ico"><use href="#i-chat"/></svg></a>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var STATIC = /static/.test(location.search);
+
+  var rv = [].slice.call(document.querySelectorAll('.rv'));
+  if(!reduce && !STATIC && 'IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    },{threshold:.08});
+    rv.forEach(function(el,i){
+      if(el.getBoundingClientRect().top > innerHeight){ el.classList.add('pre'); el.style.transitionDelay=(i%4)*80+'ms'; io.observe(el); }
+    });
+  }
+
+  if(!reduce && matchMedia('(hover:hover)').matches){
+    [].forEach.call(document.querySelectorAll('.tilt'), function(el){
+      var max = parseFloat(el.dataset.tilt)||6;
+      el.addEventListener('pointermove', function(e){
+        var r = el.getBoundingClientRect();
+        var x = (e.clientX - r.left)/r.width - .5, y = (e.clientY - r.top)/r.height - .5;
+        el.style.transform = 'perspective(900px) rotateY('+(x*max)+'deg) rotateX('+(-y*max)+'deg)';
+      });
+      el.addEventListener('pointerleave', function(){ el.style.transform=''; });
+    });
+  }
+
+  var n = document.getElementById('f-nombre'), t = document.getElementById('f-tel'), s = document.getElementById('f-int'), go = document.getElementById('f-go');
+  function upd(){
+    var msg = 'Hola, soy ' + (n.value||'[nombre]') + '. Me gustaría pedir cita: ' + s.value + '.' + (t.value ? ' Mi teléfono: ' + t.value + '.' : '');
+    go.href = 'https://wa.me/34655920369?text=' + encodeURIComponent(msg);
+  }
+  [n,t,s].forEach(function(el){ el.addEventListener('input', upd); el.addEventListener('change', upd); });
+  upd();
+})();
+</script>
+</body>
+</html>
