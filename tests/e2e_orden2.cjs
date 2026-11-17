@@ -28,5 +28,12 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   await same('grupo al principio');
   for (const i of [0, 1, 2]) await p.locator('.tile.ph').nth(i).locator('.chk').check({ force: true });
   await drag(1, 8, true); await same('grupo al final de la lista');
+  for (const i of [4, 6]) await p.locator('.tile.ph').nth(i).locator('.chk').check({ force: true });
+  const s2 = await p.locator('.tile.ph.picked').evaluateAll((l) => l.map((e) => e.dataset.id.slice(0, 4)));
+  await p.click('#selbar [data-act=end]'); await p.waitForSelector('.toast:has-text("Orden guardado")');
+  const e2 = await ids(); ok(JSON.stringify(e2.slice(-2)) === JSON.stringify(s2), 'botón Al final: ' + e2.join(','));
+  await same('Al final guardado');
+  await p.locator('.tile.ph').nth(3).locator('.chk').check({ force: true });
+  await p.click('#selbar [data-act=top]'); await p.waitForSelector('.toast:has-text("Orden guardado")'); await same('botón Al principio guardado');
   await b.close();
 })();

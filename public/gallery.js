@@ -103,6 +103,15 @@
     try {
       if (act === 'clear') sort.clear();
       else if (act === 'delete') { if (confirm(`¿Mandar ${ids.length} ${ids.length === 1 ? 'foto' : 'fotos'} a la papelera? Podrás recuperarlas durante 7 días.`)) { await sort.removeIds(ids); applyFilter(); } }
+      else if (act === 'top' || act === 'end') {
+        const set = new Set(ids), all = [...grid.querySelectorAll('.tile')], mine = all.filter((t) => set.has(t.dataset.id)), rest = all.filter((t) => !set.has(t.dataset.id));
+        const order = act === 'top' ? mine.concat(rest) : rest.concat(mine);
+        order.forEach((t) => grid.append(t));
+        await post(api + '/reorder', { ids: order.map((t) => t.dataset.id) });
+        const sb = $('sortBy'); if (!sb.querySelector('[value=manual]')) sb.add(new Option('Orden manual', 'manual')); sb.value = 'manual';
+        toast('Orden guardado');
+        (act === 'top' ? mine[0] : mine[mine.length - 1]).scrollIntoView({ block: 'center' });
+      }
       else if (act === 'approve' || act === 'reject') { await post(api + '/state', { action: act, ids }); location.reload(); }
       else if (act === 'fav') {
         const all = ids.every((i) => tile(i).dataset.fav === '1'); const v = all ? 0 : 1;

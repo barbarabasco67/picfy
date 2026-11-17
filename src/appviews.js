@@ -378,6 +378,9 @@ ${photos.length ? `<div class="grid sort-grid pgrid2" id="sortGrid">${tiles}</di
 <button class="sb" type="button" data-act="approve" title="Aprobar">Aprobar</button>
 <button class="sb" type="button" data-act="reject" title="Quitar de la galería">Rechazar</button>
 <span class="sepv"></span>
+<button class="sb" type="button" data-act="top" title="Mover la selección al principio">Al principio</button>
+<button class="sb" type="button" data-act="end" title="Mover la selección al final">Al final</button>
+<span class="sepv"></span>
 <span class="menuwrap"><button class="sb ic" type="button" id="flagMenuBtn" title="Bandera" aria-label="Bandera">${ICON.flag}</button><div class="menu glass hidden" id="flagMenu">${flagMenu}</div></span>
 <button class="sb ic" type="button" data-act="fav" title="Destacar" aria-label="Destacar">${ICON.heart}</button>
 ${folders.length > 1 ? `<select id="folderTo" aria-label="Mover a carpeta"><option value="">Mover a…</option>${folders.map((f) => `<option value="${f.id}">${f.parent_id ? esc(f.name) : esc(f.name) + ' (principal)'}</option>`).join('')}</select>` : ''}
