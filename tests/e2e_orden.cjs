@@ -15,11 +15,11 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   const a = await p.locator('.gitem').nth(0).boundingBox(), z = await p.locator('.gitem').nth(2).boundingBox();
   await p.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await p.mouse.down();
   await p.mouse.move(a.x + a.width / 2 + 20, a.y + a.height / 2 + 20, { steps: 4 });
-  await p.mouse.move(z.x + z.width / 2, z.y + z.height * 0.2, { steps: 8 }); await p.mouse.up();
+  await p.mouse.move(z.x + z.width * 0.2, z.y + z.height / 2, { steps: 8 }); await p.mouse.up();
   await p.waitForSelector('.toast:has-text("Orden guardado")');
   ok(!(await p.locator('.lb.open').count()), 'no se abre el visor tras arrastrar');
   await p.reload(); await p.waitForSelector('.gitem'); const after = await ids();
-  ok(JSON.stringify(after) === JSON.stringify([before[1], before[0], before[2], before[3]]), 'se coloca delante de la que estaba ahí y esa queda detrás: ' + after.map((x) => x.slice(0, 4)).join(','));
+  ok(JSON.stringify(after) === JSON.stringify([before[1], before[2], before[0], before[3]]), 'la foto ocupa el sitio de la 3 y la 3 sube: ' + after.map((x) => x.slice(0, 4)).join(','));
   const adm = p.url().includes('/g/') ? null : null;
   await p.goto(gl.replace(/^.*$/, B + '/galerias')); await p.click('.gcard a, .gcard'); await p.waitForSelector('.tile.ph');
   await p.waitForTimeout(1200);
@@ -32,8 +32,9 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   const aids2 = await p.locator('.tile.ph').evaluateAll((l) => l.map((e) => e.dataset.id));
   await p.goto(gl); await p.waitForSelector('.gitem'); const pids2 = await ids();
   ok(JSON.stringify(aids2) === JSON.stringify(pids2), 'tras mover en el panel, la galería coincide: ' + pids2.map((x) => x.slice(0, 4)).join(','));
-  const g = await (await b.newContext()).newPage(); await g.goto(gl); await g.waitForSelector('.gitem');
+  const g = await (await b.newContext({ viewport: { width: 1280, height: 900 } })).newPage(); await g.goto(gl); await g.waitForSelector('.gitem');
   ok((await g.evaluate(() => document.body.dataset.sortapi)) === undefined, 'un invitado no puede reordenar');
   ok(JSON.stringify(await g.locator('.gitem .tile').evaluateAll((l) => l.map((e) => e.dataset.id))) === JSON.stringify(pids2), 'el invitado ve el mismo orden');
+  await g.waitForTimeout(1500); await g.screenshot({ path: '/tmp/picfy_shots/orden_rows.png', fullPage: true });
   await b.close();
 })();

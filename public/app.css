@@ -297,12 +297,14 @@ body.app .hero { margin-bottom: 48px; } body.app .hero.has-cover { margin-bottom
 .sizer input::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
 .sizer input::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; }
 
-/* Cuadrícula: cada foto con su proporción real (columnas tipo mosaico) */
-body.app .grid.gguest { display: block; column-count: 2; column-gap: 14px; padding: 0 0 36px; }
-@media (min-width: 760px) { body.app .grid.gguest { column-count: 3; column-gap: 18px; } }
-body.app .grid.gguest[style*="--cw"] { column-count: auto; column-width: var(--cw); }
-.gitem { margin: 0 0 22px; break-inside: avoid; -webkit-column-break-inside: avoid; }
-body.app .gguest .tile { display: block; aspect-ratio: var(--ar, 1); border-radius: 8px; box-shadow: none; background: #f3ece0; overflow: hidden; }
+/* Cuadrícula: filas justificadas, cada foto con su proporción real; se lee de izquierda a derecha y de arriba abajo */
+body.app .grid.gguest:not(.list) { display: flex; flex-wrap: wrap; gap: 28px 8px; padding: 0 0 36px; --rh: 150px; }
+@media (min-width: 760px) { body.app .grid.gguest:not(.list) { --rh: 230px; gap: 30px 10px; } }
+body.app .grid.gguest[style*="--cw"] { --rh: calc(var(--cw) * .8); }
+body.app .grid.gguest:not(.list)::after { content: ''; flex-grow: 1000000; }
+body.app .grid.gguest:not(.list) .gitem { flex: calc(var(--ar, 1.5) * 100) 1 calc(var(--ar, 1.5) * var(--rh)); min-width: 0; margin: 0; }
+.gitem { margin: 0 0 22px; }
+body.app .gguest .tile { display: block; aspect-ratio: var(--ar, 1.5); border-radius: 8px; box-shadow: none; background: #f3ece0; overflow: hidden; }
 .gitem .det { display: none; }
 /* Lineal: foto a la izquierda y detalles a la derecha, en 2 columnas */
 body.app .grid.gguest.list { display: grid; column-count: auto; column-width: auto; grid-template-columns: 1fr; gap: 14px 18px; }

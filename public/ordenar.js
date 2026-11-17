@@ -42,8 +42,7 @@
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const over = el && el.closest ? el.closest('.gitem') : null;
     if (over && !st.group.includes(over) && grid.contains(over)) {
-      const r = over.getBoundingClientRect();
-      st.target = over; st.after = e.clientY > r.top + r.height / 2;
+      st.target = over; { const all = items(); st.after = all.indexOf(st.group[0]) < all.indexOf(over); }
       over.classList.add(st.after ? 'drop-after' : 'drop-before');
     } else st.target = null;
   });

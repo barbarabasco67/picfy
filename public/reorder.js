@@ -156,8 +156,8 @@
         clearMarks();
         const over = tileAt(e.clientX, e.clientY);
         if (over && !st.group.includes(over)) {
-          const r = over.getBoundingClientRect();
-          st.target = over; st.after = e.clientX > r.left + r.width / 2;
+          const all = tiles();
+          st.target = over; st.after = all.indexOf(st.group[0]) < all.indexOf(over);
           over.classList.add(st.after ? 'drop-after' : 'drop-before');
         } else st.target = null;
       } else updateMarquee(e.clientX, e.clientY);

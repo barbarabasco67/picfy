@@ -20,6 +20,10 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
     await p.waitForSelector('.toast:has-text("Orden guardado")'); await p.waitForTimeout(2300);
   };
   const same = async (m) => { const d = await ids(); await p.reload(); await p.waitForSelector('.tile.ph'); const r = await ids(); ok(JSON.stringify(d) === JSON.stringify(r), m + ' → ' + r.join(',')); };
+  { const b0 = await ids(); await drag(6, 2, false); const a0 = await ids();
+    ok(a0[2] === b0[6] && a0[3] === b0[2] && a0[4] === b0[3] && a0[6] === b0[5], 'la de abajo ocupa el sitio de la 3 y las demás se corren: ' + a0.join(',')); await same('guardado');
+    const b1 = await ids(); await drag(1, 4, false); const a1 = await ids();
+    ok(a1[4] === b1[1] && a1[1] === b1[2] && a1[3] === b1[4], 'una de arriba pasa a ocupar el sitio de la de más abajo: ' + a1.join(',')); await same('guardado'); }
   await drag(9, 0, false); await same('último al principio');
   await drag(0, 5, true); await same('primero a la mitad');
   await drag(2, 9, true); await same('uno al final');
