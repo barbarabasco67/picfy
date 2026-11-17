@@ -212,6 +212,6 @@ th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line
 .zipbox .zips { display: flex; flex-direction: column; gap: 8px; }
 .zipbox .zips .btn { text-align: center; }
 .gitem.dragging { opacity: .35; }
-.gitem.drop-before { box-shadow: -4px 0 0 var(--accent); }
-.gitem.drop-after { box-shadow: 4px 0 0 var(--accent); }
+.gitem.drop-before { box-shadow: 0 -4px 0 var(--accent); }
+.gitem.drop-after { box-shadow: 0 4px 0 var(--accent); }
 body.no-select { user-select: none; -webkit-user-select: none; }

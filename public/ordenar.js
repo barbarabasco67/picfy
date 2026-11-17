@@ -18,9 +18,13 @@
     if (st.touch) st.timer = setTimeout(() => { if (st && !st.active) start(); }, 320);
   });
   function start() {
-    st.active = true; st.it.classList.add('dragging');
+    st.active = true;
+    const on = (f) => { const b = f.querySelector('.selpick'); return b && b.classList.contains('on'); };
+    st.group = on(st.it) ? items().filter(on) : [st.it];
+    st.group.forEach((f) => f.classList.add('dragging'));
     const g = document.createElement('div'); g.className = 'ghost';
     const im = st.it.querySelector('img'); if (im) g.append(im.cloneNode());
+    if (st.group.length > 1) { const n = document.createElement('b'); n.textContent = st.group.length; g.append(n); }
     document.body.append(g); st.ghost = g; document.body.classList.add('no-select');
   }
   document.addEventListener('pointermove', (e) => {
@@ -37,9 +41,9 @@
     clear();
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const over = el && el.closest ? el.closest('.gitem') : null;
-    if (over && over !== st.it && grid.contains(over)) {
+    if (over && !st.group.includes(over) && grid.contains(over)) {
       const r = over.getBoundingClientRect();
-      st.target = over; st.after = e.clientX > r.left + r.width / 2;
+      st.target = over; st.after = e.clientY > r.top + r.height / 2;
       over.classList.add(st.after ? 'drop-after' : 'drop-before');
     } else st.target = null;
   });
@@ -49,10 +53,10 @@
     const s = st; st = null; clearTimeout(s.timer);
     document.body.classList.remove('no-select');
     if (!s.active) return;
-    s.ghost.remove(); clear(); s.it.classList.remove('dragging');
+    s.ghost.remove(); clear(); s.group.forEach((f) => f.classList.remove('dragging'));
     grid.dataset.justdragged = '1'; setTimeout(() => delete grid.dataset.justdragged, 400);
     if (cancel || !s.target) return;
-    if (s.after) grid.insertBefore(s.it, s.target.nextSibling); else grid.insertBefore(s.it, s.target);
+    if (s.after) { const ref = s.target.nextSibling; s.group.forEach((f) => grid.insertBefore(f, ref)); } else s.group.forEach((f) => grid.insertBefore(f, s.target));
     const ids = items().map((n) => (n.querySelector('.tile') || {}).dataset ? n.querySelector('.tile').dataset.id : '').filter(Boolean);
     try {
       const r = await fetch(api + '/reorder', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ids }) });

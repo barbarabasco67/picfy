@@ -15,11 +15,11 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   const a = await p.locator('.gitem').nth(0).boundingBox(), z = await p.locator('.gitem').nth(2).boundingBox();
   await p.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await p.mouse.down();
   await p.mouse.move(a.x + a.width / 2 + 20, a.y + a.height / 2 + 20, { steps: 4 });
-  await p.mouse.move(z.x + z.width * 0.8, z.y + z.height / 2, { steps: 8 }); await p.mouse.up();
+  await p.mouse.move(z.x + z.width / 2, z.y + z.height * 0.2, { steps: 8 }); await p.mouse.up();
   await p.waitForSelector('.toast:has-text("Orden guardado")');
   ok(!(await p.locator('.lb.open').count()), 'no se abre el visor tras arrastrar');
   await p.reload(); await p.waitForSelector('.gitem'); const after = await ids();
-  ok(after[0] !== before[0] && after.indexOf(before[0]) === 2, 'el orden se guarda: ' + after.map((x) => x.slice(0, 4)).join(','));
+  ok(JSON.stringify(after) === JSON.stringify([before[1], before[0], before[2], before[3]]), 'se coloca delante de la que estaba ahí y esa queda detrás: ' + after.map((x) => x.slice(0, 4)).join(','));
   const adm = p.url().includes('/g/') ? null : null;
   await p.goto(gl.replace(/^.*$/, B + '/galerias')); await p.click('.gcard a, .gcard'); await p.waitForSelector('.tile.ph');
   await p.waitForTimeout(1200);

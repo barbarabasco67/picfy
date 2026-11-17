@@ -8,6 +8,9 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   const files = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => process.cwd() + `/tests/img/p0${i}.jpg`);
   await p.click('#openUpload'); await p.setInputFiles('#fileInput', files); await p.waitForFunction(() => document.querySelectorAll('.up-item').length === 10); await p.click('#upStart');
   await p.waitForSelector('.toast'); await p.waitForFunction(() => document.querySelectorAll('.tile.ph').length === 10);
+  const eid = p.url().match(/galerias\/([0-9a-f]{16})/)[1];
+  require('child_process').execSync(`npx wrangler d1 execute picfy --local --persist-to .wrangler/state --command "UPDATE photos SET sort_order = 0 WHERE event_id = '${eid}'; UPDATE events SET sort_mode = 'manual' WHERE id = '${eid}'"`, { stdio: 'ignore' });
+  await p.reload(); await p.waitForSelector('.tile.ph');
   const ids = () => p.locator('.tile.ph').evaluateAll((l) => l.map((e) => e.dataset.id.slice(0, 4)));
   const drag = async (from, to, after) => {
     const a = await p.locator('.tile.ph').nth(from).boundingBox(), z = await p.locator('.tile.ph').nth(to).boundingBox();
