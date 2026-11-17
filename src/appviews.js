@@ -66,10 +66,10 @@ function shell({ user, active = 'galerias', crumbs = '', main, collapsible = fal
 <div class="side-head"><a class="logo" href="/inicio"><span class="logo-dot"></span><b>Picfy</b></a>${true ? '<button class="iconbtn navtoggle" type="button" id="navToggle" aria-expanded="false" aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>' : ''}</div>
 <nav class="side-nav">
 ${link('inicio', '/inicio', 'Inicio', 'dash')}
-<p class="side-cat">Fotos</p>
-${link('galerias', '/galerias', 'Galerías', 'gal')}${link('colecciones', '/colecciones', 'Colecciones', 'coll')}
-<p class="side-cat">Organización</p>
-${link('agenda', '/agenda', 'Agenda', 'cal')}${link('redes', '/redes', 'Redes sociales', 'chart')}${link('torneos', '/torneo', 'Torneos', 'team')}
+<p class="side-cat">Fotos y torneos</p>
+${link('galerias', '/galerias', 'Galerías', 'gal')}${link('colecciones', '/colecciones', 'Colecciones', 'coll')}${link('torneos', '/torneo', 'Torneos', 'team')}
+<p class="side-cat">Social media y calendario</p>
+${link('redes', '/redes', 'Redes sociales', 'chart')}${link('agenda', '/agenda', 'Calendario general', 'cal')}
 </nav>
 <div class="side-bot">
 ${storage ? spaceBox(storage) : ''}
@@ -81,12 +81,12 @@ ${link('papelera', '/papelera', 'Papelera', 'trash', ' trashnav')}<a class="nav 
 <nav class="tabbar" aria-label="Menú">
 <a class="tab ${active === 'inicio' ? 'on' : ''}" href="/inicio">${ICON.dash}<span>Inicio</span></a>
 <a class="tab ${active === 'galerias' ? 'on' : ''}" href="/galerias">${ICON.gal}<span>Galerías</span></a>
-<a class="tab ${active === 'agenda' ? 'on' : ''}" href="/agenda">${ICON.cal}<span>Agenda</span></a>
 <a class="tab ${active === 'torneos' ? 'on' : ''}" href="/torneo">${ICON.team}<span>Torneos</span></a>
-<button class="tab ${['colecciones', 'papelera', 'cuenta', 'redes'].includes(active) ? 'on' : ''}" type="button" id="tabMore" aria-expanded="false">${ICON.more}<span>Más</span></button>
+<a class="tab ${active === 'redes' ? 'on' : ''}" href="/redes">${ICON.chart}<span>Redes</span></a>
+<button class="tab ${['colecciones', 'papelera', 'cuenta', 'agenda'].includes(active) ? 'on' : ''}" type="button" id="tabMore" aria-expanded="false">${ICON.more}<span>Más</span></button>
 </nav>
 <div class="moresheet" id="moreSheet" hidden>
-<a class="tab ${active === 'redes' ? 'on' : ''}" href="/redes">${ICON.chart}<span>Redes</span></a>
+<a class="tab ${active === 'agenda' ? 'on' : ''}" href="/agenda">${ICON.cal}<span>Calendario</span></a>
 <a class="tab ${active === 'colecciones' ? 'on' : ''}" href="/colecciones">${ICON.coll}<span>Colecciones</span></a>
 <a class="tab ${active === 'papelera' ? 'on' : ''}" href="/papelera">${ICON.trash}<span>Papelera</span></a>
 <a class="tab ${active === 'cuenta' ? 'on' : ''}" href="/cuenta">${av}<span>Mi cuenta</span></a>
@@ -680,7 +680,7 @@ export function agendaPage({ user, ready, kinds, clients = [] }) {
     bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}" data-clients="${esc(JSON.stringify(clients))}"`,
     body: shell({
       user, active: 'agenda', crumbs: '', collapsible: true,
-      main: !ready ? `<div class="head"><div><h1>Agenda</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar la agenda.</div>` : `<div class="head"><div><h1>Agenda</h1></div>
+      main: !ready ? `<div class="head"><div><h1>Agenda</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar la agenda.</div>` : `<div class="head"><div><h1>Calendario general</h1></div>
 <button class="btn primary" type="button" id="agAdd">${ICON.plus} Añadir</button></div>
 ${agendaCore(kinds, clients)}`,
     }),
