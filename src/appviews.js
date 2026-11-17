@@ -69,7 +69,7 @@ ${link('inicio', '/inicio', 'Inicio', 'dash')}
 <p class="side-cat">Fotos</p>
 ${link('galerias', '/galerias', 'Galerías', 'gal')}${link('colecciones', '/colecciones', 'Colecciones', 'coll')}
 <p class="side-cat">Organización</p>
-${link('agenda', '/agenda', 'Agenda', 'cal')}${link('torneos', '/torneo', 'Torneos', 'team')}
+${link('agenda', '/agenda', 'Agenda', 'cal')}${link('redes', '/redes', 'Redes sociales', 'chart')}${link('torneos', '/torneo', 'Torneos', 'team')}
 </nav>
 <div class="side-bot">
 ${storage ? spaceBox(storage) : ''}
@@ -83,9 +83,10 @@ ${link('papelera', '/papelera', 'Papelera', 'trash', ' trashnav')}<a class="nav 
 <a class="tab ${active === 'galerias' ? 'on' : ''}" href="/galerias">${ICON.gal}<span>Galerías</span></a>
 <a class="tab ${active === 'agenda' ? 'on' : ''}" href="/agenda">${ICON.cal}<span>Agenda</span></a>
 <a class="tab ${active === 'torneos' ? 'on' : ''}" href="/torneo">${ICON.team}<span>Torneos</span></a>
-<button class="tab ${['colecciones', 'papelera', 'cuenta'].includes(active) ? 'on' : ''}" type="button" id="tabMore" aria-expanded="false">${ICON.more}<span>Más</span></button>
+<button class="tab ${['colecciones', 'papelera', 'cuenta', 'redes'].includes(active) ? 'on' : ''}" type="button" id="tabMore" aria-expanded="false">${ICON.more}<span>Más</span></button>
 </nav>
 <div class="moresheet" id="moreSheet" hidden>
+<a class="tab ${active === 'redes' ? 'on' : ''}" href="/redes">${ICON.chart}<span>Redes</span></a>
 <a class="tab ${active === 'colecciones' ? 'on' : ''}" href="/colecciones">${ICON.coll}<span>Colecciones</span></a>
 <a class="tab ${active === 'papelera' ? 'on' : ''}" href="/papelera">${ICON.trash}<span>Papelera</span></a>
 <a class="tab ${active === 'cuenta' ? 'on' : ''}" href="/cuenta">${av}<span>Mi cuenta</span></a>
@@ -644,21 +645,14 @@ ${items.length ? `<div class="collist">${cards}</div>` : '<div class="glass empt
 
 /* ---------- Agenda ---------- */
 
-export function agendaPage({ user, ready, kinds }) {
+function agendaCore(kinds, clients = [], clientId = '') {
   const radios = Object.entries(kinds).map(([k, v]) => `<label class="kradio" style="--c:${v.color}"><input type="radio" name="kind" value="${k}"${k === 'tarea' ? ' checked' : ''}><span><i></i>${esc(v.label)}</span></label>`).join('');
-  return appPage({
-    title: 'Agenda',
-    scripts: ['/app.js', '/icons.js', '/agenda.js'],
-    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}"`,
-    body: shell({
-      user, active: 'agenda', crumbs: '', collapsible: true,
-      main: !ready ? `<div class="head"><div><h1>Agenda</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar la agenda.</div>` : `<div class="head"><div><h1>Agenda</h1></div>
-<button class="btn primary" type="button" id="agAdd">${ICON.plus} Añadir</button></div>
-<form class="glass agquick" id="agQuick" autocomplete="off"><input type="text" id="agQuickT" maxlength="160" placeholder="Nueva tarea… (escribe y pulsa Intro)" aria-label="Nueva tarea"><button class="btn primary" type="submit">Añadir tarea</button></form>
+  const clientField = clientId ? `<input type="hidden" name="client_id" value="${esc(clientId)}">` : (clients.length ? `<label class="field"><span>Cliente de redes (opcional)</span><select name="client_id"><option value="">Ninguno</option>${clients.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></label>` : '');
+  return `<form class="glass agquick" id="agQuick" autocomplete="off"><input type="text" id="agQuickT" maxlength="160" placeholder="Nueva tarea… (escribe y pulsa Intro)" aria-label="Nueva tarea"><button class="btn primary" type="submit">Añadir tarea</button></form>
 <div class="aglayout"><div class="agmainc">
 <div class="glass agbar"><div class="agnav"><button class="iconbtn" type="button" id="agPrev" aria-label="Anterior">‹</button><h2 id="agTitle"></h2><button class="iconbtn" type="button" id="agNext" aria-label="Siguiente">›</button><button class="btn sm" type="button" id="agToday">Hoy</button></div>
 <div class="vtog" role="group" aria-label="Vista"><button type="button" data-view="week" class="on">Semana</button><button type="button" data-view="month">Mes</button></div></div>
-<div class="agchips" id="agCats"></div>
+<div class="agchips" id="agClients"></div><div class="agchips" id="agCats"></div>
 <div id="agWeek" class="agweekv"></div><div id="agMonth" class="agmonth" hidden></div>
 </div><aside class="agside" id="agSide"></aside></div>
 
@@ -669,13 +663,26 @@ export function agendaPage({ user, ready, kinds }) {
 <div class="row2"><label class="field"><span id="agDateL">Fecha de inicio</span><input type="date" name="date"></label><label class="field"><span>Fecha de fin (opcional)</span><input type="date" name="end_date"></label></div>
 <div class="row2"><label class="field"><span>Hora (opcional)</span><input type="time" name="time"></label><label class="field"><span>Hora fin (opcional)</span><input type="time" name="end_time"></label></div>
 <label class="field"><span>Cliente o proyecto (opcional)</span><input type="text" name="category" maxlength="80" placeholder="Ej.: Las Rozas 3x3"></label>
+${clientField}
 <label class="agimp"><input type="checkbox" name="important"><span>Importante</span></label>
 <div class="field"><span>Icono (opcional)</span><input type="hidden" name="icon"><div class="icopick" id="agIcons"></div></div>
 <label class="field"><span>Enlace (opcional)</span><input type="text" name="url" maxlength="400" placeholder="https://"></label>
 <label class="field"><span>Notas</span><textarea name="notes" maxlength="2000" rows="3" placeholder="Lugar, rival, lo que necesites…"></textarea></label>
 <footer><button class="btn danger" type="button" id="agDel" hidden>${ICON.trash} Borrar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>
-<dialog id="agDay" class="glassdlg"><div class="dlgbox"><header><h2 id="agDayT"></h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header><div id="agDayList"></div><footer><span class="spacer"></span><button class="btn primary" type="button" id="agDayAdd">${ICON.plus} Añadir aquí</button></footer></div></dialog>`,
+<dialog id="agDay" class="glassdlg"><div class="dlgbox"><header><h2 id="agDayT"></h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header><div id="agDayList"></div><footer><span class="spacer"></span><button class="btn primary" type="button" id="agDayAdd">${ICON.plus} Añadir aquí</button></footer></div></dialog>`;
+}
+
+export function agendaPage({ user, ready, kinds, clients = [] }) {
+  return appPage({
+    title: 'Agenda',
+    scripts: ['/app.js', '/icons.js', '/agenda.js'],
+    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}" data-clients="${esc(JSON.stringify(clients))}"`,
+    body: shell({
+      user, active: 'agenda', crumbs: '', collapsible: true,
+      main: !ready ? `<div class="head"><div><h1>Agenda</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migración 0026) para activar la agenda.</div>` : `<div class="head"><div><h1>Agenda</h1></div>
+<button class="btn primary" type="button" id="agAdd">${ICON.plus} Añadir</button></div>
+${agendaCore(kinds, clients)}`,
     }),
   });
 }
@@ -870,4 +877,80 @@ ${plan.sub && plan.until ? `<p class="muted small" style="margin:12px 0 0">Próx
   };
   const pase = `<article class="glass plan-pase"><div><h3>${esc(PASE.nombre)}</h3><p class="plan-price"><b>${fmtEur(PASE.precio)}</b><span> pago único</span></p><p class="muted">Para un torneo o un evento suelto, sin suscripción: sumas ${PASE.galerias} galería (con sus subgalerías o un torneo completo con sedes) y ${fmtGB(PASE.bytes)} de espacio durante ${PASE.meses} meses.</p></div><button class="btn primary" type="button" data-plan="pase"${stripeOn && !libre ? '' : ' disabled'}>Comprar pase</button></article>`;
   return appPage({ title: 'Planes', scripts: ['/planes.js'], body: shell({ user, active: 'cuenta', main: `<a class="backlink" href="/inicio">← Volver al inicio</a><h1>Planes</h1>${msg}<div class="notice err hidden" id="planMsg"></div>${uso}<div class="plan-grid">${['gratis', 'fotografo', 'organizador'].map(card).join('')}</div>${pase}` }) });
+}
+
+
+/* ---------- Redes sociales por cliente ---------- */
+
+const PALETA = ['#e5964c', '#c9376e', '#8e5bd6', '#2f6fed', '#1f9fb3', '#2f9e5f', '#d6483b', '#14213d', '#b08968', '#e0b400'];
+const inkOn = (hex) => { const n = parseInt(String(hex).slice(1), 16); const l = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; return l > 0.62 ? '#1b1b1b' : '#ffffff'; };
+const fontCss = (fonts, k) => (fonts[k] || fonts.sans).css;
+const fontW = (fonts, k) => (fonts[k] || fonts.sans).w;
+const NETICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>';
+
+function clientFields(fonts, networks, c = {}) {
+  const color = c.color || PALETA[0], font = c.font || 'sans', nets = c.networks || {};
+  return `<label class="field"><span>Nombre del cliente</span><input type="text" name="name" maxlength="80" required value="${esc(c.name || '')}" placeholder="Ej.: Las Rozas 3x3"></label>
+<div class="field"><span>Color</span><div class="swatches">${PALETA.map((p) => `<button type="button" class="sw${p === color ? ' on' : ''}" data-sw="${p}" style="background:${p}" aria-label="${p}"></button>`).join('')}<input type="color" name="color" value="${esc(color)}" aria-label="Otro color"></div></div>
+<div class="field"><span>Letra</span><div class="fontpick">${Object.entries(fonts).map(([k, f]) => `<label class="fontopt"><input type="radio" name="font" value="${k}"${k === font ? ' checked' : ''}><span style="font-family:${f.css};font-weight:${f.w}"><b>Aa</b> ${esc(f.label)}</span></label>`).join('')}</div></div>
+<div class="field"><span>Sus redes</span><div class="netrows">${Object.entries(networks).map(([k, n]) => `<div class="netrow" style="--c:${n.color}"><b>${esc(n.label)}</b><input type="text" data-net="${k}" data-f="handle" maxlength="80" placeholder="@usuario" value="${esc((nets[k] || {}).handle || '')}"><input type="text" data-net="${k}" data-f="url" maxlength="300" placeholder="Enlace al perfil" value="${esc((nets[k] || {}).url || '')}"></div>`).join('')}</div></div>
+<label class="field"><span>Notas</span><textarea name="notes" maxlength="2000" rows="3" placeholder="Tono, hashtags, qué no publicar…">${esc(c.notes || '')}</textarea></label>`;
+}
+
+export function redesPage({ user, ready, clients, fonts, networks }) {
+  const card = (c) => `<a class="glass ccard" href="/redes/${c.id}" style="--cc:${esc(c.color)};--ci:${inkOn(c.color)};--cf:${esc(fontCss(fonts, c.font))};--cw:${fontW(fonts, c.font)}">
+<span class="cbar"></span><h2>${esc(c.name)}</h2>
+<div class="cnets">${Object.entries(c.networks).map(([k, n]) => `<span style="--c:${networks[k].color}">${esc(networks[k].label)}${n.handle ? ' · ' + esc(n.handle) : ''}</span>`).join('') || '<span class="muted">Sin redes añadidas</span>'}</div>
+<p class="cmeta">${c.pending ? `${c.pending} pendiente${c.pending === 1 ? '' : 's'}` : 'Sin pendientes'}${c.next ? ` · Próximo: ${esc(c.next.title)} (${esc(fmtDate(c.next.date))})` : ''}</p></a>`;
+  return appPage({
+    title: 'Redes sociales',
+    scripts: ['/app.js', '/redes.js'],
+    bodyAttrs: `data-nets="${esc(JSON.stringify(Object.keys(networks)))}"`,
+    body: shell({
+      user, active: 'redes', crumbs: '', collapsible: true,
+      main: !ready ? `<div class="head"><div><h1>Redes sociales</h1></div></div><div class="glass emptybox">Falta una actualización de la base de datos (migraciones 0038, 0039 y 0040) para activar las redes sociales.</div>` : `<div class="head"><div><h1>Redes sociales</h1></div>
+<button class="btn primary" type="button" id="rdAdd">${ICON.plus} Nuevo cliente</button></div>
+${clients.length ? `<div class="ccards">${clients.map(card).join('')}</div>` : `<div class="glass emptybox">Aún no hay clientes. Crea el primero para planificar sus publicaciones y seguir sus redes.</div>`}
+<dialog id="rdDlg" class="glassdlg"><form class="dlgbox" id="rdForm" autocomplete="off">
+<header><h2>Nuevo cliente</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+${clientFields(fonts, networks)}
+<footer><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Crear</button></footer>
+</form></dialog>`,
+    }),
+  });
+}
+
+export function clientePage({ user, client, clients, metrics, fonts, networks, kinds, agendaOk, tab }) {
+  const tabs = [['calendario', 'Calendario'], ['seguimiento', 'Seguimiento'], ['ajustes', 'Ajustes']];
+  const t = tabs.some((x) => x[0] === tab) ? tab : 'calendario';
+  const nets = Object.entries(client.networks).map(([k, n]) => {
+    const label = esc(networks[k].label) + (n.handle ? ' · ' + esc(n.handle) : '');
+    return n.url ? `<a class="cnet" style="--c:${networks[k].color}" href="${esc(n.url)}" target="_blank" rel="noopener">${NETICON}${label}</a>` : `<span class="cnet" style="--c:${networks[k].color}">${label}</span>`;
+  }).join('');
+  const body = t === 'calendario'
+    ? (agendaOk ? `<div class="head cadd"><div></div><button class="btn primary cbtn" type="button" id="agAdd">${ICON.plus} Añadir</button></div>${agendaCore(kinds, clients, client.id)}` : '<div class="glass emptybox">Falta la migración de la agenda.</div>')
+    : t === 'seguimiento'
+      ? `<div class="head cadd"><div></div><button class="btn primary cbtn" type="button" id="mtAdd">${ICON.plus} Anotar datos</button></div><div id="mtBoard" class="mtboard"></div>
+<dialog id="mtDlg" class="glassdlg"><form class="dlgbox" id="mtForm" autocomplete="off">
+<header><h2>Anotar datos de una red</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div class="row2"><label class="field"><span>Red</span><select name="network">${Object.entries(networks).map(([k, n]) => `<option value="${k}">${esc(n.label)}</option>`).join('')}</select></label><label class="field"><span>Fecha</span><input type="date" name="date" required></label></div>
+<div class="row2"><label class="field"><span>Seguidores</span><input type="number" min="0" name="followers" inputmode="numeric"></label><label class="field"><span>Publicaciones</span><input type="number" min="0" name="posts" inputmode="numeric"></label></div>
+<div class="row2"><label class="field"><span>Alcance</span><input type="number" min="0" name="reach" inputmode="numeric"></label><label class="field"><span>Interacciones</span><input type="number" min="0" name="interactions" inputmode="numeric"></label></div>
+<label class="field"><span>Nota (opcional)</span><input type="text" name="note" maxlength="300" placeholder="Ej.: subida tras el sorteo"></label>
+<footer><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
+</form></dialog>`
+      : `<form class="glass cset" id="csForm" autocomplete="off">${clientFields(fonts, networks, client)}
+<div class="csfoot"><button class="btn danger" type="button" id="csDel">${ICON.trash} Borrar cliente</button><span class="spacer"></span><button class="btn primary" type="submit">Guardar</button></div></form>`;
+  return appPage({
+    title: client.name,
+    scripts: ['/app.js', '/icons.js'].concat(t === 'calendario' ? ['/agenda.js'] : ['/cliente.js']),
+    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}" data-clients="${esc(JSON.stringify(clients))}" data-client="${client.id}" data-nets="${esc(JSON.stringify(networks))}" data-metrics="${esc(JSON.stringify(metrics))}"`,
+    body: shell({
+      user, active: 'redes', crumbs: '<a href="/redes">Redes sociales</a>', collapsible: true,
+      main: `<div class="cliente" style="--cc:${esc(client.color)};--ci:${inkOn(client.color)};--cf:${esc(fontCss(fonts, client.font))};--cw:${fontW(fonts, client.font)}">
+<header class="chead"><div><h1>${esc(client.name)}</h1><div class="cnets">${nets}</div></div></header>
+<nav class="ctabs">${tabs.map(([k, l]) => `<a href="/redes/${client.id}?t=${k}" class="${k === t ? 'on' : ''}">${l}</a>`).join('')}</nav>
+${body}</div>`,
+    }),
+  });
 }

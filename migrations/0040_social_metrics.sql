@@ -1,0 +1,1 @@
+CREATE TABLE social_metrics (id TEXT PRIMARY KEY, client_id TEXT NOT NULL, network TEXT NOT NULL, date TEXT NOT NULL, followers INTEGER, posts INTEGER, reach INTEGER, interactions INTEGER, note TEXT, created_at INTEGER NOT NULL);

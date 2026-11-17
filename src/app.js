@@ -10,6 +10,7 @@ import { wmRoutes, getWm, wmAttr } from './watermark.js';
 import { getBest } from './best.js';
 import { collectionRoutes } from './collections.js';
 import { agendaRoutes } from './agenda.js';
+import { redesRoutes } from './redes.js';
 import { dashboardRoutes } from './dashboard.js';
 import { torneosRoutes } from './torneos.js';
 import { habitsRoutes } from './habits.js';
@@ -33,6 +34,7 @@ export function appRoutes(app) {
   wmRoutes(app);
   collectionRoutes(app);
   agendaRoutes(app);
+  redesRoutes(app);
   dashboardRoutes(app);
   torneosRoutes(app);
   habitsRoutes(app);

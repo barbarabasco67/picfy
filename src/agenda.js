@@ -2,6 +2,7 @@
 import { randomHex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
 import { agendaPage } from './appviews.js';
+import { redesReady } from './redes.js';
 
 // Tipos de elemento de la agenda (el navegador los usa para pintar; el servidor, para validar).
 export const AGENDA_KINDS = {
@@ -47,7 +48,8 @@ export function agendaRoutes(app) {
   app.get('/agenda', async (c) => {
     const user = await currentUser(c);
     if (!user) return go('/entrar');
-    return html(agendaPage({ user, ready: await agendaReady(c.env.DB), kinds: AGENDA_KINDS }));
+    const cl = (await redesReady(c.env.DB)) ? (await c.env.DB.prepare('SELECT id, name, color, font FROM social_clients WHERE owner_id = ? ORDER BY position, created_at').bind(user.id).all()).results : [];
+    return html(agendaPage({ user, ready: await agendaReady(c.env.DB), kinds: AGENDA_KINDS, clients: cl }));
   });
 
   async function auth(c) {
@@ -55,6 +57,15 @@ export function agendaRoutes(app) {
     if (!user) return { err: json({ error: 'auth' }, 401) };
     if (!(await agendaReady(c.env.DB))) return { err: json({ error: 'setup' }, 503) };
     return { user };
+  }
+
+  // Cliente de redes al que pertenece un elemento (solo si es del usuario); undefined = la migración aún no está.
+  async function clientOf(c, user, raw) {
+    if (!(await redesReady(c.env.DB))) return undefined;
+    const id = String(raw || '');
+    if (!isHex(id, 16)) return null;
+    const r = await c.env.DB.prepare('SELECT id FROM social_clients WHERE id = ? AND owner_id = ?').bind(id, user.id).first();
+    return r ? r.id : null;
   }
 
   app.get('/api/agenda', async (c) => {
@@ -70,9 +81,10 @@ export function agendaRoutes(app) {
     if (r.error) return json({ error: r.error }, 400);
     const id = randomHex(8);
     const v = r.v;
-    await c.env.DB.prepare('INSERT INTO agenda_items (id, owner_id, kind, title, icon, category, date, end_date, time, end_time, done, important, url, notes, created_at) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)')
-      .bind(id, a.user.id, v.kind, v.title, v.icon, v.category, v.date, v.end_date, v.time, v.end_time, v.done, v.important, v.url, v.notes, Date.now()).run();
-    return json({ item: { id, ...v } });
+    const cid = await clientOf(c, a.user, b.client_id);
+    await c.env.DB.prepare('INSERT INTO agenda_items (id, owner_id, kind, title, icon, category, date, end_date, time, end_time, done, important, url, notes, created_at' + (cid !== undefined ? ', client_id' : '') + ') VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15' + (cid !== undefined ? ',?16' : '') + ')')
+      .bind(id, a.user.id, v.kind, v.title, v.icon, v.category, v.date, v.end_date, v.time, v.end_time, v.done, v.important, v.url, v.notes, Date.now(), ...(cid !== undefined ? [cid] : [])).run();
+    return json({ item: { id, ...v, client_id: cid || null } });
   });
 
   app.put('/api/agenda/:id', async (c) => {
@@ -81,12 +93,14 @@ export function agendaRoutes(app) {
     if (!isHex(id, 16)) return json({ error: 'nf' }, 404);
     const cur = await c.env.DB.prepare('SELECT * FROM agenda_items WHERE id = ? AND owner_id = ?').bind(id, a.user.id).first();
     if (!cur) return json({ error: 'nf' }, 404);
-    const r = clean({ ...cur, ...(await c.req.json().catch(() => ({}))) });
+    const body = await c.req.json().catch(() => ({}));
+    const r = clean({ ...cur, ...body });
     if (r.error) return json({ error: r.error }, 400);
     const v = r.v;
-    await c.env.DB.prepare('UPDATE agenda_items SET kind=?2, title=?3, icon=?4, category=?5, date=?6, end_date=?7, time=?8, end_time=?9, done=?10, important=?11, url=?12, notes=?13 WHERE id=?1')
-      .bind(id, v.kind, v.title, v.icon, v.category, v.date, v.end_date, v.time, v.end_time, v.done, v.important, v.url, v.notes).run();
-    return json({ item: { id, ...v } });
+    const cid = 'client_id' in body ? await clientOf(c, a.user, body.client_id) : undefined;
+    await c.env.DB.prepare('UPDATE agenda_items SET kind=?2, title=?3, icon=?4, category=?5, date=?6, end_date=?7, time=?8, end_time=?9, done=?10, important=?11, url=?12, notes=?13' + (cid !== undefined ? ', client_id=?14' : '') + ' WHERE id=?1')
+      .bind(id, v.kind, v.title, v.icon, v.category, v.date, v.end_date, v.time, v.end_time, v.done, v.important, v.url, v.notes, ...(cid !== undefined ? [cid] : [])).run();
+    return json({ item: { id, ...v, client_id: cid !== undefined ? cid : (cur.client_id || null) } });
   });
 
   app.delete('/api/agenda/:id', async (c) => {

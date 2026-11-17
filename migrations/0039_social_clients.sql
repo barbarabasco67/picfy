@@ -1,0 +1,1 @@
+CREATE TABLE social_clients (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, name TEXT NOT NULL, color TEXT NOT NULL, font TEXT NOT NULL DEFAULT 'sans', networks TEXT, notes TEXT, position INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL);
