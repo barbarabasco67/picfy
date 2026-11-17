@@ -2,6 +2,7 @@
 import { randomHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
 import { readMeta } from './exif.js';
+import { nextSortOrder } from './photos.js';
 
 const PRE = 'ov_album/';
 
@@ -113,7 +114,6 @@ export function importRoutes(app, { isAdmin }) {
       await db.prepare('UPDATE photos SET taken_at = ?, w = COALESCE(w, ?), h = COALESCE(h, ?) WHERE id = ?').bind(m.taken || r.uploaded_at, m.w || null, m.h || null, r.id).run();
     }
     const left = (await db.prepare("SELECT COUNT(*) AS n FROM photos WHERE filename LIKE 'plugin-%' AND taken_at IS NULL").first()).n;
-    await db.prepare("UPDATE events SET sort_mode = 'time' WHERE name LIKE 'Importado (álbum %' AND sort_mode <> 'time'").run().catch(() => {});
     return json({ done: rows.length, left });
   });
 
@@ -171,9 +171,9 @@ export function importRoutes(app, { isAdmin }) {
       const up = new Date(best.uploaded).getTime() || Date.now();
       const meta = await readMeta(c.env.PHOTOS, `p/${id}/o`).catch(() => ({}));
       await db.prepare(
-        `INSERT INTO photos (id, event_id, guest_id, filename, mime, size, crc32, w, h, taken_at, uploaded_at, state)
-         VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, 'approved')`,
-      ).bind(id, evId, gid, fname, best.httpMetadata?.contentType || 'image/jpeg', best.size, meta.w || null, meta.h || null, meta.taken || up, up).run();
+        `INSERT INTO photos (id, event_id, guest_id, filename, mime, size, crc32, w, h, taken_at, uploaded_at, state, sort_order)
+         VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, 'approved', ?)`,
+      ).bind(id, evId, gid, fname, best.httpMetadata?.contentType || 'image/jpeg', best.size, meta.w || null, meta.h || null, meta.taken || up, up, await nextSortOrder(db, evId)).run();
       done++;
       } catch (e) { fail++; }
     }

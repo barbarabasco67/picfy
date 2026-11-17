@@ -163,19 +163,16 @@ export async function countApproved(db, eventId, opt = {}) {
 
 // Convierte el orden actual (por hora) en posiciones fijas, para poder pasar a modo manual
 // sin que nada cambie de sitio.
-export async function materialize(db, event) {
-  if (event.sort_mode === 'manual') return;
-  await db
-    .prepare(
-      `UPDATE photos SET sort_order = (
-         SELECT r FROM (
-           SELECT id, ROW_NUMBER() OVER (ORDER BY ${orderSql(event.sort_mode)}) AS r
-           FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1)
-         ) x WHERE x.id = photos.id
-       ) WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1)`,
-    )
-    .bind(event.id)
-    .run();
+export async function materialize(db, event, force = false) {
+  if (event.sort_mode === 'manual' && !force) return;
+  const rows = (await db.prepare(`SELECT id FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) ORDER BY ${orderSql(event.sort_mode)}`).bind(event.id).all()).results;
+  const stmts = [];
+  for (let s = 0; s < rows.length; s += 300) {
+    const part = rows.slice(s, s + 300);
+    const cases = part.map((r, k) => `WHEN '${r.id}' THEN ${s + k + 1}`).join(' ');
+    stmts.push(db.prepare(`UPDATE photos SET sort_order = CASE id ${cases} END WHERE id IN (${part.map((r) => `'${r.id}'`).join(',')})`));
+  }
+  for (let i = 0; i < stmts.length; i += 20) await db.batch(stmts.slice(i, i + 20));
 }
 
 export async function setSortMode(db, eventId, mode) {
@@ -188,6 +185,11 @@ export async function applyOrder(db, event, ids) {
   ids = [...new Set(ids.filter((i) => isHex(i, 32)))];
   if (!ids.length) return 0;
   await materialize(db, event);
+  if (event.sort_mode === 'manual') {
+    // fotos sin posición (p. ej. importadas después de ordenar a mano): se fijan donde se ven ahora
+    const z = await db.prepare('SELECT COUNT(*) AS n FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND sort_order <= 0').bind(event.id).first();
+    if (z && z.n > 0) await materialize(db, event, true);
+  }
   const list = ids.map((i) => `'${i}'`).join(',');
   const rows = await db
     .prepare(`SELECT id, sort_order FROM photos WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND id IN (${list})`)
