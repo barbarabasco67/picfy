@@ -263,7 +263,7 @@ async function guestView(c, event) {
   let parent = null;
   if (event.parent_id) { parent = await c.env.DB.prepare('SELECT id, name, guest_token FROM events WHERE id = ?').bind(event.parent_id).first(); await attachSlugs(c.env.DB, [parent]); }
   const partSize = Number(c.env.ZIP_PART_SIZE) || 40;
-  return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, kind, dl: event.allow_download ? { plan: zipPlan((await c.env.DB.prepare(`SELECT p.size, p.mime FROM photos p WHERE ${famPublic('p.event_id', '?1', await privacyReady(c.env.DB))} AND p.state = 'approved'`).bind(event.id).all()).results, partSize), total: totalAll } : null, best: favN ? { title: best.title, n: favN, all: totalAll, on: onlyBest } : null, wm: wmAttr(await getWm(c.env.DB, event)) }));
+  return html(guestPage({ event, photos, total, page, pages, subs, parent, orden, kind, sortApi: !orden && (await ownsEvent(c, event)) ? `/api/g/${event.id}` : '', dl: event.allow_download ? { plan: zipPlan((await c.env.DB.prepare(`SELECT p.size, p.mime FROM photos p WHERE ${famPublic('p.event_id', '?1', await privacyReady(c.env.DB))} AND p.state = 'approved'`).bind(event.id).all()).results, partSize), total: totalAll } : null, best: favN ? { title: best.title, n: favN, all: totalAll, on: onlyBest } : null, wm: wmAttr(await getWm(c.env.DB, event)) }));
 }
 
 socialRoutes(app, { accessOk, ownsEvent });
