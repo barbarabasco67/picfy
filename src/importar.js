@@ -1,5 +1,6 @@
 // Importación de fotos del plugin antiguo (ov_album/<álbum>/<foto>/{m,l,o}) a una galería nueva. Solo administrador.
 import { randomHex, html, json } from './util.js';
+import { currentUser } from './auth.js';
 
 const PRE = 'ov_album/';
 
@@ -11,6 +12,7 @@ button{background:#14213d;color:#fff;border:0;border-radius:10px;padding:10px 16
 input{font:inherit;padding:9px;border:1px solid #d9d3c7;border-radius:10px;width:100%;box-sizing:border-box}</style></head><body>
 <h1>Importar del plugin antiguo</h1>
 <select id="em" style="font:inherit;padding:9px;border:1px solid #d9d3c7;border-radius:10px;width:100%" aria-label="Cuenta"></select>
+<p id="who"></p>
 <p><button id="mv">Juntar galerías importadas en esta cuenta</button> <span id="ms"></span></p>
 <div id="l"><p>Buscando…</p></div>
 <script>
@@ -63,7 +65,8 @@ export function importRoutes(app, { isAdmin }) {
   app.get('/admin/import/users', async (c) => {
     if (!(await isAdmin(c))) return json({ error: 'admin' }, 401);
     const r = await c.env.DB.prepare('SELECT u.email, (SELECT COUNT(*) FROM events e WHERE e.owner_id = u.id AND e.parent_id IS NULL) AS n FROM users u ORDER BY n DESC, u.created_at DESC LIMIT 200').all();
-    return json({ users: r.results });
+    const me = await currentUser(c).catch(() => null);
+    return json({ users: r.results, me: me ? me.email : '' });
   });
 
   // Junta todas las galerías "Importado (álbum X)" de cualquier cuenta en una sola por álbum, dentro de la cuenta elegida.
