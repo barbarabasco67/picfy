@@ -100,6 +100,7 @@ app.get('/m/:id/:size', async (c) => {
     const row = await c.env.DB.prepare('SELECT filename, mime, event_id FROM photos WHERE id = ?').bind(id).first();
     const name = (await dlName(c.env.DB, row, id)).replace(/[^\w.\- ]+/g, '_');
     headers.set('content-disposition', `attachment; filename="${name}"`);
+    headers.set('cache-control', 'private, no-store');
   }
   return new Response(obj.body, { headers });
 });
@@ -149,7 +150,7 @@ app.get('/e/:token/dl/:id', async (c) => {
   if (!(await ownsEvent(c, event))) await countDownload(c.env.DB, event, 1);
   return new Response(obj.body, { headers: {
     'content-type': obj.httpMetadata?.contentType || 'image/jpeg', 'content-length': String(obj.size),
-    'content-disposition': `attachment; filename="${name}"`, 'cache-control': 'private, max-age=3600',
+    'content-disposition': `attachment; filename="${name}"`, 'cache-control': 'private, no-store',
   } });
 });
 
