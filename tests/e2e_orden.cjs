@@ -20,8 +20,20 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   ok(!(await p.locator('.lb.open').count()), 'no se abre el visor tras arrastrar');
   await p.reload(); await p.waitForSelector('.gitem'); const after = await ids();
   ok(after[0] !== before[0] && after.indexOf(before[0]) === 2, 'el orden se guarda: ' + after.map((x) => x.slice(0, 4)).join(','));
+  const adm = p.url().includes('/g/') ? null : null;
+  await p.goto(gl.replace(/^.*$/, B + '/galerias')); await p.click('.gcard a, .gcard'); await p.waitForSelector('.tile.ph');
+  await p.waitForTimeout(1200);
+  const aids = await p.locator('.tile.ph').evaluateAll((l) => l.map((e) => e.dataset.id));
+  ok(JSON.stringify(aids) === JSON.stringify(after), 'el panel muestra el mismo orden que la galería: ' + aids.map((x) => x.slice(0, 4)).join(','));
+  // y al revés: mover en el panel y ver la galería
+  const a2 = await p.locator('.tile.ph').nth(3).boundingBox(), z2 = await p.locator('.tile.ph').nth(0).boundingBox();
+  await p.mouse.move(a2.x + a2.width / 2, a2.y + a2.height / 2); await p.mouse.down(); await p.mouse.move(a2.x + 20, a2.y + 20, { steps: 4 }); await p.mouse.move(z2.x + z2.width * 0.2, z2.y + z2.height / 2, { steps: 8 }); await p.mouse.up();
+  await p.waitForSelector('.toast:has-text("Orden guardado")');
+  const aids2 = await p.locator('.tile.ph').evaluateAll((l) => l.map((e) => e.dataset.id));
+  await p.goto(gl); await p.waitForSelector('.gitem'); const pids2 = await ids();
+  ok(JSON.stringify(aids2) === JSON.stringify(pids2), 'tras mover en el panel, la galería coincide: ' + pids2.map((x) => x.slice(0, 4)).join(','));
   const g = await (await b.newContext()).newPage(); await g.goto(gl); await g.waitForSelector('.gitem');
   ok((await g.evaluate(() => document.body.dataset.sortapi)) === undefined, 'un invitado no puede reordenar');
-  ok(JSON.stringify(await g.locator('.gitem .tile').evaluateAll((l) => l.map((e) => e.dataset.id))) === JSON.stringify(after), 'el invitado ve el mismo orden');
+  ok(JSON.stringify(await g.locator('.gitem .tile').evaluateAll((l) => l.map((e) => e.dataset.id))) === JSON.stringify(pids2), 'el invitado ve el mismo orden');
   await b.close();
 })();

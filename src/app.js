@@ -350,11 +350,12 @@ export function appRoutes(app) {
     const event = await ownEvent(c, user);
     if (!event) return html(notFoundPage('No encontramos esa galería.'), 404);
     const db = c.env.DB;
+    const best0 = await getBest(db, event);
     const [ph, gs] = await Promise.all([
       db.prepare(
         `SELECT id, guest_id, event_id, (SELECT name FROM events x WHERE x.id = photos.event_id) AS ename, filename, mime, state, flag, fav, size, COALESCE(taken_at, uploaded_at) AS ts FROM photos
          WHERE event_id IN (SELECT id FROM events WHERE id = ?1 OR parent_id = ?1) AND state IN ('approved','pending','rejected')
-         ORDER BY ${orderSql(event.sort_mode)} LIMIT 3000`,
+         ORDER BY ${best0.first ? 'fav DESC, ' : ''}${orderSql(event.sort_mode)} LIMIT 3000`,
       ).bind(event.id).all(),
       db.prepare(
         `SELECT g.id, g.name, (SELECT COUNT(*) FROM photos p WHERE p.guest_id = g.id AND p.state IN ('approved','pending','rejected')) AS n
