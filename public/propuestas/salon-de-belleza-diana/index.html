@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Diana Salón de Belleza · Propuesta de web</title>
+<meta name="description" content="Propuesta de diseño web para Diana Salón de Belleza, Madrid.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#5fae3f; --green-deep:#2c5a27; --green-ink:#1d3a1b; --lime:#a6d96a;
+  --lilac:#b7a2d6; --lilac-soft:#efe9f7; --blue:#1f8fd0;
+  --cream:#fbfaf6; --mist:#f1f6ec; --line:rgba(29,58,27,.12);
+  --display:'Cormorant Garamond',Georgia,serif; --body:'Jost',system-ui,sans-serif;
+  --r:22px; --shadow:0 24px 60px -28px rgba(29,58,27,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--green-ink);background:var(--cream);line-height:1.6;font-size:17px;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+.ico{width:1.25em;height:1.25em;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.wrap{width:min(1180px,92%);margin:0 auto}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.05;letter-spacing:-.01em}
+h2{font-size:clamp(2.2rem,5vw,3.6rem)}
+.eyebrow{display:inline-flex;align-items:center;gap:.6rem;text-transform:uppercase;letter-spacing:.22em;font-size:.74rem;font-weight:500;color:var(--green-deep)}
+.eyebrow:before{content:"";width:34px;height:1px;background:var(--green)}
+.btn{display:inline-flex;align-items:center;gap:.6rem;padding:.95rem 1.7rem;border-radius:999px;font-weight:500;font-size:.95rem;border:1px solid transparent;cursor:pointer;transition:.35s;font-family:inherit}
+.btn.pri{background:var(--green-deep);color:#fff;box-shadow:0 14px 30px -14px rgba(44,90,39,.8)}
+.btn.pri:hover{background:var(--green-ink);transform:translateY(-3px)}
+.btn.gho{border-color:rgba(255,255,255,.7);color:#fff;background:rgba(255,255,255,.08);backdrop-filter:blur(8px)}
+.btn.gho:hover{background:#fff;color:var(--green-ink)}
+
+/* top */
+.top{position:fixed;inset:0 0 auto 0;z-index:50;transition:.4s}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;height:78px}
+.top.sc{background:rgba(251,250,246,.9);backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--line)}
+.logo{display:flex;align-items:center;gap:.6rem;font-family:var(--display);font-size:1.9rem;font-weight:700;color:#fff;transition:.3s}
+.logo small{display:block;font-family:var(--body);font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;font-weight:500;margin-top:-4px}
+.logo svg{width:34px;height:34px}
+.top.sc .logo{color:var(--green-deep)}
+nav{display:flex;gap:2rem;font-size:.9rem;color:#fff}
+nav a{position:relative;padding:.3rem 0}
+nav a:after{content:"";position:absolute;left:0;bottom:0;width:0;height:1px;background:currentColor;transition:.3s}
+nav a:hover:after{width:100%}
+.top.sc nav{color:var(--green-ink)}
+.top .cta{padding:.7rem 1.3rem;font-size:.85rem}
+.burger{display:none;background:none;border:0;color:#fff;cursor:pointer}
+.top.sc .burger{color:var(--green-ink)}
+
+/* hero */
+.hero{position:relative;min-height:100svh;display:grid;align-items:center;color:#fff;overflow:hidden;isolation:isolate}
+.hero .bg{position:absolute;inset:-4%;background:url(img/recepcion.jpg) center/cover;z-index:-3;animation:kb 26s ease-in-out infinite alternate}
+@keyframes kb{to{transform:scale(1.12) translate(-1.5%,-1%)}}
+.hero:before{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(100deg,rgba(18,40,16,.9) 8%,rgba(29,58,27,.62) 48%,rgba(29,58,27,.2))}
+.hero .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:3rem;align-items:center;padding:130px 0 90px}
+.hero h1{font-size:clamp(3rem,7.4vw,6rem);margin:1.2rem 0 1.4rem}
+.hero h1 em{font-style:italic;color:var(--lime)}
+.hero p.lead{font-size:1.15rem;max-width:520px;color:rgba(255,255,255,.88);font-weight:300}
+.hero .btns{display:flex;flex-wrap:wrap;gap:1rem;margin-top:2.2rem}
+.hero .eyebrow{color:var(--lime)}.hero .eyebrow:before{background:var(--lime)}
+.glass{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(18px);border-radius:var(--r)}
+.hcard{padding:1.8rem;display:grid;gap:1.1rem;max-width:380px;margin-left:auto;animation:fl 7s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-12px)}}
+.hcard .row{display:flex;gap:1rem;align-items:center}
+.hcard .row .ico{width:26px;height:26px;color:var(--lime)}
+.hcard b{display:block;font-weight:500}.hcard span{font-size:.88rem;opacity:.85}
+.float2{position:absolute;right:6%;bottom:9%;padding:1rem 1.4rem;display:flex;gap:.9rem;align-items:center;animation:fl 9s ease-in-out infinite reverse}
+.float2 .num{font-family:var(--display);font-size:2.6rem;font-weight:700;line-height:1;color:var(--lime)}
+.scroll{position:absolute;left:50%;bottom:22px;width:1px;height:46px;background:linear-gradient(#fff,transparent);transform:translateX(-50%)}
+
+/* marquee */
+.marq{background:var(--green-deep);color:#fff;overflow:hidden;padding:1.05rem 0;white-space:nowrap}
+.marq div{display:inline-flex;gap:3rem;animation:mq 34s linear infinite;font-family:var(--display);font-size:1.5rem;font-style:italic}
+.marq span{display:inline-flex;align-items:center;gap:3rem}
+.marq span:after{content:"✿";color:var(--lime);font-style:normal;font-size:1rem}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+section{padding:clamp(70px,10vw,130px) 0}
+.head{max-width:640px;margin-bottom:3.2rem}
+.head h2{margin:1rem 0}
+.head p{color:rgba(29,58,27,.72)}
+
+/* sobre */
+.about{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.stack{position:relative;aspect-ratio:1/1.05}
+.stack .a,.stack .b{position:absolute;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.stack .a{inset:0 22% 18% 0}.stack .b{inset:34% 0 0 34%;border:8px solid var(--cream)}
+.stack img{width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;left:-14px;bottom:8%;background:var(--lime);color:var(--green-ink);border-radius:50%;width:122px;height:122px;display:grid;place-items:center;text-align:center;font-size:.78rem;line-height:1.2;font-weight:500;animation:fl 8s ease-in-out infinite}
+.badge b{display:block;font-family:var(--display);font-size:2.1rem;line-height:1}
+.about p{color:rgba(29,58,27,.78);margin-top:1.2rem}
+.ticks{display:grid;gap:.8rem;margin:1.8rem 0 2.2rem}
+.ticks li{list-style:none;display:flex;gap:.8rem;align-items:center}
+.ticks .ico{color:var(--green)}
+
+/* servicios */
+.serv{background:var(--mist)}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+.card{position:relative;background:#fff;border-radius:var(--r);padding:2rem;border:1px solid var(--line);overflow:hidden;transition:.45s;transform-style:preserve-3d}
+.card:hover{box-shadow:var(--shadow);border-color:transparent}
+.card .ic{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:var(--mist);color:var(--green-deep);margin-bottom:1.3rem;transition:.4s}
+.card:hover .ic{background:var(--green);color:#fff;transform:rotate(-8deg) scale(1.08)}
+.card h3{font-size:1.75rem;margin-bottom:.5rem}
+.card p{font-size:.95rem;color:rgba(29,58,27,.7)}
+.card .from{margin-top:1.2rem;font-size:.82rem;text-transform:uppercase;letter-spacing:.14em;color:var(--green-deep);display:flex;align-items:center;gap:.5rem}
+.card.photo{padding:0;color:#fff;min-height:340px;display:flex;align-items:flex-end}
+.card.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 1.2s}
+.card.photo:hover img{transform:scale(1.08)}
+.card.photo:before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 30%,rgba(18,40,16,.88));z-index:1}
+.card.photo .in{position:relative;z-index:2;padding:2rem}
+.card.photo .from{color:var(--lime)}
+.card.photo p{color:rgba(255,255,255,.85)}
+.card.wide{grid-column:span 2}
+
+/* precios */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:1.6rem}
+.pbox{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:2.2rem}
+.pbox h3{font-size:2rem;display:flex;align-items:center;gap:.7rem;margin-bottom:1rem;color:var(--green-deep)}
+.pbox ul{list-style:none}
+.pbox li{display:flex;justify-content:space-between;gap:1rem;padding:.75rem 0;border-bottom:1px dashed var(--line);font-size:.97rem}
+.pbox li:last-child{border:0}
+.pbox li b{font-weight:600;color:var(--green-deep);white-space:nowrap}
+.pbox li small{display:block;color:rgba(29,58,27,.55);font-size:.8rem}
+.promo{margin-top:1.6rem;border-radius:var(--r);background:linear-gradient(120deg,var(--green-deep),#3e7b35);color:#fff;padding:2.2rem 2.6rem;display:flex;justify-content:space-between;align-items:center;gap:1.5rem;flex-wrap:wrap;position:relative;overflow:hidden}
+.promo:after{content:"";position:absolute;right:-40px;top:-60px;width:230px;height:230px;border-radius:50%;background:rgba(166,217,106,.2)}
+.promo h3{font-size:2.1rem}.promo p{opacity:.85}
+.promo .big{font-family:var(--display);font-size:3.4rem;font-weight:700;color:var(--lime);line-height:1;position:relative;z-index:1}
+
+/* galeria */
+.gal{background:var(--lilac-soft)}
+.mos{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:220px;gap:1rem}
+.mos figure{position:relative;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.mos img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s}
+.mos figure:hover img{transform:scale(1.09)}
+.mos .t{grid-column:span 2;grid-row:span 2}.mos .w{grid-column:span 2}
+.mos figcaption{position:absolute;left:1rem;bottom:1rem;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);padding:.35rem .9rem;border-radius:999px;font-size:.8rem}
+
+/* por qué */
+.why{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
+.why div{text-align:center;padding:2rem 1.4rem;border-radius:var(--r);background:#fff;border:1px solid var(--line)}
+.why .ico{width:34px;height:34px;color:var(--green);margin-bottom:1rem}
+.why h3{font-size:1.5rem;margin-bottom:.4rem}.why p{font-size:.92rem;color:rgba(29,58,27,.7)}
+
+/* contacto */
+.contact{background:var(--green-ink);color:#fff}
+.contact .grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem}
+.contact h2{margin:1rem 0 1.4rem}
+.contact .eyebrow{color:var(--lime)}.contact .eyebrow:before{background:var(--lime)}
+.info{display:grid;gap:1.2rem;margin-top:2rem}
+.info div{display:flex;gap:1rem;align-items:flex-start}
+.info .ico{color:var(--lime);margin-top:.2rem}
+.map{margin-top:2rem;height:190px;border-radius:var(--r);position:relative;overflow:hidden;background:
+ linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px) 0 0/44px 44px,
+ linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px) 0 0/44px 44px,#274a24}
+.map:before{content:"";position:absolute;left:-10%;top:55%;width:120%;height:14px;background:rgba(255,255,255,.14);transform:rotate(-8deg)}
+.map:after{content:"";position:absolute;left:46%;top:-10%;width:12px;height:130%;background:rgba(255,255,255,.1);transform:rotate(14deg)}
+.pin{position:absolute;left:52%;top:42%;z-index:2;width:34px;height:34px;border-radius:50% 50% 50% 0;background:var(--lime);transform:rotate(-45deg);box-shadow:0 0 0 10px rgba(166,217,106,.25);animation:pu 2.4s infinite}
+@keyframes pu{50%{box-shadow:0 0 0 20px rgba(166,217,106,0)}}
+form{background:#fff;color:var(--green-ink);border-radius:var(--r);padding:2.2rem;display:grid;gap:1rem}
+form h3{font-size:2rem;color:var(--green-deep)}
+label{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;font-weight:500;display:grid;gap:.4rem}
+input,select,textarea{font:inherit;padding:.85rem 1rem;border:1px solid var(--line);border-radius:12px;background:var(--cream);color:inherit;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--green)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+footer{background:#12280f;color:rgba(255,255,255,.6);padding:1.6rem 0;font-size:.85rem}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem}
+.wafab{position:fixed;right:20px;bottom:20px;z-index:60;width:58px;height:58px;border-radius:50%;background:#25a05a;color:#fff;display:grid;place-items:center;box-shadow:0 14px 30px -10px rgba(0,0,0,.5);transition:.3s}
+.wafab:hover{transform:scale(1.1)}.wafab .ico{width:28px;height:28px}
+
+/* reveal: sólo desplaza, el contenido siempre es visible */
+.rv{transform:translateY(34px);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+.rv.in{transform:none}
+.static .rv{transform:none;transition:none}
+
+@media(max-width:980px){
+ nav,.top .cta{display:none}.burger{display:block}
+ nav.open{display:flex;position:absolute;top:78px;left:0;right:0;flex-direction:column;background:var(--cream);color:var(--green-ink);padding:1.4rem 6%;gap:1rem;box-shadow:0 20px 40px -20px rgba(0,0,0,.3)}
+ .hero .grid,.about,.contact .grid,.pgrid{grid-template-columns:1fr}
+ .hcard{margin:0;max-width:none}.float2{display:none}
+ .sgrid{grid-template-columns:1fr 1fr}.card.wide{grid-column:span 2}
+ .mos{grid-template-columns:1fr 1fr;grid-auto-rows:170px}.mos .t{grid-row:span 2}
+ .why{grid-template-columns:1fr 1fr}
+}
+@media(max-width:620px){
+ body{font-size:16px}
+ .sgrid,.why,.two{grid-template-columns:1fr}.card.wide{grid-column:auto}
+ .hero .grid{padding:110px 0 70px}
+ .promo{padding:1.8rem}
+ .mos .w{grid-column:span 2}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+ <symbol id="flower" viewBox="0 0 40 40"><g fill="currentColor"><ellipse cx="20" cy="9" rx="5" ry="8"/><ellipse cx="20" cy="9" rx="5" ry="8" transform="rotate(72 20 20)"/><ellipse cx="20" cy="9" rx="5" ry="8" transform="rotate(144 20 20)"/><ellipse cx="20" cy="9" rx="5" ry="8" transform="rotate(216 20 20)"/><ellipse cx="20" cy="9" rx="5" ry="8" transform="rotate(288 20 20)"/></g><circle cx="20" cy="20" r="3.2" fill="#a6d96a"/></symbol>
+ <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-1V4a1.5 1.5 0 0 1 3 0v6m0-4.5a1.5 1.5 0 0 1 3 0V12m0-3.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.5-2.7L3 15.5a1.5 1.5 0 0 1 2.3-1.9L8 16"/></symbol>
+ <symbol id="i-lip" viewBox="0 0 24 24"><path d="M2 12c3-4 6-5 10-3 4-2 7-1 10 3-3 5-6 7-10 7s-7-2-10-7Z"/><path d="M2 12c4 1.5 7 1.5 10 0 3 1.500 6 1.500 10 0"/></symbol>
+ <symbol id="i-face" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.600 2.500 2.500 4 2.500s3-.9 4-2.500M9 9.500h.01M15 9.500h.01"/></symbol>
+ <symbol id="i-body" viewBox="0 0 24 24"><circle cx="12" cy="4.500" r="2"/><path d="M7 21c0-5 1-8 1-10-2-.5-3-1.500-4-3m16 0c-1 1.500-2 2.500-4 3 0 2 1 5 1 10M9 21h6"/></symbol>
+ <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.500 2.500M15.500 15.500 18 18M18 6l-2.500 2.500M8.500 15.500 6 18"/></symbol>
+ <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+ <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.500 4.500 4.500L19 7.500"/></symbol>
+ <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.200 7-11.500A7 7 0 0 0 5 9.500C5 14.800 12 21 12 21Z"/><circle cx="12" cy="9.500" r="2.500"/></symbol>
+ <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></symbol>
+ <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+ <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+ <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-8-4.800-8-10.500A4.500 4.500 0 0 1 12 7a4.500 4.500 0 0 1 8 2.500C20 15.200 12 20 12 20Z"/></symbol>
+ <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19C5 10 10 5 20 4c0 10-5 15-14 15"/><path d="M5 19c3-5 6-8 10-10"/></symbol>
+ <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+ <symbol id="i-wa" viewBox="0 0 24 24"><path d="M3 21l1.700-5A9 9 0 1 1 8 19.300L3 21Z"/><path d="M9 8.500c0 3.500 3 6.500 6.500 6.500l1-1.500-2-1-1 .8a4 4 0 0 1-2-2l.8-1-1-2L9 8.500Z"/></symbol>
+ <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+</svg>
+
+<header class="top" id="top"><div class="wrap">
+  <a href="#" class="logo"><svg style="color:#fff"><use href="#flower"/></svg><span>Diana<small>Salón de Belleza</small></span></a>
+  <nav id="nav"><a href="#sobre">Salón</a><a href="#servicios">Servicios</a><a href="#precios">Precios</a><a href="#galeria">Galería</a><a href="#contacto">Contacto</a></nav>
+  <a href="#contacto" class="btn pri cta"><svg class="ico"><use href="#i-cal"/></svg>Pedir cita</a>
+  <button class="burger" id="bg" aria-label="Menú"><svg class="ico" style="width:28px;height:28px"><use href="#i-menu"/></svg></button>
+</div></header>
+
+<section class="hero" style="padding:0">
+  <div class="bg"></div>
+  <div class="wrap grid">
+    <div class="rv">
+      <span class="eyebrow">Madrid · Camino de la Suerte</span>
+      <h1>Tu momento de <em>belleza</em> y cuidado</h1>
+      <p class="lead">Tratamientos faciales y corporales, depilación, manicura y maquillaje en un salón cercano donde cada persona recibe un trato personalizado.</p>
+      <div class="btns">
+        <a href="#contacto" class="btn pri" style="background:var(--lime);color:var(--green-ink)"><svg class="ico"><use href="#i-cal"/></svg>Reservar cita</a>
+        <a href="#servicios" class="btn gho">Ver servicios<svg class="ico"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+    <div class="glass hcard rv">
+      <div class="row"><svg class="ico"><use href="#i-face"/></svg><div><b>Tratamientos faciales</b><span>Higiene, hidratación e iluminadores</span></div></div>
+      <div class="row"><svg class="ico"><use href="#i-body"/></svg><div><b>Cuidado corporal</b><span>Presoterapia, radiofrecuencia y más</span></div></div>
+      <div class="row"><svg class="ico"><use href="#i-eye"/></svg><div><b>Ojos y cejas</b><span>Lifting de pestañas, henna y diseño</span></div></div>
+    </div>
+  </div>
+  <div class="glass float2"><div class="num">91</div><div style="font-size:.85rem;line-height:1.3">332 92 00<br><span style="opacity:.8">Cita previa</span></div></div>
+  <div class="scroll"></div>
+</section>
+
+<div class="marq"><div>
+  <span>Higiene facial</span><span>Presoterapia</span><span>Lifting de pestañas</span><span>Depilación</span><span>Manicura y pedicura</span><span>Maquillaje</span><span>Radiofrecuencia</span><span>Henna de cejas</span>
+  <span>Higiene facial</span><span>Presoterapia</span><span>Lifting de pestañas</span><span>Depilación</span><span>Manicura y pedicura</span><span>Maquillaje</span><span>Radiofrecuencia</span><span>Henna de cejas</span>
+</div></div>
+
+<section id="sobre"><div class="wrap about">
+  <div class="stack rv">
+    <div class="a"><img src="img/cabina.jpg" alt="Cabina de tratamientos" loading="lazy"></div>
+    <div class="b"><img src="img/espejo.jpg" alt="Recepción del salón" loading="lazy"></div>
+    <div class="badge"><div><b>+</b>cercanía<br>y confianza</div></div>
+  </div>
+  <div class="rv">
+    <span class="eyebrow">Sobre nosotros</span>
+    <h2 style="margin-top:1rem">Un salón de barrio con tratamientos de primer nivel</h2>
+    <p>En Diana cuidamos de ti con productos profesionales y aparatología avanzada, en cabinas tranquilas y con atención siempre personalizada.</p>
+    <ul class="ticks">
+      <li><svg class="ico"><use href="#i-check"/></svg>Cabinas individuales y ambiente relajado</li>
+      <li><svg class="ico"><use href="#i-check"/></svg>Aparatología profesional y cosmética de calidad</li>
+      <li><svg class="ico"><use href="#i-check"/></svg>Bonos de sesiones con precios cerrados</li>
+    </ul>
+    <a href="#contacto" class="btn pri"><svg class="ico"><use href="#i-phone"/></svg>Llamar al 91 332 92 00</a>
+  </div>
+</div></section>
+
+<section class="serv" id="servicios"><div class="wrap">
+  <div class="head rv"><span class="eyebrow">Servicios</span><h2>Todo lo que tu piel y tu cuerpo necesitan</h2><p>Seis áreas de cuidado, pensadas para que encuentres tu tratamiento en un par de clics.</p></div>
+  <div class="sgrid">
+    <article class="card photo wide rv"><img src="img/facial.jpg" alt="" loading="lazy" style="object-position:50% 25%"><div class="in"><h3>Facial</h3><p>Higiene, microdermoabrasión, radiofrecuencia con ácido hialurónico y tratamientos iluminadores.</p><div class="from">Desde 34 €</div></div></article>
+    <article class="card rv"><div class="ic"><svg class="ico"><use href="#i-eye"/></svg></div><h3>Ojos y cejas</h3><p>Lifting y tinte de pestañas, henna de cejas, desrizado y diseño.</p><div class="from">Desde 15 €</div></article>
+    <article class="card rv"><div class="ic"><svg class="ico"><use href="#i-hand"/></svg></div><h3>Manos y pies</h3><p>Manicura, pedicura y uñas esculpidas con acabado impecable.</p><div class="from">Consultar</div></article>
+    <article class="card rv"><div class="ic"><svg class="ico"><use href="#i-lip"/></svg></div><h3>Maquillaje</h3><p>Maquillaje de día, de noche y para eventos.</p><div class="from">Consultar</div></article><article class="card rv"><div class="ic"><svg class="ico"><use href="#i-spark"/></svg></div><h3>Depilación</h3><p>Cera y depilación eléctrica con el mayor cuidado.</p><div class="from">Consultar</div></article>
+    
+    
+  <article class="card photo rv" style="grid-column:1/-1;min-height:300px"><img src="img/masaje.jpg" alt="" loading="lazy" style="object-position:50% 40%"><div class="in"><h3>Corporal</h3><p>Peeling, masaje, presoterapia, cavitación y radiofrecuencia.</p><div class="from">Desde 45 €</div></div></article>
+  </div>
+</div></section>
+
+<section id="precios"><div class="wrap">
+  <div class="head rv"><span class="eyebrow">Precios</span><h2>Claros, sin sorpresas</h2><p>Tus tarifas, ahora ordenadas y fáciles de leer desde el móvil.</p></div>
+  <div class="pgrid">
+    <div class="pbox rv"><h3><svg class="ico"><use href="#i-face"/></svg>Facial</h3><ul>
+      <li><span>Higiene facial</span><b>34 €</b></li>
+      <li><span>Microdermoabrasión</span><b>38 €</b></li>
+      <li><span>Tratamiento Hidra 7</span><b>60 €</b></li>
+      <li><span>Iluminador con vitamina C<small>3 sesiones</small></span><b>180 €</b></li>
+      <li><span>Radiofrecuencia con ác. hialurónico<small>5 sesiones</small></span><b>200 €</b></li>
+    </ul></div>
+    <div class="pbox rv"><h3><svg class="ico"><use href="#i-eye"/></svg>Ojos y cejas</h3><ul>
+      <li><span>Henna de cejas + diseño + depilación</span><b>15 €</b></li>
+      <li><span>Desrizado de cejas + depilación</span><b>20 €</b></li>
+      <li><span>Tinte y permanente de pestañas</span><b>30 €</b></li>
+      <li><span>Lifting de pestañas + tinte</span><b>35 €</b></li>
+      <li><span>Contorno de ojos con presoterapia ocular<small>6 sesiones</small></span><b>155 €</b></li>
+    </ul></div>
+    <div class="pbox rv" style="grid-column:1/-1"><h3><svg class="ico"><use href="#i-body"/></svg>Corporal</h3><ul style="columns:2;column-gap:3rem">
+      <li style="break-inside:avoid"><span>Peeling + masaje</span><b>45 €</b></li>
+      <li style="break-inside:avoid"><span>Presoterapia<small>5 sesiones</small></span><b>50 €</b></li>
+      <li style="break-inside:avoid"><span>Radiofrecuencia + electroestimulación<small>5 sesiones</small></span><b>200 €</b></li>
+      <li style="break-inside:avoid"><span>Cavitación + presoterapia<small>5 sesiones</small></span><b>200 €</b></li>
+      <li style="break-inside:avoid"><span>Young Body<small>12 sesiones</small></span><b>360 €</b></li>
+      <li style="break-inside:avoid"><span>Ondas electromagnéticas de alta intensidad<small>Promoción · 10 sesiones</small></span><b>100 €</b></li>
+    </ul></div>
+  </div>
+  <div class="promo rv"><div style="position:relative;z-index:1"><h3>Promociones del mes</h3><p>Pregunta por nuestros bonos y ofertas de temporada.</p></div><div class="big">100 €<span style="font-size:1rem;font-family:var(--body);font-weight:400;opacity:.8;display:block">10 sesiones de ondas</span></div></div>
+</div></section>
+
+<section class="gal" id="galeria"><div class="wrap">
+  <div class="head rv"><span class="eyebrow">Galería</span><h2>Así es Diana por dentro</h2></div>
+  <div class="mos">
+    <figure class="t rv"><img src="img/recepcion.jpg" alt="Recepción" loading="lazy"><figcaption>Recepción</figcaption></figure>
+    <figure class="rv"><img src="img/cabina2.jpg" alt="Cabina" loading="lazy"><figcaption>Cabina</figcaption></figure>
+    <figure class="rv"><img src="img/espejo.jpg" alt="Espejo de maquillaje" loading="lazy" style="object-position:70% 50%"><figcaption>Maquillaje</figcaption></figure>
+    <figure class="w rv"><img src="img/cabina.jpg" alt="Cabina de tratamientos" loading="lazy"><figcaption>Tratamientos</figcaption></figure>
+    <figure class="rv" style="grid-column:1/-1"><img src="img/fachada.jpg" alt="Fachada" loading="lazy" style="object-position:50% 30%"><figcaption>Camino de la Suerte, 20</figcaption></figure>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="head rv" style="text-align:center;margin-inline:auto"><span class="eyebrow">Por qué Diana</span><h2>Cuidarte, con calma</h2></div>
+  <div class="why">
+    <div class="rv"><svg class="ico"><use href="#i-heart"/></svg><h3>Trato cercano</h3><p>Te conocemos y recomendamos lo que de verdad te conviene.</p></div>
+    <div class="rv"><svg class="ico"><use href="#i-spark"/></svg><h3>Aparatología</h3><p>Equipos profesionales para resultados visibles.</p></div>
+    <div class="rv"><svg class="ico"><use href="#i-leaf"/></svg><h3>Cosmética de calidad</h3><p>Productos profesionales y tratamientos por sesiones.</p></div>
+    <div class="rv"><svg class="ico"><use href="#i-clock"/></svg><h3>Cita previa</h3><p>Tu hueco reservado, sin esperas.</p></div>
+  </div>
+</div></section>
+
+<section class="contact" id="contacto"><div class="wrap grid">
+  <div class="rv">
+    <span class="eyebrow">Contacto</span>
+    <h2>Reserva tu cita</h2>
+    <p style="opacity:.8">Cuéntanos qué te apetece y te confirmamos el mejor hueco.</p>
+    <div class="info">
+      <div><svg class="ico"><use href="#i-pin"/></svg><span>Camino de la Suerte, 20<br>28031 Madrid</span></div>
+      <div><svg class="ico"><use href="#i-phone"/></svg><a href="tel:913329200">91 332 92 00</a></div>
+      <div><svg class="ico"><use href="#i-clock"/></svg><span>Con cita previa</span></div>
+    </div>
+    <div class="map"><div class="pin"></div></div>
+  </div>
+  <form class="rv" id="f">
+    <h3>Pide tu cita</h3>
+    <div class="two"><label>Nombre<input id="n" required placeholder="Tu nombre"></label><label>Teléfono<input id="t" placeholder="Tu teléfono"></label></div>
+    <label>Servicio<select id="s"><option>Facial</option><option>Corporal</option><option>Ojos y cejas</option><option>Manicura / pedicura</option><option>Depilación</option><option>Maquillaje</option></select></label>
+    <label>Mensaje<textarea id="m" rows="3" placeholder="Día y hora que prefieres"></textarea></label>
+    <button class="btn pri" type="submit"><svg class="ico"><use href="#i-wa"/></svg>Enviar por WhatsApp</button>
+  </form>
+</div></section>
+
+<footer><div class="wrap"><span>© Diana Salón de Belleza · Madrid</span><span>Propuesta de diseño · Bedigy</span></div></footer>
+<a class="wafab" href="https://wa.me/34600000000" aria-label="WhatsApp"><svg class="ico"><use href="#i-wa"/></svg></a>
+
+<script>
+if(location.search.includes('static'))document.documentElement.classList.add('static');
+const top_=document.getElementById('top');
+const sc=()=>top_.classList.toggle('sc',scrollY>40);sc();addEventListener('scroll',sc,{passive:true});
+document.getElementById('bg').onclick=()=>document.getElementById('nav').classList.toggle('open');
+document.querySelectorAll('nav a').forEach(a=>a.onclick=()=>document.getElementById('nav').classList.remove('open'));
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+document.querySelectorAll('.card:not(.photo)').forEach(c=>{
+ c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`perspective(800px) rotateY(${x*7}deg) rotateX(${-y*7}deg) translateY(-4px)`});
+ c.addEventListener('mouseleave',()=>c.style.transform='');
+});
+document.getElementById('f').addEventListener('submit',e=>{e.preventDefault();
+ const t=`Hola, soy ${n.value}${document.getElementById('t').value?' ('+document.getElementById('t').value+')':''}. Quiero pedir cita para: ${s.value}. ${m.value}`;
+ open('https://wa.me/34600000000?text='+encodeURIComponent(t),'_blank');});
+</script>
+</body>
+</html>
