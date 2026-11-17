@@ -33,7 +33,7 @@ const HARD_GUEST_CAP = 1500;
 const MIME_OK = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif']);
 // Vídeos: se suben por trozos (multipart de R2); el cartel (miniatura y foto grande) lo genera el navegador
 const VIDEO_OK = new Set(['video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v']);
-const maxVideo = (env) => (Number(env.MAX_VIDEO_MB) || 1024) * 1024 * 1024;
+const maxVideo = (env) => (Number(env.MAX_VIDEO_MB) || 3584) * 1024 * 1024;
 const VIDEO_PART = 8 * 1024 * 1024;
 const isVideo = (mime) => /^video\//.test(mime || '');
 
