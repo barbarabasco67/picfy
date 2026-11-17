@@ -88,7 +88,7 @@ app.get('/m/:id/:size', async (c) => {
   const obj = await c.env.PHOTOS.get(`p/${id}/${size}`);
   if (!obj) return c.notFound();
   const etag = obj.httpEtag;
-  if (c.req.header('if-none-match') === etag) return new Response(null, { status: 304, headers: { etag } });
+  if (!c.req.query('dl') && c.req.header('if-none-match') === etag) return new Response(null, { status: 304, headers: { etag } });
   const headers = new Headers({
     'content-type': obj.httpMetadata?.contentType || 'image/jpeg',
     'content-length': String(obj.size),
