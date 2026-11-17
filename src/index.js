@@ -18,6 +18,7 @@ import { socialRoutes, viewRoutes, countDownload } from './social.js';
 import { selectionRoutes } from './selection.js';
 import { publicCollectionRoute } from './collections.js';
 import { appRoutes } from './app.js';
+import { importRoutes } from './importar.js';
 import { billingRoutes, hasSpace } from './billing.js';
 import { legalRoutes } from './legal.js';
 import { currentUser, hashPassword } from './auth.js';
@@ -508,6 +509,7 @@ manageRoutes(app);
 
 /* ---------- Plataforma: cuentas y galerías ---------- */
 appRoutes(app);
+importRoutes(app, { isAdmin });
 billingRoutes(app);
 legalRoutes(app);
 
