@@ -27,13 +27,13 @@ async function albums(){const a={};let cur='';let n=0;let root='';
  L.innerHTML=ids.map(k=>'<div class="c"><span>Álbum '+k+' · '+a[k]+' fotos</span><button data-a="'+k+'">Importar</button></div>').join('')+'<p id="st"></p>';
  L.querySelectorAll('button').forEach(b=>b.onclick=()=>run(b));}
 async function run(b){document.querySelectorAll('button').forEach(x=>x.disabled=true);
- let ev='',cur='',done=0,fail=0;const st=$('#st');
+ let ev='',cur='',done=0,fail=0,sc=0;const st=$('#st');
  for(;;){let r=null;
   for(let t=0;t<6&&!r;t++){try{const x=await fetch('/admin/import/run',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({album:b.dataset.a,email:$('#em').value,event:ev,cursor:cur})});r=await x.json()}catch(e){await new Promise(z=>setTimeout(z,1500))}}
   if(!r){st.textContent='Se cortó. Vuelve a pulsar Importar: continúa donde lo dejó.';document.querySelectorAll('button').forEach(x=>x.disabled=false);return}
   if(r.error){st.textContent='Error: '+r.error;return}
-  ev=r.event;cur=r.cursor;done+=r.done;fail+=r.fail||0;st.textContent='Importadas '+done+(fail?' · fallidas '+fail:'')+'…';
-  if(!cur){st.innerHTML='Listo: '+done+' fotos. <a href="/galerias/'+ev+'">Abrir galería</a>';return}}}
+  ev=r.event;cur=r.cursor;done+=r.done;fail+=r.fail||0;st.textContent='Revisadas '+(sc+=r.again?0:(r.scanned||0))+' · importadas '+done+(fail?' · fallidas '+fail:'')+'…';
+  if(!cur&&!r.again){st.innerHTML='Listo: '+done+' fotos. <a href="/galerias/'+ev+'">Abrir galería</a>';return}}}
 fetch('/admin/import/users').then(r=>r.json()).then(u=>{$('#em').innerHTML=(u.users||[]).map(x=>'<option value="'+x.email+'">'+x.email+' · '+x.n+' galerías</option>').join('')});
 $('#mv').onclick=async()=>{const r=await (await fetch('/admin/import/merge',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:$('#em').value})})).json();$('#ms').textContent=r.error||('Listo: '+r.moved+' fotos en '+r.galleries+' galería(s)')};
 albums();
@@ -120,12 +120,19 @@ export function importRoutes(app, { isAdmin }) {
     const gid = `imp${evId}`.slice(0, 24);
     await db.prepare('INSERT OR IGNORE INTO guests (id, event_id, key_hash, name, created_at) VALUES (?, ?, ?, ?, ?)')
       .bind(gid, evId, `imp-${album}`, 'Importado', Date.now()).run();
-    const folders = await c.env.PHOTOS.list({ prefix: `${PRE}${album}/`, delimiter: '/', limit: 4, cursor: b.cursor || undefined });
-    let done = 0; let fail = 0;
+    const folders = await c.env.PHOTOS.list({ prefix: `${PRE}${album}/`, delimiter: '/', limit: 40, cursor: b.cursor || undefined });
+    let done = 0; let fail = 0; let capped = false;
+    const names = folders.delimitedPrefixes.map((pre) => `plugin-${pre.slice(PRE.length + album.length + 1).replace(/\/$/, '')}`.slice(0, 120));
+    const have = new Set();
+    for (let i = 0; i < names.length; i += 40) {
+      const q = names.slice(i, i + 40);
+      (await db.prepare(`SELECT filename FROM photos WHERE event_id = ? AND filename IN (${q.map(() => '?').join(',')})`).bind(evId, ...q).all()).results.forEach((r) => have.add(r.filename));
+    }
     for (const pre of folders.delimitedPrefixes) {
+      if (done >= 4) { capped = true; break; }
       const src = pre.slice(PRE.length + album.length + 1).replace(/\/$/, '');
       const fname = `plugin-${src}`.slice(0, 120);
-      if (await db.prepare('SELECT 1 FROM photos WHERE event_id = ? AND filename = ?').bind(evId, fname).first()) continue;
+      if (have.has(fname)) continue;
       try {
       const objs = {};
       for (const s of ['o', 'l', 'm']) { const h = await c.env.PHOTOS.head(`${pre}${s}`); if (h) objs[s] = h; }
@@ -145,6 +152,6 @@ export function importRoutes(app, { isAdmin }) {
       done++;
       } catch (e) { fail++; }
     }
-    return json({ event: evId, done, fail, cursor: folders.truncated ? folders.cursor : '' });
+    return json({ event: evId, done, fail, scanned: folders.delimitedPrefixes.length, cursor: capped ? (b.cursor || '') : folders.truncated ? folders.cursor : '', again: capped });
   });
 }
