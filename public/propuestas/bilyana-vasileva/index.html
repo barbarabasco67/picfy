@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Bilyana Vasileva · Make-up & Hair Artist · Propuesta de web</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --ink:#0f0d0c; --ink2:#181513; --ivory:#f5f0e7; --paper:#fbf8f2; --gold:#b99a4b; --gold-l:#dcc58a; --blush:#ead8d1; --mute:rgba(15,13,12,.62);
+ --serif:'Bodoni Moda','Didot',Georgia,serif; --sans:'Manrope',system-ui,sans-serif;
+ --ease:cubic-bezier(.76,0,.24,1); --ease2:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--ivory);color:var(--ink);font-size:17px;line-height:1.65;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{width:min(1280px,92%);margin:0 auto}
+.serif{font-family:var(--serif)}
+.kicker{font-size:.72rem;letter-spacing:.32em;text-transform:uppercase;font-weight:500;color:var(--gold)}
+h1,h2,h3{font-family:var(--serif);font-weight:400;line-height:1;letter-spacing:-.02em}
+h2{font-size:clamp(2.6rem,6.4vw,5.6rem)}
+em{font-style:italic;color:var(--gold)}
+.ico{width:1.2em;height:1.2em;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* grain + progress + cursor */
+.grain{position:fixed;inset:-50%;z-index:90;pointer-events:none;opacity:.07;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");animation:gr 1s steps(6) infinite}
+@keyframes gr{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}}
+.bar{position:fixed;left:0;top:0;height:2px;width:100%;background:var(--gold);transform-origin:0 50%;transform:scaleX(0);z-index:95}
+.cur{position:fixed;left:0;top:0;z-index:99;pointer-events:none;mix-blend-mode:difference;display:none}
+.cur i{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#fff}
+.cur b{position:absolute;left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;border:1px solid #fff;transition:transform .35s var(--ease2),background .3s}
+.cur.big b{transform:scale(1.9);background:#fff}
+@media(hover:hover) and (pointer:fine){.cur{display:block}body.hc,body.hc a,body.hc button{cursor:none}}
+
+/* preloader */
+.pre{position:fixed;inset:0;z-index:100;background:var(--ink);color:var(--ivory);display:grid;place-items:center;transition:transform 1.1s var(--ease)}
+.pre.out{transform:translateY(-100%)}
+.pre .nm{font-family:var(--serif);font-size:clamp(2.4rem,7vw,6rem);display:flex;gap:.02em;overflow:hidden;line-height:1.15}
+.pre .nm span{display:inline-block;transform:translateY(110%);animation:up .9s var(--ease2) forwards}
+@keyframes up{to{transform:none}}
+.pre small{position:absolute;bottom:6vh;left:0;right:0;text-align:center;letter-spacing:.4em;font-size:.7rem;text-transform:uppercase;color:var(--gold-l)}
+.pre .ct{position:absolute;right:5vw;bottom:5vh;font-family:var(--serif);font-size:3rem;color:var(--gold-l)}
+.static .pre,.nojs .pre{display:none}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto 0;z-index:70;padding:26px 4vw;display:flex;justify-content:space-between;align-items:center;mix-blend-mode:difference;color:#fff}
+.logo{font-family:var(--serif);font-size:1.7rem;font-style:italic;line-height:1}
+.logo small{display:block;font-family:var(--sans);font-style:normal;font-size:.55rem;letter-spacing:.34em;text-transform:uppercase;margin-top:6px}
+.menu-btn{display:flex;align-items:center;gap:.9rem;font-size:.78rem;letter-spacing:.24em;text-transform:uppercase}
+.menu-btn i{display:grid;gap:6px}.menu-btn i:before,.menu-btn i:after{content:"";display:block;width:34px;height:1px;background:currentColor;transition:.4s var(--ease2)}
+.overlay{position:fixed;inset:0;z-index:80;background:var(--ink);color:var(--ivory);display:grid;align-content:center;padding:0 4vw;clip-path:inset(0 0 100% 0);transition:clip-path .9s var(--ease)}
+.overlay.open{clip-path:inset(0)}
+.overlay .in{display:grid;grid-template-columns:1.4fr 1fr;gap:4rem;align-items:end}
+.overlay ol{list-style:none;counter-reset:m}
+.overlay li{overflow:hidden;border-bottom:1px solid rgba(255,255,255,.12)}
+.overlay li a{display:flex;gap:1.6rem;align-items:baseline;padding:.55rem 0;font-family:var(--serif);font-size:clamp(1.9rem,4.6vw,3.8rem);transform:translateY(100%);transition:transform .9s var(--ease2),color .3s,padding .4s var(--ease2)}
+.overlay li a:before{counter-increment:m;content:"0" counter(m);font-family:var(--sans);font-size:.7rem;letter-spacing:.2em;color:var(--gold)}
+.overlay.open li a{transform:none}
+.overlay li a:hover{color:var(--gold-l);padding-left:1.4rem}
+.overlay li:nth-child(2) a{transition-delay:.05s}.overlay li:nth-child(3) a{transition-delay:.1s}.overlay li:nth-child(4) a{transition-delay:.15s}.overlay li:nth-child(5) a{transition-delay:.2s}.overlay li:nth-child(6) a{transition-delay:.25s}.overlay li:nth-child(7) a{transition-delay:.3s}
+.overlay .side p{color:rgba(245,240,231,.6);font-size:.95rem}
+.overlay .side a.big{display:block;font-family:var(--serif);font-size:1.6rem;margin-top:1rem;color:var(--gold-l)}
+
+/* hero */
+.hero{position:relative;min-height:100svh;display:grid;align-items:center;overflow:hidden;background:var(--ivory)}
+.hero .wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:3rem;align-items:center;padding:120px 0 70px}
+.hero h1{font-size:clamp(3.2rem,6.7vw,6.4rem);line-height:.92;margin:1.4rem 0 1.8rem}
+.hero h1 .ln{display:block;overflow:hidden;padding-bottom:.08em}
+.hero h1 .ln>span{display:inline-block;transform:translateY(105%);transition:transform 1.2s var(--ease2)}
+.ready .hero h1 .ln>span{transform:none}
+.ready .hero h1 .ln:nth-child(2)>span{transition-delay:.12s}.ready .hero h1 .ln:nth-child(3)>span{transition-delay:.24s}
+.hero p.lead{max-width:470px;color:var(--mute);font-size:1.05rem}
+.hero .acts{display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:2.2rem;align-items:center}
+.btn{position:relative;display:inline-flex;align-items:center;gap:.8rem;padding:1.1rem 2.1rem;border-radius:999px;font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;overflow:hidden;transition:color .4s;isolation:isolate}
+.btn:before{content:"";position:absolute;inset:0;z-index:-1;transform:translateY(101%);transition:transform .5s var(--ease2)}
+.btn:hover:before{transform:none}
+.btn.dark{background:var(--ink);color:var(--ivory)}.btn.dark:before{background:var(--gold)}.btn.dark:hover{color:var(--ink)}
+.btn.out{border:1px solid var(--ink)}.btn.out:before{background:var(--ink)}.btn.out:hover{color:var(--ivory)}
+.btn.gold{background:var(--gold);color:var(--ink)}.btn.gold:before{background:var(--ivory)}
+.arch{position:relative;isolation:isolate;justify-self:end;width:min(100%,470px);aspect-ratio:3/4.35}
+.arch .m{position:absolute;inset:0;border-radius:999px 999px 0 0;overflow:hidden;clip-path:inset(100% 0 0 0);transition:clip-path 1.5s var(--ease) .3s}
+.ready .arch .m{clip-path:inset(0)}
+.arch img{width:100%;height:118%;object-fit:cover;will-change:transform}
+.arch:before{content:"";position:absolute;inset:-16px -16px 16px 16px;border:1px solid var(--gold);border-radius:999px 999px 0 0;z-index:-1}
+.spin{position:absolute;left:0;top:0;width:100%;height:100%;animation:rot 22s linear infinite}
+.spin text{font-family:var(--sans);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;fill:var(--ink)}
+.spin .c{position:absolute}
+.badge{position:absolute;left:-70px;bottom:9%;width:140px;height:140px;display:grid;place-items:center;background:var(--ivory);border-radius:50%;font-family:var(--serif);font-style:italic;font-size:1.5rem;color:var(--gold)}
+@keyframes rot{to{transform:rotate(360deg)}}
+.scroll{position:absolute;left:4vw;bottom:34px;display:flex;align-items:center;gap:1rem;font-size:.68rem;letter-spacing:.3em;text-transform:uppercase}
+.scroll i{width:60px;height:1px;background:var(--ink);transform-origin:0;animation:sl 2.4s var(--ease) infinite}
+@keyframes sl{0%{transform:scaleX(0)}60%{transform:scaleX(1)}100%{transform:scaleX(1);opacity:0}}
+
+/* marquee */
+.mq{background:var(--ink);color:var(--ivory);overflow:hidden;white-space:nowrap;padding:1.6rem 0}
+.mq .t{display:inline-flex;gap:3rem;animation:mq 38s linear infinite;font-family:var(--serif);font-size:clamp(2.4rem,6vw,5rem);align-items:center}
+.mq .t span{display:inline-flex;gap:3rem;align-items:center}
+.mq .t span:after{content:"✦";color:var(--gold);font-size:.45em}
+.mq .t em{color:var(--gold-l)}
+.mq .o{-webkit-text-stroke:1px var(--ivory);color:transparent;font-style:italic}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+section{position:relative}
+.sp{padding:clamp(90px,13vw,190px) 0}
+
+/* manifesto */
+.mf p{font-family:var(--serif);font-size:clamp(1.9rem,4.2vw,3.7rem);line-height:1.18;letter-spacing:-.01em;max-width:1100px}
+.mf .w{opacity:.16;transition:opacity .25s}
+.mf .w.on{opacity:1}
+.static .mf .w{opacity:1}
+.mf .meta{display:flex;gap:3rem;flex-wrap:wrap;margin-top:3.4rem;color:var(--mute);font-size:.95rem}
+.mf .meta div{max-width:310px}.mf .meta b{display:block;color:var(--ink);font-family:var(--serif);font-weight:400;font-size:1.5rem;margin-bottom:.3rem}
+
+/* services list */
+.sv{background:var(--ink);color:var(--ivory)}
+.sv .top{display:flex;justify-content:space-between;align-items:end;gap:2rem;margin-bottom:4rem;flex-wrap:wrap}
+.sv .top p{max-width:340px;color:rgba(245,240,231,.6)}
+.sl{list-style:none;border-top:1px solid rgba(255,255,255,.14)}
+.sl li{border-bottom:1px solid rgba(255,255,255,.14)}
+.sl a{display:grid;grid-template-columns:70px 1fr 1.1fr 50px;gap:1.5rem;align-items:center;padding:2.2rem 0;transition:padding .5s var(--ease2),color .3s}
+.sl a:hover{padding-left:1.6rem;color:var(--gold-l)}
+.sl .n{font-size:.75rem;letter-spacing:.2em;color:var(--gold)}
+.sl h3{font-size:clamp(1.8rem,3.6vw,3.2rem)}
+.sl p{color:rgba(245,240,231,.55);font-size:.95rem}
+.sl .ar{justify-self:end;transition:transform .5s var(--ease2)}
+.sl a:hover .ar{transform:rotate(-45deg)}
+.sl .th{display:none}
+.follow{position:fixed;left:0;top:0;width:260px;aspect-ratio:3/4;z-index:60;pointer-events:none;overflow:hidden;opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-4deg);transition:opacity .35s,transform .5s var(--ease2);border-radius:6px}
+.follow.on{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}
+.follow img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s}
+.follow img.on{opacity:1}
+
+/* horizontal gallery */
+.hs{height:380vh;background:var(--ivory)}
+.hs .stick{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:2.4rem}
+.hs .hd{display:flex;justify-content:space-between;align-items:end;padding:0 4vw}
+.hs .trk{display:flex;gap:2.2vw;padding:0 4vw;will-change:transform;align-items:center}
+.hs figure{flex:none;height:62vh;overflow:hidden;position:relative;border-radius:4px}
+.hs figure img{height:100%;width:auto;object-fit:cover;transition:transform 1.2s var(--ease2)}
+.hs figure:hover img{transform:scale(1.06)}
+.hs figure figcaption{position:absolute;left:14px;bottom:12px;color:#fff;font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.hs .count{font-family:var(--serif);font-size:1.4rem}
+.hs .prog{margin:0 4vw;height:1px;background:rgba(15,13,12,.18)}
+.hs .prog i{display:block;height:100%;background:var(--ink);transform-origin:0;transform:scaleX(0)}
+
+/* experiences */
+.ex .hd{display:flex;justify-content:space-between;align-items:end;gap:2rem;margin-bottom:4rem;flex-wrap:wrap}
+.ex .g{display:grid;grid-template-columns:repeat(12,1fr);gap:1.4rem}
+.cd{position:relative;border-radius:6px;overflow:hidden;padding:2.2rem;min-height:340px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .6s var(--ease2)}
+.cd:hover{transform:translateY(-8px)}
+.cd .n{font-family:var(--serif);font-size:1rem;color:inherit;opacity:.6}
+.cd h3{font-size:2.2rem;margin-bottom:.7rem}
+.cd p{font-size:.95rem;opacity:.75;max-width:380px}
+.cd.a{grid-column:span 7;background:var(--ink);color:var(--ivory);min-height:430px}
+.cd.b{grid-column:span 5;background:var(--blush)}
+.cd.c{grid-column:span 5;background:var(--paper);border:1px solid rgba(15,13,12,.1)}
+.cd.d{grid-column:span 7;background:var(--gold);color:var(--ink)}
+.cd.a img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.42;transition:transform 1.4s var(--ease2),opacity .6s}
+.cd.a:hover img{transform:scale(1.07);opacity:.55}
+.cd.a>*:not(img){position:relative}
+.cd.d img{position:absolute;right:-40px;bottom:-40px;width:46%;height:75%;object-fit:cover;border-radius:999px 999px 0 0;transition:transform 1s var(--ease2)}
+.cd.d:hover img{transform:translateY(-14px)}
+.cd.d p{max-width:44%}
+
+/* about */
+.ab .wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:6vw;align-items:center}
+.pt{position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:999px 999px 0 0}
+.pt img{width:100%;height:120%;object-fit:cover}
+.ab p{color:var(--mute);margin-top:1.4rem;max-width:560px}
+.stats{display:flex;gap:3.4rem;margin-top:2.8rem;flex-wrap:wrap}
+.stats b{display:block;font-family:var(--serif);font-weight:400;font-size:clamp(3rem,5vw,4.6rem);line-height:1}
+.stats span{font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+
+/* brands */
+.br{padding:3.4rem 0;border-block:1px solid rgba(15,13,12,.14);overflow:hidden;white-space:nowrap}
+.br .t{display:inline-flex;gap:4rem;animation:mq 46s linear infinite;font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.6rem);color:rgba(15,13,12,.42);align-items:center}
+.br .t span{display:inline-flex;gap:4rem;align-items:center}
+.br .t span:after{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.br-l{font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;text-align:center;color:var(--mute);margin-bottom:1.6rem}
+
+/* contact */
+.ct{background:var(--ink);color:var(--ivory);overflow:hidden}
+.ct h2{font-size:clamp(3.4rem,10.5vw,10rem);line-height:.9}
+.ct .grid{display:grid;grid-template-columns:1fr 1fr;gap:5vw;margin-top:4.5rem}
+.ct .rows a,.ct .rows div{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.3rem 0;border-bottom:1px solid rgba(255,255,255,.16);transition:padding .4s var(--ease2),color .3s}
+.ct .rows a:hover{padding-left:1rem;color:var(--gold-l)}
+.ct .rows small{font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gold)}
+.ct .rows span{font-family:var(--serif);font-size:1.4rem}
+form{display:grid;gap:1.4rem}
+.f{position:relative}
+.f input,.f select,.f textarea{width:100%;background:none;border:0;border-bottom:1px solid rgba(255,255,255,.28);color:var(--ivory);font:inherit;padding:1.2rem 0 .6rem;border-radius:0;outline:0;transition:border-color .3s}
+.f select option{color:#000}
+.f label{position:absolute;left:0;top:1.2rem;font-size:.95rem;color:rgba(245,240,231,.55);pointer-events:none;transition:.3s var(--ease2)}
+.f input:focus,.f textarea:focus,.f select:focus{border-color:var(--gold)}
+.f input:focus+label,.f input:not(:placeholder-shown)+label,.f textarea:focus+label,.f textarea:not(:placeholder-shown)+label,.f.sel label{top:-.3rem;font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+footer{background:#090807;color:rgba(245,240,231,.5);padding:2rem 0;font-size:.82rem}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem}
+.wa{position:fixed;right:22px;bottom:22px;z-index:60;width:60px;height:60px;border-radius:50%;background:var(--gold);color:var(--ink);display:grid;place-items:center;box-shadow:0 14px 34px -10px rgba(0,0,0,.5);transition:transform .4s var(--ease2)}
+.wa:hover{transform:scale(1.12) rotate(-8deg)}.wa .ico{width:28px;height:28px}
+
+/* reveal */
+.js .rv{opacity:0;transform:translateY(46px);transition:opacity 1s var(--ease2),transform 1.1s var(--ease2)}
+.js .rv.in{opacity:1;transform:none}
+.js .ci{clip-path:inset(0 0 100% 0);transition:clip-path 1.4s var(--ease)}
+.js .ci.in{clip-path:inset(0)}
+.static .rv,.static .ci{opacity:1!important;transform:none!important;clip-path:none!important;transition:none!important}
+.static .hero h1 .ln>span{transform:none!important}.static .arch .m{clip-path:none!important}
+
+@media(max-width:900px){
+ .hero .wrap,.ab .wrap,.ct .grid,.overlay .in{grid-template-columns:1fr}
+ .arch{justify-self:center;width:78%;margin-top:1rem}.spin,.badge{left:-14px}
+ .sl a{grid-template-columns:36px 1fr 30px;gap:1rem;padding:1.5rem 0}.sl p{display:none}
+ .sl .th{display:block;grid-column:2/4;width:100%;height:190px;object-fit:cover;border-radius:4px;margin-top:.8rem}
+ .follow{display:none}
+ .hs{height:auto}.hs .stick{position:static;height:auto;padding:80px 0}.hs .trk{overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:1rem}.hs figure{height:58vh;scroll-snap-align:center}.hs .prog{display:none}
+ .ex .g{grid-template-columns:1fr}.cd.a,.cd.b,.cd.c,.cd.d{grid-column:auto}.cd.d p{max-width:none}.cd.d img{display:none}
+ .scroll{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body class="nojs">
+<svg width="0" height="0" style="position:absolute">
+ <symbol id="i-ar" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+ <symbol id="i-wa" viewBox="0 0 24 24"><path d="M3 21l1.700-5A9 9 0 1 1 8 19.300L3 21Z"/><path d="M9 8.500c0 3.500 3 6.500 6.500 6.500l1-1.500-2-1-1 .8a4 4 0 0 1-2-2l.8-1-1-2L9 8.500Z"/></symbol>
+</svg>
+
+<div class="pre" id="pre"><div class="nm" id="nm"></div><small>Make-up &amp; Hair Artist</small><div class="ct" id="ct">0</div></div>
+<div class="grain"></div><div class="bar" id="bar"></div>
+<div class="cur" id="cur"><b></b><i></i></div>
+<div class="follow" id="fo"><img src="img/ventana.jpg" alt=""><img src="img/sombrero.jpg" alt=""><img src="img/editorial.jpg" alt=""><img src="img/retrato.jpg" alt=""><img src="img/espalda.jpg" alt=""></div>
+
+<header class="nav">
+ <a href="#" class="logo">Bilyana Vasileva<small>Make-up &amp; Hair Artist</small></a>
+ <button class="menu-btn" id="mb" aria-label="Abrir menú">Menú <i></i></button>
+</header>
+<div class="overlay" id="ov"><div class="wrap in" style="width:100%">
+ <ol>
+  <li><a href="#inicio">Inicio</a></li>
+  <li><a href="#novias">Maquillaje de novias</a></li>
+  <li><a href="#servicios">Servicios</a></li>
+  <li><a href="#experiencias">Experiencias</a></li>
+  <li><a href="#galeria">Galería</a></li>
+  <li><a href="#sobre">Sobre mí</a></li>
+  <li><a href="#contacto">Contacto</a></li>
+ </ol>
+ <div class="side"><p class="kicker" style="margin-bottom:1rem">Reservas</p><p>Maquillaje y peinado a domicilio, en toda España y en el extranjero.</p><a class="big" href="tel:+34657284324">+34 657 284 324</a><a class="big" href="https://instagram.com/bilyanavasileva_makeup" style="font-size:1.1rem">@bilyanavasileva_makeup</a></div>
+</div></div>
+
+<main id="inicio">
+<section class="hero"><div class="wrap">
+ <div>
+  <span class="kicker">Maquillaje y peinado a domicilio</span>
+  <h1><span class="ln"><span>Tu belleza,</span></span><span class="ln"><span>mi <em>inspiración</em></span></span></h1>
+  <p class="lead">Resalto tu belleza natural para que brilles en el día más especial de tu vida. Un servicio exclusivo y personalizado, donde tú quieras.</p>
+  <div class="acts"><a href="#contacto" class="btn dark" data-m>Reserva tu cita</a><a href="#servicios" class="btn out" data-m>Ver servicios</a></div>
+ </div>
+ <div class="arch"><div class="m"><img src="img/velo.jpg" alt="Novia con velo de redecilla" data-par=".12"></div>
+  <div class="badge"><svg class="spin" viewBox="0 0 140 140"><defs><path id="cp" d="M70,70 m-52,0 a52,52 0 1,1 104,0 a52,52 0 1,1 -104,0"/></defs><text><textPath href="#cp">Madrid · Nacional · Internacional · </textPath></text></svg>B.V.</div>
+ </div>
+</div>
+<div class="scroll"><i></i>Scroll</div></section>
+
+<div class="mq"><div class="t">
+ <span>Make-up</span><span class="o">Hair</span><span>Artist</span><span class="o"><em>Novias</em></span><span>Moda</span><span class="o">Televisión</span>
+ <span>Make-up</span><span class="o">Hair</span><span>Artist</span><span class="o"><em>Novias</em></span><span>Moda</span><span class="o">Televisión</span>
+</div></div>
+
+<section class="sp mf" id="novias"><div class="wrap">
+ <span class="kicker">Manifiesto</span>
+ <p id="mfp" style="margin-top:2rem">Consideramos el maquillaje una expresión artística auténtica. Creamos un look personalizado que se adapta a tus gustos, ya sea natural o más elaborado, para que tu día sea un recuerdo imborrable.</p>
+ <div class="meta">
+  <div class="rv"><b>A domicilio</b>Disfruta de la experiencia con total comodidad, en tu casa o en el lugar del evento.</div>
+  <div class="rv"><b>Nacional e internacional</b>Servicio disponible en toda España y fuera de ella.</div>
+  <div class="rv"><b>Productos de primera</b>Cosmética profesional adaptada a cada tipo de piel y de boda.</div>
+ </div>
+</div></section>
+
+<section class="sp sv" id="servicios"><div class="wrap">
+ <div class="top"><div><span class="kicker">Servicios</span><h2 style="margin-top:1rem">Todo lo que <em>ofrezco</em></h2></div><p>Un servicio de primer nivel para novias, invitadas, moda, televisión y cualquier evento.</p></div>
+ <ul class="sl" id="sl">
+  <li><a href="#contacto" data-i="0"><span class="n">01</span><h3>Maquillaje de novias</h3><p>Maquillaje y peinado personal, exclusivo y a domicilio. Nos adaptamos a cualquier boda y estilo de novia.</p><svg class="ico ar"><use href="#i-ar"/></svg><img class="th" src="img/ventana.jpg" alt=""></a></li>
+  <li><a href="#contacto" data-i="1"><span class="n">02</span><h3>Maquillaje de invitadas</h3><p>Asesoramiento personalizado, adaptado a tus gustos y estilismo, cuidando cada detalle.</p><svg class="ico ar"><use href="#i-ar"/></svg><img class="th" src="img/sombrero.jpg" alt=""></a></li>
+  <li><a href="#contacto" data-i="2"><span class="n">03</span><h3>Moda, televisión y fantasía</h3><p>Pasarelas, shootings, programas de televisión y cine con experiencia reconocida.</p><svg class="ico ar"><use href="#i-ar"/></svg><img class="th" src="img/editorial.jpg" alt=""></a></li>
+  <li><a href="#contacto" data-i="3"><span class="n">04</span><h3>Maquillaje social</h3><p>De día, de tarde, de noche o de fiesta, para todo tipo de eventos.</p><svg class="ico ar"><use href="#i-ar"/></svg><img class="th" src="img/retrato.jpg" alt=""></a></li>
+  <li><a href="#contacto" data-i="4"><span class="n">05</span><h3>Peinados</h3><p>Servicio a domicilio para novias y cualquier evento social.</p><svg class="ico ar"><use href="#i-ar"/></svg><img class="th" src="img/espalda.jpg" alt=""></a></li>
+ </ul>
+</div></section>
+
+<section class="hs" id="galeria"><div class="stick">
+ <div class="hd"><div><span class="kicker">Portfolio</span><h2 style="margin-top:.8rem">Trabajos <em>reales</em></h2></div><div class="count" id="cn">01 / 06</div></div>
+ <div class="trk" id="trk">
+  <figure><img src="img/sombrero.jpg" alt="Maquillaje invitada"><figcaption>Invitadas</figcaption></figure>
+  <figure><img src="img/editorial.jpg" alt="Maquillaje editorial"><figcaption>Editorial</figcaption></figure>
+  <figure><img src="img/ventana.jpg" alt="Novia en la ventana"><figcaption>Novias</figcaption></figure>
+  <figure><img src="img/espalda.jpg" alt="Peinado de novia"><figcaption>Peinados</figcaption></figure>
+  <figure><img src="img/ojos.jpg" alt="Maquillaje de ojos"><figcaption>Detalle</figcaption></figure>
+  <figure><img src="img/novias.jpg" alt="Preparativos de boda"><figcaption>Preparativos</figcaption></figure>
+ </div>
+ <div class="prog"><i id="pg"></i></div>
+</div></section>
+
+<section class="sp ex" id="experiencias"><div class="wrap">
+ <div class="hd"><div><span class="kicker">Experiencias</span><h2 style="margin-top:1rem">Más que <em>maquillaje</em></h2></div></div>
+ <div class="g">
+  <article class="cd a rv"><img src="img/novias.jpg" alt=""><span class="n">01</span><div><h3>Make-up Party</h3><p>Despedidas de soltera originales: aprendemos a maquillarnos juntas en una sesión divertida con tus amigas.</p></div></article>
+  <article class="cd b rv"><span class="n">02</span><div><h3>Cursos de maquillaje</h3><p>Cursos de automaquillaje, individuales o colectivos, para sacar lo mejor de ti.</p></div></article>
+  <article class="cd c rv"><span class="n">03</span><div><h3>Beauty Corner</h3><p>Un rincón de maquillaje en tu boda para que tus invitadas se retoquen con una profesional durante la celebración.</p></div></article>
+  <article class="cd d rv"><span class="n">04</span><div><h3>Sesión fotográfica</h3><p>Fotos profesionales, maquillaje y peluquería para que te sientas como una auténtica modelo.</p></div><img src="img/retrato.jpg" alt=""></article>
+ </div>
+</div></section>
+
+<section class="sp ab" id="sobre"><div class="wrap">
+ <div class="pt ci"><img src="img/ojos.jpg" alt="" data-par=".1"></div>
+ <div class="rv">
+  <span class="kicker">Sobre mí</span>
+  <h2 style="margin-top:1rem">Bilyana <em>Vasileva</em></h2>
+  <p>Maquilladora profesional titulada por la Universidad de Nebrija. Mi misión es que cada clienta se sienta única y espectacular en su gran día, con una visión moderna de la belleza y escucha activa.</p>
+  <p>He colaborado en proyectos como Got Talent, Desnudos por la Vida, TeleMadrid, RTVE, La Sexta, pasarelas de la Fashion Week de Madrid, videoclips y cortometrajes.</p>
+  <div class="stats"><div><b data-n="4.9">4.9</b><span>Bodas.net · sobre 5</span></div><div><b>+10</b><span>Medios y marcas</span></div></div>
+ </div>
+</div></section>
+
+<div class="br"><div class="br-l">Trabajando juntos</div><div class="t">
+ <span>Got Talent</span><span>La Sexta Noche</span><span>Desnudos por la Vida</span><span>RTVE</span><span>Fashion Week Madrid</span><span>Vogue</span><span>TeleMadrid</span><span>Atresmedia</span>
+ <span>Got Talent</span><span>La Sexta Noche</span><span>Desnudos por la Vida</span><span>RTVE</span><span>Fashion Week Madrid</span><span>Vogue</span><span>TeleMadrid</span><span>Atresmedia</span>
+</div></div>
+
+<section class="sp ct" id="contacto"><div class="wrap">
+ <span class="kicker">Contacto</span>
+ <h2 style="margin-top:1.4rem">Reserva<br>tu <em>cita</em></h2>
+ <div class="grid">
+  <div class="rows">
+   <a href="mailto:bilyanavasilevamakeup3@gmail.com" data-m><div style="border:0;padding:0"><small>Email</small></div><span>bilyanavasilevamakeup3@gmail.com</span></a>
+   <a href="tel:+34657284324" data-m><div style="border:0;padding:0"><small>Teléfono / WhatsApp</small></div><span>+34 657 284 324</span></a>
+   <a href="https://instagram.com/bilyanavasileva_makeup" data-m><div style="border:0;padding:0"><small>Instagram</small></div><span>@bilyanavasileva_makeup</span></a>
+  </div>
+  <form id="f">
+   <div class="f"><input id="n" required placeholder=" "><label for="n">Tu nombre</label></div>
+   <div class="f sel"><select id="s"><option>Maquillaje y peinado de novia</option><option>Maquillaje de invitada</option><option>Moda / televisión</option><option>Make-up Party</option><option>Curso de maquillaje</option><option>Otro</option></select><label>Me interesa</label></div>
+   <div class="f"><input id="d" placeholder=" "><label for="d">Fecha y lugar del evento</label></div>
+   <div class="f"><textarea id="m" rows="2" placeholder=" "></textarea><label for="m">Cuéntame tu idea</label></div>
+   <button class="btn gold" type="submit" data-m style="justify-self:start">Enviar por WhatsApp</button>
+  </form>
+ </div>
+</div></section>
+</main>
+<footer><div class="wrap"><span>© Bilyana Vasileva · Make-up &amp; Hair Artist</span><span>Propuesta de diseño · Bedigy</span></div></footer>
+<a class="wa" href="https://wa.me/34657284324" aria-label="WhatsApp" data-m><svg class="ico"><use href="#i-wa"/></svg></a>
+
+<script>
+(()=>{
+const D=document,B=D.body,H=D.documentElement;
+const stat=location.search.includes('static');
+if(stat)H.classList.add('static');
+B.classList.remove('nojs');H.classList.add('js');
+const $=s=>D.querySelector(s),$$=s=>[...D.querySelectorAll(s)];
+/* preloader */
+const nm=$('#nm'),pre=$('#pre'),ct=$('#ct');
+'Bilyana Vasileva'.split('').forEach((c,i)=>{const s=D.createElement('span');s.textContent=c===' '?' ':c;s.style.animationDelay=(i*.045)+'s';nm.appendChild(s)});
+let p=0;const t0=performance.now();
+function loadTick(n){p=Math.min(100,Math.round((n-t0)/18));ct.textContent=p;if(p<100)requestAnimationFrame(loadTick);else{pre.classList.add('out');setTimeout(()=>{B.classList.add('ready');pre.style.display='none'},700)}}
+if(stat){B.classList.add('ready');pre.style.display='none'}else requestAnimationFrame(loadTick);
+/* reveal */
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.15});
+$$('.rv,.ci').forEach(el=>io.observe(el));
+/* menu */
+const ov=$('#ov'),mb=$('#mb');
+mb.onclick=()=>{const o=ov.classList.toggle('open');mb.firstChild.textContent=o?'Cerrar ':'Menú ';B.style.overflow=o?'hidden':''};
+$$('#ov a').forEach(a=>a.addEventListener('click',()=>{ov.classList.remove('open');mb.firstChild.textContent='Menú ';B.style.overflow=''}));
+/* manifesto words */
+const mp=$('#mfp');const words=mp.textContent.trim().split(/\s+/);mp.innerHTML=words.map(w=>`<span class="w">${w}</span>`).join(' ');
+const ws=$$('#mfp .w');
+/* horizontal gallery */
+const hs=$('#galeria'),trk=$('#trk'),pg=$('#pg'),cn=$('#cn'),figs=$$('#trk figure');
+let maxX=0;
+function size(){const mob=innerWidth<=900;if(mob){hs.style.height='';trk.style.transform='';return}maxX=Math.max(0,trk.scrollWidth-innerWidth);hs.style.height=(maxX+innerHeight*1.15)+'px'}
+size();addEventListener('resize',size);addEventListener('load',size);
+D.querySelectorAll('#trk img').forEach(i=>i.addEventListener('load',size));
+/* parallax + scroll */
+const bar=$('#bar'),pars=$$('[data-par]');
+function onScroll(){
+ const y=scrollY,vh=innerHeight;
+ bar.style.transform=`scaleX(${y/(H.scrollHeight-vh)})`;
+ if(!stat)pars.forEach(el=>{const r=el.parentElement.getBoundingClientRect();const k=parseFloat(el.dataset.par);el.style.transform=`translateY(${(r.top+r.height/2-vh/2)*-k}px)`});
+ const r=mp.getBoundingClientRect();const pr=Math.min(1,Math.max(0,(vh*.85-r.top)/(r.height+vh*.35)));
+ ws.forEach((w,i)=>w.classList.toggle('on',i/ws.length<pr*1.05));
+ if(innerWidth>900){const hr=hs.getBoundingClientRect();const prog=Math.min(1,Math.max(0,-hr.top/(hs.offsetHeight-vh)));trk.style.transform=`translateX(${-prog*maxX}px)`;pg.style.transform=`scaleX(${prog})`;cn.textContent=String(Math.min(figs.length,Math.floor(prog*figs.length)+1)).padStart(2,'0')+' / '+String(figs.length).padStart(2,'0')}
+}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+/* counters */
+const st=$('[data-n]');let done=false;
+new IntersectionObserver((e,o)=>{if(e[0].isIntersecting&&!done&&!stat){done=true;const T=performance.now();(function f(n){const k=Math.min(1,(n-T)/1400);st.textContent=(4.9*(1-Math.pow(1-k,3))).toFixed(1);if(k<1)requestAnimationFrame(f)})(T)}},{threshold:.6}).observe(st);
+/* cursor, magnetic, follow image */
+if(matchMedia('(hover:hover) and (pointer:fine)').matches){
+ B.classList.add('hc');const cur=$('#cur'),ring=cur.firstElementChild;let mx=0,my=0,rx=0,ry=0;
+ addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.transform=`translate(${mx}px,${my}px)`;fo.style.left=mx+'px';fo.style.top=my+'px'});
+ $$('a,button,[data-m]').forEach(el=>{el.addEventListener('mouseenter',()=>cur.classList.add('big'));el.addEventListener('mouseleave',()=>cur.classList.remove('big'))});
+ $$('[data-m]').forEach(el=>{el.addEventListener('mousemove',e=>{const r=el.getBoundingClientRect();el.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.18}px,${(e.clientY-r.top-r.height/2)*.28}px)`});el.addEventListener('mouseleave',()=>el.style.transform='')});
+}
+const fo=$('#fo'),fi=$$('#fo img');
+$$('#sl a').forEach(a=>{a.addEventListener('mouseenter',()=>{if(innerWidth<=900)return;fo.classList.add('on');fi.forEach((im,i)=>im.classList.toggle('on',i==a.dataset.i))});a.addEventListener('mouseleave',()=>fo.classList.remove('on'))});
+/* form */
+$('#f').addEventListener('submit',e=>{e.preventDefault();const t=`Hola Bilyana, soy ${$('#n').value}. Me interesa: ${$('#s').value}. Fecha y lugar: ${$('#d').value||'por definir'}. ${$('#m').value}`;open('https://wa.me/34657284324?text='+encodeURIComponent(t),'_blank')});
+})();
+</script>
+</body>
+</html>
