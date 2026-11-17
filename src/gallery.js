@@ -1,6 +1,6 @@
 // Gestión de una galería por su dueño: moderar, ordenar, marcar, mover, ajustes y descargas.
 
-import { isHex, json, html, randomHex, withExt } from './util.js';
+import { isHex, json, html, randomHex, withExt, isPluginName, niceName } from './util.js';
 import { currentUser, hashPassword } from './auth.js';
 import { slugify, slugReady, applyOrder, deletePhotos, trashPhotos, orderSql, setSortMode, SORTS } from './photos.js';
 import { buildZip, splitParts, fillCrc, kindSql, zipTipo } from './zip.js';
@@ -320,7 +320,7 @@ export function galleryRoutes(app) {
     const used = new Set();
     const safe = (s) => String(s || '').replace(/[\\/:*?"<>|\x00-\x1f]+/g, '_').trim().slice(0, 80);
     const entries = list.map((r, i) => {
-      let name = `${String(offset + i + 1).padStart(4, '0')}_${safe(withExt(r.filename, r.mime)) || r.id + '.jpg'}`;
+      let name = isPluginName(r.filename) ? niceName(r.filename, r.mime, offset + i + 1) : `${String(offset + i + 1).padStart(4, '0')}_${safe(withExt(r.filename, r.mime)) || r.id + '.jpg'}`;
       while (used.has(name)) name = name.replace(/(\.[^.]*)?$/, `_${r.id.slice(0, 4)}$1`);
       used.add(name);
       return { id: r.id, key: `p/${r.id}/o`, name, size: r.size, crc: r.crc32, ms: r.taken_at ?? r.uploaded_at };

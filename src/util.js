@@ -91,3 +91,9 @@ export function withExt(name, mime) {
     : m.includes('quicktime') ? '.mov' : m.includes('mp4') ? '.mp4' : m.includes('webm') ? '.webm' : '.jpg';
   return n + ext;
 }
+
+// Las fotos importadas del plugin llevan un nombre interno largo: al descargar se llaman foto-0001, foto-0002…
+export const isPluginName = (n) => /^plugin-/.test(String(n || ''));
+export function niceName(name, mime, n) {
+  return isPluginName(name) ? withExt(`foto-${String(n).padStart(4, '0')}`, mime) : withExt(name, mime);
+}
