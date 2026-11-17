@@ -149,7 +149,7 @@ export function adminDashboard(events, origin, note = '') {
 ${note ? `<div class="notice ok">${esc(note)}</div>` : ''}
 <div class="card"><table><thead><tr><th>Evento</th><th>Fotos</th><th>Enlace</th><th></th></tr></thead>
 <tbody>${rows || '<tr><td colspan="4" class="muted">Todavía no hay eventos.</td></tr>'}</tbody></table></div>
-<div class="card"><h2>Nuevo evento</h2>
+<div class="card"><p><a href="/admin/import">Importar fotos del plugin antiguo</a></p><h2>Nuevo evento</h2>
 <form method="post" action="/admin/events">
 <label class="field"><span>Nombre del evento</span><input type="text" name="name" maxlength="120" required placeholder="Boda de Ana y Luis"></label>
 <div class="row2">

@@ -14,14 +14,15 @@ input{font:inherit;padding:9px;border:1px solid #d9d3c7;border-radius:10px;width
 <div id="l"><p>Buscando…</p></div>
 <script>
 const $=s=>document.querySelector(s);const L=$('#l');
-async function albums(){const a={};let cur='';let n=0;
+async function albums(){const a={};let cur='';let n=0;let root='';
  for(;;){const r=await (await fetch('/admin/import/albums?cursor='+encodeURIComponent(cur))).json();
   if(r.error){L.textContent='No has entrado como administrador. Entra en /admin y vuelve.';return}
+  if(r.raiz&&r.raiz.length)root=r.raiz.join(' ');
   for(const k in r.albums){a[k]=(a[k]||0)+r.albums[k]}
   n+=r.keys;L.innerHTML='<p>Buscando… '+n+' archivos</p>';
   if(!r.cursor)break;cur=r.cursor}
  const ids=Object.keys(a);
- if(!ids.length){L.innerHTML='<p>No hay álbumes en ov_album/.</p>';return}
+ if(!ids.length){L.innerHTML='<p>No hay álbumes en ov_album/. Carpetas que veo en este bucket: '+(root||'ninguna')+'</p>';return}
  L.innerHTML=ids.map(k=>'<div class="c"><span>Álbum '+k+' · '+a[k]+' fotos</span><button data-a="'+k+'">Importar</button></div>').join('')+'<p id="st"></p>';
  L.querySelectorAll('button').forEach(b=>b.onclick=()=>run(b));}
 async function run(b){document.querySelectorAll('button').forEach(x=>x.disabled=true);
@@ -49,7 +50,9 @@ export function importRoutes(app, { isAdmin }) {
       const p = o.key.slice(PRE.length).split('/');
       if (p.length === 3 && (p[2] === 'm' || p[2] === 'l')) albums[p[0]] = (albums[p[0]] || 0) + (p[2] === 'm' ? 1 : 0);
     }
-    return json({ albums, keys: l.objects.length, cursor: l.truncated ? l.cursor : '' });
+    let raiz = [];
+    if (!c.req.query('cursor') && !l.objects.length) raiz = (await c.env.PHOTOS.list({ delimiter: '/', limit: 50 })).delimitedPrefixes;
+    return json({ albums, keys: l.objects.length, raiz, cursor: l.truncated ? l.cursor : '' });
   });
 
   app.post('/admin/import/run', async (c) => {
