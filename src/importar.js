@@ -1,6 +1,7 @@
 // Importación de fotos del plugin antiguo (ov_album/<álbum>/<foto>/{m,l,o}) a una galería nueva. Solo administrador.
 import { randomHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
+import { readMeta } from './exif.js';
 
 const PRE = 'ov_album/';
 
@@ -13,6 +14,7 @@ input{font:inherit;padding:9px;border:1px solid #d9d3c7;border-radius:10px;width
 <h1>Importar del plugin antiguo</h1>
 <select id="em" style="font:inherit;padding:9px;border:1px solid #d9d3c7;border-radius:10px;width:100%" aria-label="Cuenta"></select>
 <p id="who"></p>
+<p><button id="dt">Ordenar importadas por hora de la foto</button> <span id="ds"></span></p>
 <p><button id="mv">Juntar galerías importadas en esta cuenta</button> <span id="ms"></span></p>
 <div id="l"><p>Buscando…</p></div>
 <script>
@@ -38,6 +40,9 @@ async function run(b){document.querySelectorAll('button').forEach(x=>x.disabled=
   if(!cur&&!r.again){st.innerHTML='Listo: '+done+' fotos. <a href="/galerias/'+ev+'">Abrir galería</a>';return}}}
 fetch('/admin/import/users').then(r=>r.json()).then(u=>{$('#em').innerHTML=(u.users||[]).map(x=>'<option value="'+x.email+'">'+x.email+' · '+x.n+' galerías</option>').join('')});
 $('#mv').onclick=async()=>{const r=await (await fetch('/admin/import/merge',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:$('#em').value})})).json();$('#ms').textContent=r.error||('Listo: '+r.moved+' fotos en '+r.galleries+' galería(s)')};
+$('#dt').onclick=async()=>{$('#dt').disabled=true;let n=0;for(;;){let r=null;for(let t=0;t<5&&!r;t++){try{r=await (await fetch('/admin/import/dates',{method:'POST'})).json()}catch(e){await new Promise(z=>setTimeout(z,1500))}}
+ if(!r||r.error){$('#ds').textContent='Se cortó. Vuelve a pulsar.';$('#dt').disabled=false;return}
+ n+=r.done;$('#ds').textContent=r.left?('Hechas '+n+', quedan '+r.left+'…'):'Listo: '+n+' fotos ordenadas por hora.';if(!r.left){$('#dt').disabled=false;return}}};
 albums();
 </script></body></html>`;
 }
@@ -97,6 +102,21 @@ export function importRoutes(app, { isAdmin }) {
     return json({ moved, galleries });
   });
 
+  // Pone en las fotos importadas la hora real de captura (EXIF) y sus medidas; por tandas.
+  app.post('/admin/import/dates', async (c) => {
+    if (!(await isAdmin(c))) return json({ error: 'admin' }, 401);
+    const db = c.env.DB;
+    const rows = (await db.prepare("SELECT id, uploaded_at FROM photos WHERE filename LIKE 'plugin-%' AND taken_at IS NULL LIMIT 12").all()).results;
+    for (const r of rows) {
+      let m = {};
+      try { m = await readMeta(c.env.PHOTOS, `p/${r.id}/o`); } catch { /* se queda con la hora de subida */ }
+      await db.prepare('UPDATE photos SET taken_at = ?, w = COALESCE(w, ?), h = COALESCE(h, ?) WHERE id = ?').bind(m.taken || r.uploaded_at, m.w || null, m.h || null, r.id).run();
+    }
+    const left = (await db.prepare("SELECT COUNT(*) AS n FROM photos WHERE filename LIKE 'plugin-%' AND taken_at IS NULL").first()).n;
+    await db.prepare("UPDATE events SET sort_mode = 'time' WHERE name LIKE 'Importado (álbum %' AND sort_mode <> 'time'").run().catch(() => {});
+    return json({ done: rows.length, left });
+  });
+
   app.post('/admin/import/run', async (c) => {
     if (!(await isAdmin(c))) return json({ error: 'admin' }, 401);
     const b = await c.req.json().catch(() => ({}));
@@ -148,10 +168,12 @@ export function importRoutes(app, { isAdmin }) {
         if (!body) continue;
         await c.env.PHOTOS.put(`p/${id}/${s}`, body.body, { httpMetadata: { contentType: from.httpMetadata?.contentType || 'image/jpeg' } });
       }
+      const up = new Date(best.uploaded).getTime() || Date.now();
+      const meta = await readMeta(c.env.PHOTOS, `p/${id}/o`).catch(() => ({}));
       await db.prepare(
         `INSERT INTO photos (id, event_id, guest_id, filename, mime, size, crc32, w, h, taken_at, uploaded_at, state)
-         VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, 'approved')`,
-      ).bind(id, evId, gid, fname, best.httpMetadata?.contentType || 'image/jpeg', best.size, new Date(best.uploaded).getTime() || Date.now()).run();
+         VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, 'approved')`,
+      ).bind(id, evId, gid, fname, best.httpMetadata?.contentType || 'image/jpeg', best.size, meta.w || null, meta.h || null, meta.taken || up, up).run();
       done++;
       } catch (e) { fail++; }
     }
