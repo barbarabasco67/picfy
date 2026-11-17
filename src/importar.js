@@ -26,10 +26,12 @@ async function albums(){const a={};let cur='';let n=0;let root='';
  L.innerHTML=ids.map(k=>'<div class="c"><span>Álbum '+k+' · '+a[k]+' fotos</span><button data-a="'+k+'">Importar</button></div>').join('')+'<p id="st"></p>';
  L.querySelectorAll('button').forEach(b=>b.onclick=()=>run(b));}
 async function run(b){document.querySelectorAll('button').forEach(x=>x.disabled=true);
- let ev='',cur='',done=0;const st=$('#st');
- for(;;){const r=await (await fetch('/admin/import/run',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({album:b.dataset.a,email:$('#em').value,event:ev,cursor:cur})})).json();
+ let ev='',cur='',done=0,fail=0;const st=$('#st');
+ for(;;){let r=null;
+  for(let t=0;t<6&&!r;t++){try{const x=await fetch('/admin/import/run',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({album:b.dataset.a,email:$('#em').value,event:ev,cursor:cur})});r=await x.json()}catch(e){await new Promise(z=>setTimeout(z,1500))}}
+  if(!r){st.textContent='Se cortó. Vuelve a pulsar Importar: continúa donde lo dejó.';document.querySelectorAll('button').forEach(x=>x.disabled=false);return}
   if(r.error){st.textContent='Error: '+r.error;return}
-  ev=r.event;cur=r.cursor;done+=r.done;st.textContent='Importadas '+done+'…';
+  ev=r.event;cur=r.cursor;done+=r.done;fail+=r.fail||0;st.textContent='Importadas '+done+(fail?' · fallidas '+fail:'')+'…';
   if(!cur){st.innerHTML='Listo: '+done+' fotos. <a href="/galerias/'+ev+'">Abrir galería</a>';return}}}
 albums();
 </script></body></html>`;
@@ -62,9 +64,14 @@ export function importRoutes(app, { isAdmin }) {
     if (!/^[\w-]{1,40}$/.test(album)) return json({ error: 'álbum' }, 400);
     const db = c.env.DB;
     let evId = String(b.event || '');
+    const u = await db.prepare('SELECT id FROM users WHERE email = ?').bind(String(b.email || '').trim().toLowerCase()).first();
     if (!/^[0-9a-f]{16}$/.test(evId)) {
-      const u = await db.prepare('SELECT id FROM users WHERE email = ?').bind(String(b.email || '').trim().toLowerCase()).first();
       if (!u) return json({ error: 'No existe esa cuenta en Picfy' }, 404);
+      const nm = `Importado (álbum ${album})`;
+      const old = await db.prepare('SELECT id FROM events WHERE owner_id = ? AND name = ? AND deleted_at IS NULL ORDER BY created_at LIMIT 1').bind(u.id, nm).first().catch(() => null);
+      if (old) evId = old.id;
+    }
+    if (!/^[0-9a-f]{16}$/.test(evId)) {
       evId = randomHex(8);
       await db.prepare(
         `INSERT INTO events (id, name, lead, event_date, guest_token, manage_hash, auto_approve, photo_limit, created_at, owner_id)
@@ -76,12 +83,13 @@ export function importRoutes(app, { isAdmin }) {
     const gid = `imp${evId}`.slice(0, 24);
     await db.prepare('INSERT OR IGNORE INTO guests (id, event_id, key_hash, name, created_at) VALUES (?, ?, ?, ?, ?)')
       .bind(gid, evId, `imp-${album}`, 'Importado', Date.now()).run();
-    const folders = await c.env.PHOTOS.list({ prefix: `${PRE}${album}/`, delimiter: '/', limit: 8, cursor: b.cursor || undefined });
-    let done = 0;
+    const folders = await c.env.PHOTOS.list({ prefix: `${PRE}${album}/`, delimiter: '/', limit: 4, cursor: b.cursor || undefined });
+    let done = 0; let fail = 0;
     for (const pre of folders.delimitedPrefixes) {
       const src = pre.slice(PRE.length + album.length + 1).replace(/\/$/, '');
       const fname = `plugin-${src}`.slice(0, 120);
       if (await db.prepare('SELECT 1 FROM photos WHERE event_id = ? AND filename = ?').bind(evId, fname).first()) continue;
+      try {
       const objs = {};
       for (const s of ['o', 'l', 'm']) { const h = await c.env.PHOTOS.head(`${pre}${s}`); if (h) objs[s] = h; }
       const best = objs.o || objs.l || objs.m;
@@ -98,7 +106,8 @@ export function importRoutes(app, { isAdmin }) {
          VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, 'approved')`,
       ).bind(id, evId, gid, fname, best.httpMetadata?.contentType || 'image/jpeg', best.size, new Date(best.uploaded).getTime() || Date.now()).run();
       done++;
+      } catch (e) { fail++; }
     }
-    return json({ event: evId, done, cursor: folders.truncated ? folders.cursor : '' });
+    return json({ event: evId, done, fail, cursor: folders.truncated ? folders.cursor : '' });
   });
 }
