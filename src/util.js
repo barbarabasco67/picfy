@@ -81,3 +81,13 @@ export function themeStyle(hex) {
 
 // Enlace público de una galería: el nombre elegido si lo tiene, si no el de letras y números.
 export const glink = (e) => (e && e.slug ? `/g/${e.slug}` : `/e/${e.guest_token}`);
+
+// Nombre de descarga con extensión (las fotos importadas del plugin se guardaron sin ella).
+export function withExt(name, mime) {
+  const n = String(name || '');
+  if (/\.[A-Za-z0-9]{2,5}$/.test(n)) return n;
+  const m = String(mime || '').toLowerCase();
+  const ext = m.includes('png') ? '.png' : m.includes('webp') ? '.webp' : m.includes('gif') ? '.gif' : m.includes('heic') ? '.heic'
+    : m.includes('quicktime') ? '.mov' : m.includes('mp4') ? '.mp4' : m.includes('webm') ? '.webm' : '.jpg';
+  return n + ext;
+}

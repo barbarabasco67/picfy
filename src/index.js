@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import {
-  randomHex, sha256Hex, timingSafeEqual, isHex, json, html,
+  randomHex, withExt, sha256Hex, timingSafeEqual, isHex, json, html,
   makeSession, checkSession, getCookie,
 } from './util.js';
 import {
@@ -97,8 +97,8 @@ app.get('/m/:id/:size', async (c) => {
     etag,
   });
   if (size === 'o' && c.req.query('dl')) {
-    const row = await c.env.DB.prepare('SELECT filename FROM photos WHERE id = ?').bind(id).first();
-    const name = (row?.filename || `${id}.jpg`).replace(/[^\w.\- ]+/g, '_');
+    const row = await c.env.DB.prepare('SELECT filename, mime FROM photos WHERE id = ?').bind(id).first();
+    const name = withExt(row?.filename || `${id}.jpg`, row?.mime).replace(/[^\w.\- ]+/g, '_');
     headers.set('content-disposition', `attachment; filename="${name}"`);
   }
   return new Response(obj.body, { headers });
@@ -141,11 +141,11 @@ app.get('/e/:token/dl/:id', async (c) => {
   const event = await getEventByGuestToken(c.env.DB, c.req.param('token'));
   const id = c.req.param('id');
   if (!event || !event.allow_download || !event.gallery_open || !isHex(id, 32) || !(await accessOk(c, event))) return c.notFound();
-  const row = await c.env.DB.prepare(`SELECT filename FROM photos WHERE id = ?1 AND ${famPublic('event_id', '?2', await privacyReady(c.env.DB))} AND state = 'approved'`).bind(id, event.id).first();
+  const row = await c.env.DB.prepare(`SELECT filename, mime FROM photos WHERE id = ?1 AND ${famPublic('event_id', '?2', await privacyReady(c.env.DB))} AND state = 'approved'`).bind(id, event.id).first();
   if (!row) return c.notFound();
   const obj = await c.env.PHOTOS.get(`p/${id}/o`);
   if (!obj) return c.notFound();
-  const name = (row.filename || `${id}.jpg`).replace(/[^\w.\- ]+/g, '_');
+  const name = withExt(row.filename || `${id}.jpg`, row.mime).replace(/[^\w.\- ]+/g, '_');
   if (!(await ownsEvent(c, event))) await countDownload(c.env.DB, event, 1);
   return new Response(obj.body, { headers: {
     'content-type': obj.httpMetadata?.contentType || 'image/jpeg', 'content-length': String(obj.size),
@@ -173,7 +173,7 @@ app.get('/e/:token/zip', async (c) => {
   const used = new Set();
   const safe = (s) => String(s || '').replace(/[\\/:*?"<>|\x00-\x1f]+/g, '_').trim().slice(0, 80);
   const entries = list.map((r, k) => {
-    let name = `${String(offset + k + 1).padStart(4, '0')}_${safe(r.filename) || r.id + '.jpg'}`;
+    let name = `${String(offset + k + 1).padStart(4, '0')}_${safe(withExt(r.filename, r.mime)) || r.id + '.jpg'}`;
     while (used.has(name)) name = name.replace(/(\.[^.]*)?$/, `_${r.id.slice(0, 4)}$1`);
     used.add(name);
     return { id: r.id, key: `p/${r.id}/o`, name, size: r.size, crc: r.crc32, ms: r.taken_at ?? r.uploaded_at };
