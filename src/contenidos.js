@@ -13,6 +13,8 @@ export const STATUSES = {
   programado: { label: 'Programado', color: '#2f6fed', client: true },
   publicado: { label: 'Publicado', color: '#14213d', client: true },
 };
+export const CHECKS = { copy: 'Texto', arte: 'Diseño', tags: 'Hashtags', prog: 'Programado' };
+export const MODES = ['view', 'review', 'edit'];
 export const FORMATS = { post: 'Post', carrusel: 'Carrusel', reel: 'Reel', storie: 'Storie', video: 'Vídeo', texto: 'Texto' };
 
 let st = { v: null, t: 0 };
@@ -51,7 +53,16 @@ function cleanPost(b, cur = {}) {
     copy: 'copy' in b ? clip(b.copy, 5000) : (p0.copy || ''),
     hashtags: 'hashtags' in b ? clip(b.hashtags, 600) : (p0.hashtags || ''),
     notes: 'notes' in b ? clip(b.notes, 2000) : (p0.notes || ''),
+    pillar: 'pillar' in b ? clip(b.pillar, 40) : (p0.pillar || ''),
+    owner: 'owner' in b ? clip(b.owner, 60) : (p0.owner || ''),
+    goal: 'goal' in b ? clip(b.goal, 200) : (p0.goal || ''),
+    place: 'place' in b ? clip(b.place, 100) : (p0.place || ''),
+    mentions: 'mentions' in b ? clip(b.mentions, 300) : (p0.mentions || ''),
+    check: {}, stats: {},
   };
+  for (const k of Object.keys(CHECKS)) post.check[k] = b.check && typeof b.check === 'object' ? !!b.check[k] : !!(p0.check || {})[k];
+  const sIn = b.stats && typeof b.stats === 'object' ? b.stats : (p0.stats || {});
+  for (const k of ['reach', 'likes', 'comments', 'saves', 'shares']) { const n = Math.round(Number(sIn[k])); if (sIn[k] !== '' && sIn[k] != null && Number.isFinite(n) && n >= 0 && n < 1e10) post.stats[k] = n; }
   return { v: { title, date, time, link: link || null, kind: format === 'storie' ? 'storie' : 'publicacion', done: status === 'publicado' ? 1 : 0, post: JSON.stringify(post) } };
 }
 
@@ -61,6 +72,7 @@ function outPost(r, imgs, notes) {
     id: r.id, title: r.title, date: r.date || '', time: r.time || '', link: r.url || '',
     networks: p.networks || [], format: p.format || 'post', status: p.status || 'idea',
     copy: p.copy || '', hashtags: p.hashtags || '', notes: p.notes || '',
+    pillar: p.pillar || '', owner: p.owner || '', goal: p.goal || '', place: p.place || '', mentions: p.mentions || '', check: p.check || {}, stats: p.stats || {},
     images: imgs.filter((i) => i.item_id === r.id).sort((a, b) => a.position - b.position).map((i) => i.id),
     comments: notes.filter((n) => n.item_id === r.id).sort((a, b) => a.created_at - b.created_at).map((n) => ({ id: n.id, author: n.author, body: n.body, at: n.created_at })),
   };
@@ -101,7 +113,7 @@ export function contenidosRoutes(app) {
   app.get('/api/redes/:cid/posts', async (c) => {
     const a = await auth(c); if (a.err) return a.err;
     const cl = await client(c, a.user); if (!cl) return json({ error: 'nf' }, 404);
-    return json({ posts: await loadPosts(c.env.DB, cl.id, false), token: cl.share_token || null });
+    return json({ posts: await loadPosts(c.env.DB, cl.id, false), token: cl.share_token || null, mode: MODES.includes(cl.share_mode) ? cl.share_mode : 'review', modeOk: 'share_mode' in cl, planOk: 'plan' in cl, plan: 'plan' in cl ? safeJson(cl.plan) : {} });
   });
 
   app.post('/api/redes/:cid/posts', async (c) => {
@@ -196,10 +208,43 @@ export function contenidosRoutes(app) {
     const a = await auth(c); if (a.err) return a.err;
     const cl = await client(c, a.user); if (!cl) return json({ error: 'nf' }, 404);
     const b = await c.req.json().catch(() => ({}));
-    let token = null;
-    if (b.on) token = (b.renew || !cl.share_token) ? randomHex(16) : cl.share_token;
+    let token = cl.share_token || null;
+    if (b.on === false) token = null;
+    else if (b.on) token = (b.renew || !cl.share_token) ? randomHex(16) : cl.share_token;
     await c.env.DB.prepare('UPDATE social_clients SET share_token = ? WHERE id = ?').bind(token, cl.id).run();
-    return json({ token });
+    let mode = MODES.includes(cl.share_mode) ? cl.share_mode : 'review';
+    if (MODES.includes(b.mode) && 'share_mode' in cl) { mode = b.mode; await c.env.DB.prepare('UPDATE social_clients SET share_mode = ? WHERE id = ?').bind(mode, cl.id).run(); }
+    return json({ token, mode });
+  });
+
+  app.put('/api/redes/:cid/plan', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    const cl = await client(c, a.user); if (!cl) return json({ error: 'nf' }, 404);
+    if (!('plan' in cl)) return json({ error: 'setup' }, 503);
+    const b = await c.req.json().catch(() => ({}));
+    const pillars = (Array.isArray(b.pillars) ? b.pillars : []).slice(0, 12).map((x) => ({ name: clip(x && x.name, 40), color: /^#[0-9a-fA-F]{6}$/.test(String(x && x.color)) ? x.color.toLowerCase() : '#8a8f98' })).filter((x) => x.name);
+    const tagsets = (Array.isArray(b.tagsets) ? b.tagsets : []).slice(0, 12).map((x) => ({ name: clip(x && x.name, 40), tags: clip(x && x.tags, 600) })).filter((x) => x.name && x.tags);
+    const plan = { pillars, tagsets };
+    await c.env.DB.prepare('UPDATE social_clients SET plan = ? WHERE id = ?').bind(JSON.stringify(plan), cl.id).run();
+    return json({ plan });
+  });
+
+  app.post('/api/redes/:cid/posts/:id/duplicate', async (c) => {
+    const a = await auth(c); if (a.err) return a.err;
+    const cl = await client(c, a.user); if (!cl) return json({ error: 'nf' }, 404);
+    const cur = await myPost(c, cl); if (!cur) return json({ error: 'nf' }, 404);
+    const p = safeJson(cur.post); p.status = 'idea'; p.check = {}; p.stats = {};
+    const id = randomHex(8);
+    await c.env.DB.prepare('INSERT INTO agenda_items (id, owner_id, kind, title, category, date, time, done, important, url, created_at, client_id, post) VALUES (?,?,?,?,?,?,?,0,0,NULL,?,?,?)')
+      .bind(id, a.user.id, cur.kind, clip(cur.title + ' (copia)', 160), cl.name, cur.date, cur.time, Date.now(), cl.id, JSON.stringify(p)).run();
+    const imgs = (await c.env.DB.prepare('SELECT id, mime, size, position FROM post_images WHERE item_id = ? ORDER BY position').bind(cur.id).all()).results;
+    for (const im of imgs) {
+      const obj = await c.env.PHOTOS.get(`social/${cur.id}/${im.id}`); if (!obj) continue;
+      const nid = randomHex(8);
+      await c.env.PHOTOS.put(`social/${id}/${nid}`, await obj.arrayBuffer(), { httpMetadata: { contentType: im.mime } });
+      await c.env.DB.prepare('INSERT INTO post_images (id, item_id, owner_id, position, mime, size, created_at) VALUES (?,?,?,?,?,?,?)').bind(nid, id, a.user.id, im.position, im.mime, im.size, Date.now()).run();
+    }
+    return json({ id });
   });
 
   app.get('/api/post-img/:iid', async (c) => {
@@ -241,9 +286,23 @@ export function contenidosRoutes(app) {
     const p = safeJson(cur.post);
     if (!STATUSES[p.status || 'idea'].client) return json({ error: 'nf' }, 404);
     const b = await c.req.json().catch(() => ({}));
+    const mode = MODES.includes(cl.share_mode) ? cl.share_mode : 'review';
+    if (mode === 'view') return json({ error: 'readonly' }, 403);
     const body = clip(b.body, 1000);
     const open = p.status === 'revision' || p.status === 'cambios';
     const act = b.action;
+    if (act === 'edit') {
+      if (mode !== 'edit' || !open) return json({ error: 'state' }, 403);
+      const r = cleanPost({ title: b.title, date: b.date, time: b.time, copy: b.copy, hashtags: b.hashtags }, cur);
+      if (r.error) return json({ error: r.error }, 400);
+      const keep = safeJson(cur.post), np = safeJson(r.v.post);
+      np.status = keep.status;
+      await c.env.DB.batch([
+        c.env.DB.prepare('UPDATE agenda_items SET title=?2, date=?3, time=?4, post=?5 WHERE id=?1').bind(cur.id, r.v.title, r.v.date, r.v.time, JSON.stringify(np)),
+        c.env.DB.prepare('INSERT INTO post_notes (id, item_id, author, body, created_at) VALUES (?,?,?,?,?)').bind(randomHex(8), cur.id, 'cliente', 'Ha editado la publicación', Date.now()),
+      ]);
+      return json({ ok: true, status: np.status });
+    }
     if (act === 'approve' && open) p.status = 'aprobado';
     else if (act === 'changes' && open) { if (!body) return json({ error: 'empty' }, 400); p.status = 'cambios'; }
     else if (act !== 'comment') return json({ error: 'state' }, 400);
@@ -261,7 +320,7 @@ export function contenidosRoutes(app) {
     if (!cl) return html(publicShell('Enlace no disponible', '<p class="empty">Este enlace no existe o ya no está activo.</p>', '#14213d', FONTS.sans.css), 404);
     const posts = (await loadPosts(c.env.DB, cl.id, true)).filter((p) => p.date);
     const font = FONTS[cl.font] || FONTS.sans;
-    return html(publicShell(cl.name, publicBody(cl, posts, c.req.param('token')), cl.color, font.css, font.w));
+    return html(publicShell(cl.name, publicBody(cl, posts, c.req.param('token'), MODES.includes(cl.share_mode) ? cl.share_mode : 'review'), cl.color, font.css, font.w));
   });
 }
 
@@ -275,7 +334,7 @@ function ink(hex) {
   return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? '#14213d' : '#ffffff';
 }
 
-function publicBody(cl, posts, token) {
+function publicBody(cl, posts, token, mode) {
   if (!posts.length) return `<header class="top"><h1>${esc(cl.name)}</h1><p>Calendario de contenidos</p></header><p class="empty">Todavía no hay publicaciones para revisar.</p>`;
   const byMonth = {};
   for (const p of posts) (byMonth[p.date.slice(0, 7)] = byMonth[p.date.slice(0, 7)] || []).push(p);
@@ -289,13 +348,15 @@ function publicBody(cl, posts, token) {
     const nets = p.networks.map((n) => `<span class="net" style="--n:${NETWORKS[n].color}">${esc(NETWORKS[n].label)}</span>`).join('');
     const full = [p.copy, p.hashtags].filter(Boolean).join('\n\n');
     const comments = p.comments.map((x) => `<div class="cm ${x.author === 'cliente' ? 'me' : ''}"><b>${x.author === 'cliente' ? 'Tú' : esc(cl.name.length > 0 ? 'Equipo' : 'Equipo')}</b><span>${esc(x.body)}</span></div>`).join('');
-    const actions = open ? `<div class="acts"><textarea placeholder="Escribe aquí si quieres pedir un cambio…" maxlength="1000" rows="2"></textarea><div class="btns"><button type="button" data-act="approve" class="ok">Aprobar</button><button type="button" data-act="changes" class="ch">Pedir cambios</button></div></div>`
+    const edit = mode === 'edit' && open ? `<div class="edit" hidden><input data-f="title" value="${esc(p.title)}" maxlength="160" aria-label="Título"><div class="two"><input type="date" data-f="date" value="${esc(p.date)}" aria-label="Fecha"><input type="time" data-f="time" value="${esc(p.time)}" aria-label="Hora"></div><textarea data-f="copy" rows="6" maxlength="5000" aria-label="Texto">${esc(p.copy)}</textarea><input data-f="hashtags" value="${esc(p.hashtags)}" maxlength="600" aria-label="Hashtags"><div class="btns"><button type="button" data-act="edit" class="ok">Guardar</button><button type="button" data-act="cancel-edit" class="ch">Cancelar</button></div></div><button type="button" class="cp" data-act="open-edit">Editar</button>` : '';
+    const actions = mode === 'view' ? '' : open ? `<div class="acts"><textarea placeholder="Escribe aquí si quieres pedir un cambio…" maxlength="1000" rows="2"></textarea><div class="btns"><button type="button" data-act="approve" class="ok">Aprobar</button><button type="button" data-act="changes" class="ch">Pedir cambios</button></div></div>`
       : `<div class="acts"><div class="btns one"><button type="button" data-act="comment" class="ch">Comentar</button></div><textarea placeholder="Añadir un comentario…" maxlength="1000" rows="2"></textarea></div>`;
     return `<article class="card" id="p-${p.id}" data-id="${p.id}" data-st="${p.status}">
 <header><div class="dt"><b>${d}</b><span>${MONTHS[m - 1].slice(0, 3)}${p.time ? ' · ' + esc(p.time) : ''}</span></div><div class="ti"><h3>${esc(p.title)}</h3><div class="meta">${nets}<span class="fm">${esc(FORMATS[p.format])}</span></div></div><span class="pill" style="--s:${s.color}">${s.label}</span></header>
 ${media}
 ${full ? `<div class="copy"><p>${esc(p.copy).replace(/\n/g, '<br>')}</p>${p.hashtags ? `<p class="tags">${esc(p.hashtags)}</p>` : ''}<button type="button" class="cp" data-copy="${esc(full)}">Copiar texto</button></div>` : ''}
 ${comments ? `<div class="cms">${comments}</div>` : ''}
+${edit}
 ${actions}
 </article>`;
   };
@@ -331,7 +392,7 @@ function publicShell(title, body, color, font, weight = 700) {
 .grid{display:none;margin-bottom:16px}.cal .grid{display:block}.cal .list{display:none}
 .dw,.gs{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.dw span{font-size:12px;color:var(--mu);text-align:center;text-transform:uppercase}
 .gc{min-height:72px;background:#fff;border:1px solid var(--ln);border-radius:8px;padding:4px;display:flex;flex-direction:column;gap:3px;min-width:0}.gc.empty{background:none;border:0}.gc .n{font-size:11px;color:var(--mu)}
-.gp{display:block;text-decoration:none;color:var(--ink);border-left:3px solid var(--s);background:#faf8f4;border-radius:4px;overflow:hidden;font-size:11px;line-height:1.2}.gp img{display:block;width:100%;aspect-ratio:1;object-fit:cover}.gp span{display:block;padding:2px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gp{display:block;text-decoration:none;color:#fff;background:var(--s);border-radius:6px;overflow:hidden;font-size:11px;line-height:1.2}.gp img{display:block;width:100%;aspect-ratio:1;object-fit:cover}.gp span{display:block;padding:2px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .card{background:#fff;border:1px solid var(--ln);border-radius:16px;padding:16px;margin-bottom:16px;scroll-margin-top:12px}
 .card>header{display:flex;gap:12px;align-items:flex-start}.dt{flex:none;width:52px;text-align:center;background:var(--c);color:var(--ci);border-radius:10px;padding:6px 0;line-height:1.1}.dt b{display:block;font:var(--w) 22px var(--f)}.dt span{font-size:11px;text-transform:uppercase}
 .ti{flex:1;min-width:0}.ti h3{margin:0 0 4px;font:var(--w) 18px/1.25 var(--f)}.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.net{font-size:12px;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--n) 14%,#fff);color:var(--n)}.fm{font-size:12px;color:var(--mu)}
@@ -343,6 +404,7 @@ function publicShell(title, body, color, font, weight = 700) {
 .cms{margin-top:12px;display:grid;gap:6px}.cm{font-size:14px;background:#f1eee8;border-radius:10px;padding:8px 12px;max-width:90%}.cm b{display:block;font-size:12px;color:var(--mu)}.cm.me{background:color-mix(in srgb,var(--c) 18%,#fff);margin-left:auto}
 .acts{margin-top:12px;display:grid;gap:8px}.acts textarea{width:100%;font:inherit;font-size:15px;border:1px solid var(--ln);border-radius:10px;padding:10px;resize:vertical}
 .btns{display:flex;gap:8px}.btns.one{order:2}.btns button{flex:1;border:0;border-radius:10px;padding:12px;font:inherit;font-weight:600;cursor:pointer}.ok{background:#2f9e5f;color:#fff}.ch{background:#fff;border:1px solid var(--ln)!important;color:var(--ink)}
+.edit{margin-top:12px;display:grid;gap:8px}.edit input,.edit textarea{width:100%;font:inherit;font-size:15px;border:1px solid var(--ln);border-radius:10px;padding:10px}.edit .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}.card>.cp{margin-top:12px}
 .empty{color:var(--mu);padding:40px 0;text-align:center}.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:14px}
 @media(max-width:560px){.gc{min-height:54px}.gp span{display:none}.top h1{font-size:26px}}
 </style></head><body><div class="wrap">${body}</div>
@@ -355,7 +417,11 @@ document.addEventListener('click',function(e){
  var cp=e.target.closest('[data-copy]');
  if(cp){var t=cp.getAttribute('data-copy');(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('Texto copiado')},function(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Texto copiado')}catch(x){}a.remove()});return}
  var b=e.target.closest('[data-act]');if(!b)return;
- var card=b.closest('.card'),ta=card.querySelector('textarea'),body=ta?ta.value.trim():'',act=b.dataset.act;
+ var card=b.closest('.card'),act=b.dataset.act;
+ if(act==='open-edit'||act==='cancel-edit'){var ed=card.querySelector('.edit');ed.hidden=act==='cancel-edit';card.querySelector('[data-act=open-edit]').hidden=act==='open-edit';return}
+ if(act==='edit'){var d={action:'edit'};card.querySelectorAll('.edit [data-f]').forEach(function(i){d[i.dataset.f]=i.value});b.disabled=true;
+  fetch('/c/'+T+'/posts/'+card.dataset.id,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(){toast('Guardado');setTimeout(function(){location.reload()},600)}).catch(function(){b.disabled=false;toast('No se pudo guardar')});return}
+ var ta=card.querySelector('.acts textarea'),body=ta?ta.value.trim():'';
  if((act==='changes'||act==='comment')&&!body){toast('Escribe un mensaje primero');if(ta)ta.focus();return}
  b.disabled=true;
  fetch('/c/'+T+'/posts/'+card.dataset.id,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:act,body:body})}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(){toast(act==='approve'?'Aprobado, gracias':act==='changes'?'Cambios enviados':'Comentario enviado');setTimeout(function(){location.reload()},700)}).catch(function(){b.disabled=false;toast('No se pudo enviar')});

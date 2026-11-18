@@ -21,8 +21,26 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   await p.click('[data-cv=lista]'); await p.waitForSelector('.ctrow'); ok((await p.locator('.ctrow').textContent()).includes('Para revisar'), 'vista lista con estado');
   await p.click('[data-cv=feed]'); await p.waitForSelector('.ctf'); ok(true, 'vista feed');
   await p.click('[data-cv=mes]');
+  // estrategia, pilar, responsable, checklist, resultados
+  await p.click('#ctPlan'); await p.click('#ctPilAdd'); await p.fill('[data-pn="0"]', 'Resultados'); await p.click('#ctTagAdd'); await p.fill('[data-tn="0"]', 'Base'); await p.fill('[data-tt="0"]', '#lr3x3 #basket'); await p.click('#ctPlanForm [type=submit]');
+  await p.waitForSelector('#ctFPil:not([hidden])'); ok(true, 'pilares de contenido');
+  await p.click('.ctcard'); await p.selectOption('#ctForm select[name=pillar]', 'Resultados'); await p.fill('#ctForm input[name=owner]', 'Ana'); await p.check('#ctForm input[name=ck_copy]'); await p.check('#ctForm input[name=ck_arte]');
+  await p.click('.ctts'); ok((await p.inputValue('#ctForm input[name=hashtags]')).includes('#lr3x3'), 'grupo de hashtags se inserta');
+  await p.fill('#ctForm input[name=s_reach]', '1500'); await p.click('#ctForm [type=submit]'); await p.waitForFunction(() => document.querySelector('.ctcard') && document.querySelector('.ctcard').textContent.includes('2/4'));
+  ok((await p.locator('.ctcard').textContent()).includes('2/4'), 'progreso de producción en la tarjeta');
+  ok((await p.locator('#ctStats').textContent()).includes('1500'), 'alcance en las estadísticas');
+  const bgc = await p.locator('.ctcard').evaluate((e) => getComputedStyle(e).backgroundColor); ok(bgc === 'rgb(229, 150, 76)', 'la tarjeta va del color del estado: ' + bgc);
+  const bl = await p.locator('.ctcard').evaluate((e) => getComputedStyle(e).borderLeftWidth); ok(bl === '0px', 'sin raya lateral');
+  // tablero y arrastrar de estado
+  await p.click('[data-cv=tablero]'); await p.waitForSelector('.ctcol[data-status=revision] .ctcard');
+  await p.dragAndDrop('.ctcol[data-status=revision] .ctcard', '.ctcol[data-status=diseno]'); await p.waitForSelector('.ctcol[data-status=diseno] .ctcard'); ok(true, 'arrastrar entre estados en el tablero');
+  await p.click('.ctcol[data-status=diseno] .ctcard'); await p.selectOption('#ctForm select[name=status]', 'revision'); await p.click('#ctForm [type=submit]'); await p.waitForSelector('.ctcol[data-status=revision] .ctcard');
+  await p.click('[data-cv=mes]');
+  // duplicar
+  await p.click('.ctcard'); await p.click('#ctDup'); await p.waitForFunction(() => document.querySelector('#ctForm input[name=title]').value.includes('(copia)')); ok((await p.inputValue('#ctForm input[name=title]')).includes('(copia)'), 'duplicar publicación'); await p.click('#ctForm [data-close]'); await p.waitForTimeout(300);
+  await p.click('.ctcard:has-text("(copia)")'); p.once('dialog', (d) => d.accept()); await p.click('#ctDel'); await p.waitForFunction(() => !document.querySelector('#ctDlg').open); await p.waitForTimeout(800); ok(await p.locator('.ctcard:has-text("(copia)")').count() === 0, 'borrar la copia');
   // enlace
-  await p.click('#ctShare'); await p.click('#ctOn'); await p.waitForSelector('#ctUrl');
+  await p.click('#ctShare'); ok(await p.locator('[name=ctmode]').count() === 3, 'hay que elegir permiso: 3 opciones'); await p.check('[name=ctmode][value=review]', { force: true }); await p.click('#ctOn'); await p.waitForSelector('#ctUrl');
   const url = await p.inputValue('#ctUrl'); ok(/\/c\/[0-9a-f]{32}$/.test(url), 'enlace creado ' + url);
   await p.screenshot({ path: '/tmp/picfy_shots/ct_owner.png' });
   const q = await (await b.newContext({ viewport: { width: 420, height: 900 } })).newPage(); q.on('pageerror', (e) => console.log('ERROR JS cliente:', e.message));
@@ -46,6 +64,15 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   // una idea no se ve
   await p.click('#ctAdd'); await p.fill('#ctForm input[name=title]', 'Idea secreta'); await p.fill('#ctForm input[name=date]', today); await p.click('#ctForm [type=submit]'); await p.waitForSelector('.ctrow:has-text("Idea secreta")');
   await q.reload(); ok(!(await q.content()).includes('Idea secreta'), 'las ideas no las ve el cliente');
+  // permisos: solo ver / editar
+  await p.goto(B + '/redes/' + cid); await p.click('#ctShare'); await p.check('[name=ctmode][value=view]', { force: true }); await p.waitForSelector('.toast');
+  await q.reload(); ok(await q.locator('.acts, [data-act]').count() === 0, 'modo solo ver: sin botones');
+  const rr = await q.evaluate(async (u) => (await fetch(u, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'approve' }) })).status, '/c/' + url.split('/c/')[1] + '/posts/' + await q.locator('.card').first().getAttribute('data-id')); ok(rr === 403, 'modo solo ver: el servidor rechaza acciones');
+  await p.check('[name=ctmode][value=edit]', { force: true }); await p.waitForTimeout(500);
+  await p.click('#ctShareDlg [data-close]');
+  await p.click('.ctrow:has-text("Cartel del sábado")'); await p.selectOption('#ctForm select[name=status]', 'revision'); await p.click('#ctForm [type=submit]'); await p.waitForTimeout(800);
+  await q.reload(); await q.click('[data-act=open-edit]'); await q.fill('.edit [data-f=copy]', 'Texto editado por el cliente'); await Promise.all([q.waitForNavigation(), q.click('[data-act=edit]')]);
+  ok((await q.locator('.copy').textContent()).includes('editado por el cliente'), 'modo editar: el cliente cambia el texto');
   // la imagen de un borrador no se sirve por el enlace
   // agenda general lleva a contenidos
   await p.goto(B + '/agenda'); await p.waitForSelector('#agWeek :text("Cartel del sábado")'); await p.click('#agWeek .agent:has-text("Cartel del sábado")'); await p.waitForURL(/t=contenidos&post=/); await p.waitForSelector('#ctDlg[open]'); ok(true, 'desde el calendario general se abre la publicación');

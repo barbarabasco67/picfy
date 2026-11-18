@@ -923,26 +923,40 @@ ${clientFields(fonts, networks)}
 function contenidosView(ok, statuses, formats, networks) {
   if (!ok) return '<div class="glass emptybox">Falta una actualización de la base de datos para activar el calendario de contenidos.</div>';
   const opt = (o) => Object.entries(o).map(([k, v]) => `<option value="${k}">${esc(v.label || v)}</option>`).join('');
-  return `<div class="head cadd"><div class="vtog" role="group" aria-label="Vista"><button type="button" data-cv="mes" class="on">Mes</button><button type="button" data-cv="lista">Lista</button><button type="button" data-cv="feed">Feed</button></div>
-<span class="spacer"></span><button class="btn cbtn" type="button" id="ctShare">${ICON.share} Enviar al cliente</button><button class="btn primary cbtn" type="button" id="ctAdd">${ICON.plus} Nueva publicación</button></div>
-<div class="agchips" id="ctChips"></div>
+  return `<div class="cttool"><div class="vtog" role="group" aria-label="Vista"><button type="button" data-cv="mes" class="on">Mes</button><button type="button" data-cv="lista">Lista</button><button type="button" data-cv="tablero">Tablero</button><button type="button" data-cv="feed">Feed</button></div>
+<input type="search" id="ctQ" class="ctq" placeholder="Buscar" aria-label="Buscar">
+<span class="spacer"></span><button class="btn cbtn" type="button" id="ctPlan" hidden>Estrategia</button><button class="btn cbtn" type="button" id="ctShare">${ICON.share} Enviar al cliente</button><button class="btn primary cbtn" type="button" id="ctAdd">${ICON.plus} Nueva publicación</button></div>
+<div class="ctstats" id="ctStats"></div>
+<div class="ctfilters"><div class="agchips" id="ctChips"></div><select id="ctFNet" aria-label="Red"></select><select id="ctFPil" aria-label="Pilar" hidden></select><select id="ctFOwn" aria-label="Responsable" hidden></select></div>
 <div id="ctBoard" class="ctboard"></div>
 <dialog id="ctDlg" class="glassdlg ctdlg"><form class="dlgbox" id="ctForm" autocomplete="off">
 <header><h2 id="ctDlgT">Nueva publicación</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div class="ctcols"><div class="ctleft">
 <label class="field"><span>Título</span><input type="text" name="title" maxlength="160" required></label>
-<div class="row2"><label class="field"><span>Fecha</span><input type="date" name="date" required></label><label class="field"><span>Hora (opcional)</span><input type="time" name="time"></label></div>
+<div class="field"><span>Imágenes</span><div class="ctimgs" id="ctImgs"></div><input type="file" id="ctFile" accept="image/*" multiple hidden><div id="ctImgHint" class="muted small"></div></div>
+<label class="field"><span>Texto</span><textarea name="copy" rows="7" maxlength="5000"></textarea><small id="ctCount" class="ctcount"></small></label>
+<div class="field"><span>Hashtags</span><input type="text" name="hashtags" maxlength="600"><div class="cttagsets" id="ctTagsets"></div></div>
+<div class="row2"><label class="field"><span>Menciones y colaboraciones</span><input type="text" name="mentions" maxlength="300" placeholder="@cuenta"></label><label class="field"><span>Ubicación</span><input type="text" name="place" maxlength="100"></label></div>
+<label class="field"><span>Objetivo o llamada a la acción</span><input type="text" name="goal" maxlength="200"></label>
+</div><div class="ctright">
+<div class="row2"><label class="field"><span>Fecha</span><input type="date" name="date"></label><label class="field"><span>Hora</span><input type="time" name="time"></label></div>
 <div class="row2"><label class="field"><span>Formato</span><select name="format">${opt(formats)}</select></label><label class="field"><span>Estado</span><select name="status">${opt(statuses)}</select></label></div>
 <div class="field"><span>Redes</span><div class="ctnets">${Object.entries(networks).map(([k, n]) => `<label class="ctnet" style="--c:${n.color}"><input type="checkbox" name="net" value="${k}"><span>${esc(n.label)}</span></label>`).join('')}</div></div>
-<div class="field"><span>Imágenes</span><div class="ctimgs" id="ctImgs"></div><input type="file" id="ctFile" accept="image/*" multiple hidden><div id="ctImgHint" class="muted small"></div></div>
-<label class="field"><span>Texto de la publicación</span><textarea name="copy" rows="6" maxlength="5000"></textarea><small class="muted" id="ctCount"></small></label>
-<label class="field"><span>Hashtags</span><input type="text" name="hashtags" maxlength="600"></label>
-<label class="field"><span>Enlace (opcional)</span><input type="text" name="link" maxlength="400" placeholder="https://"></label>
-<label class="field"><span>Notas internas (el cliente no las ve)</span><textarea name="notes" rows="2" maxlength="2000"></textarea></label>
-<div class="field" id="ctCmWrap" hidden><span>Comentarios</span><div id="ctCms" class="ctcms"></div><div class="ctcmadd"><input type="text" id="ctCmIn" maxlength="1000" placeholder="Responder al cliente…"><button class="btn" type="button" id="ctCmBtn">Enviar</button></div></div>
-<footer><button class="btn danger" type="button" id="ctDel" hidden>${ICON.trash} Borrar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
+<div class="row2"><label class="field" id="ctPilarF" hidden><span>Pilar de contenido</span><select name="pillar"></select></label><label class="field"><span>Responsable</span><input type="text" name="owner" maxlength="60" list="ctOwners"></label></div><datalist id="ctOwners"></datalist>
+<div class="field"><span>Producción</span><div class="ctchecks" id="ctChecks"></div></div>
+<label class="field"><span>Enlace de la publicación</span><input type="text" name="link" maxlength="400" placeholder="https://"></label>
+<div class="field"><span>Resultados</span><div class="ctres"><label><span>Alcance</span><input type="number" min="0" name="s_reach"></label><label><span>Me gusta</span><input type="number" min="0" name="s_likes"></label><label><span>Comentarios</span><input type="number" min="0" name="s_comments"></label><label><span>Guardados</span><input type="number" min="0" name="s_saves"></label><label><span>Compartidos</span><input type="number" min="0" name="s_shares"></label></div></div>
+<label class="field"><span>Notas internas</span><textarea name="notes" rows="2" maxlength="2000"></textarea></label>
+<div class="field" id="ctCmWrap" hidden><span>Comentarios del cliente</span><div id="ctCms" class="ctcms"></div><div class="ctcmadd"><input type="text" id="ctCmIn" maxlength="1000" placeholder="Responder"><button class="btn" type="button" id="ctCmBtn">Enviar</button></div></div>
+</div></div>
+<footer><button class="btn danger" type="button" id="ctDel" hidden>${ICON.trash} Borrar</button><button class="btn" type="button" id="ctDup" hidden>Duplicar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>
 <dialog id="ctShareDlg" class="glassdlg"><div class="dlgbox"><header><h2>Enviar al cliente</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
-<div id="ctShareBody"></div></div></dialog>`;
+<div id="ctShareBody"></div></div></dialog>
+<dialog id="ctPlanDlg" class="glassdlg ctdlg"><form class="dlgbox" id="ctPlanForm" autocomplete="off"><header><h2>Estrategia</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div class="field"><span>Pilares de contenido</span><div id="ctPils"></div><button class="btn" type="button" id="ctPilAdd">+ Pilar</button></div>
+<div class="field"><span>Grupos de hashtags</span><div id="ctTags"></div><button class="btn" type="button" id="ctTagAdd">+ Grupo</button></div>
+<footer><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer></form></dialog>`;
 }
 
 export function clientePage({ user, client, clients, metrics, fonts, networks, kinds, agendaOk, postsOk, statuses, formats, tab }) {
