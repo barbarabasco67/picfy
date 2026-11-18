@@ -4,6 +4,7 @@ import { randomHex, isHex, html, json } from './util.js';
 import { currentUser } from './auth.js';
 import { redesPage, clientePage } from './appviews.js';
 import { AGENDA_KINDS, agendaReady } from './agenda.js';
+import { STATUSES, FORMATS, contenidosReady } from './contenidos.js';
 
 export const FONTS = {
   sans: { label: 'Moderna', css: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif', w: 700 },
@@ -106,7 +107,7 @@ export function redesRoutes(app) {
     if (!row) return go('/redes');
     const all = (await c.env.DB.prepare('SELECT * FROM social_clients WHERE owner_id = ? ORDER BY position, created_at').bind(user.id).all()).results;
     const metrics = (await c.env.DB.prepare('SELECT id, network, date, followers, posts, reach, interactions, note FROM social_metrics WHERE client_id = ? ORDER BY date, created_at LIMIT 2000').bind(row.id).all()).results;
-    return html(clientePage({ user, client: pub(row), clients: agendaClients(all), metrics, fonts: FONTS, networks: NETWORKS, kinds: AGENDA_KINDS, agendaOk: await agendaReady(c.env.DB), tab: c.req.query('t') || 'calendario' }));
+    return html(clientePage({ user, client: pub(row), clients: agendaClients(all), metrics, fonts: FONTS, networks: NETWORKS, kinds: AGENDA_KINDS, agendaOk: await agendaReady(c.env.DB), postsOk: await contenidosReady(c.env.DB), statuses: STATUSES, formats: FORMATS, tab: c.req.query('t') || 'contenidos' }));
   });
 
   app.get('/api/redes', async (c) => {

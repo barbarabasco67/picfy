@@ -16,6 +16,7 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   const ff = await p.locator('.cliente .chead h1').evaluate((e) => getComputedStyle(e).fontFamily); ok(/Impact/.test(ff), 'y la letra elegida: ' + ff);
   ok(await p.locator('.chead a.cnet[href^="https://instagram.com"]').count() === 1, 'enlace a su Instagram');
   // calendario del cliente
+  await p.goto(B + '/redes/' + cid + '?t=calendario');
   await p.waitForSelector('#agWeek .agday');
   await p.fill('#agQuickT', 'Preparar reel del torneo'); await p.press('#agQuickT', 'Enter'); await p.waitForSelector('#agSide :text("Preparar reel del torneo")');
   await p.click('#agAdd'); await p.check('#agForm input[name=kind][value=publicacion]', { force: true }); await p.fill('#agForm input[name=title]', 'Post resumen jornada');

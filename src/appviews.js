@@ -920,14 +920,41 @@ ${clientFields(fonts, networks)}
   });
 }
 
-export function clientePage({ user, client, clients, metrics, fonts, networks, kinds, agendaOk, tab }) {
-  const tabs = [['calendario', 'Calendario'], ['seguimiento', 'Seguimiento'], ['ajustes', 'Ajustes']];
-  const t = tabs.some((x) => x[0] === tab) ? tab : 'calendario';
+function contenidosView(ok, statuses, formats, networks) {
+  if (!ok) return '<div class="glass emptybox">Falta una actualización de la base de datos para activar el calendario de contenidos.</div>';
+  const opt = (o) => Object.entries(o).map(([k, v]) => `<option value="${k}">${esc(v.label || v)}</option>`).join('');
+  return `<div class="head cadd"><div class="vtog" role="group" aria-label="Vista"><button type="button" data-cv="mes" class="on">Mes</button><button type="button" data-cv="lista">Lista</button><button type="button" data-cv="feed">Feed</button></div>
+<span class="spacer"></span><button class="btn cbtn" type="button" id="ctShare">${ICON.share} Enviar al cliente</button><button class="btn primary cbtn" type="button" id="ctAdd">${ICON.plus} Nueva publicación</button></div>
+<div class="agchips" id="ctChips"></div>
+<div id="ctBoard" class="ctboard"></div>
+<dialog id="ctDlg" class="glassdlg ctdlg"><form class="dlgbox" id="ctForm" autocomplete="off">
+<header><h2 id="ctDlgT">Nueva publicación</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<label class="field"><span>Título</span><input type="text" name="title" maxlength="160" required></label>
+<div class="row2"><label class="field"><span>Fecha</span><input type="date" name="date" required></label><label class="field"><span>Hora (opcional)</span><input type="time" name="time"></label></div>
+<div class="row2"><label class="field"><span>Formato</span><select name="format">${opt(formats)}</select></label><label class="field"><span>Estado</span><select name="status">${opt(statuses)}</select></label></div>
+<div class="field"><span>Redes</span><div class="ctnets">${Object.entries(networks).map(([k, n]) => `<label class="ctnet" style="--c:${n.color}"><input type="checkbox" name="net" value="${k}"><span>${esc(n.label)}</span></label>`).join('')}</div></div>
+<div class="field"><span>Imágenes</span><div class="ctimgs" id="ctImgs"></div><input type="file" id="ctFile" accept="image/*" multiple hidden><div id="ctImgHint" class="muted small"></div></div>
+<label class="field"><span>Texto de la publicación</span><textarea name="copy" rows="6" maxlength="5000"></textarea><small class="muted" id="ctCount"></small></label>
+<label class="field"><span>Hashtags</span><input type="text" name="hashtags" maxlength="600"></label>
+<label class="field"><span>Enlace (opcional)</span><input type="text" name="link" maxlength="400" placeholder="https://"></label>
+<label class="field"><span>Notas internas (el cliente no las ve)</span><textarea name="notes" rows="2" maxlength="2000"></textarea></label>
+<div class="field" id="ctCmWrap" hidden><span>Comentarios</span><div id="ctCms" class="ctcms"></div><div class="ctcmadd"><input type="text" id="ctCmIn" maxlength="1000" placeholder="Responder al cliente…"><button class="btn" type="button" id="ctCmBtn">Enviar</button></div></div>
+<footer><button class="btn danger" type="button" id="ctDel" hidden>${ICON.trash} Borrar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
+</form></dialog>
+<dialog id="ctShareDlg" class="glassdlg"><div class="dlgbox"><header><h2>Enviar al cliente</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div id="ctShareBody"></div></div></dialog>`;
+}
+
+export function clientePage({ user, client, clients, metrics, fonts, networks, kinds, agendaOk, postsOk, statuses, formats, tab }) {
+  const tabs = [['contenidos', 'Contenidos'], ['calendario', 'Tareas'], ['seguimiento', 'Seguimiento'], ['ajustes', 'Ajustes']];
+  const t = tabs.some((x) => x[0] === tab) ? tab : 'contenidos';
   const nets = Object.entries(client.networks).map(([k, n]) => {
     const label = esc(networks[k].label) + (n.handle ? ' · ' + esc(n.handle) : '');
     return n.url ? `<a class="cnet" style="--c:${networks[k].color}" href="${esc(n.url)}" target="_blank" rel="noopener">${NETICON}${label}</a>` : `<span class="cnet" style="--c:${networks[k].color}">${label}</span>`;
   }).join('');
-  const body = t === 'calendario'
+  const body = t === 'contenidos'
+    ? contenidosView(postsOk, statuses, formats, networks)
+    : t === 'calendario'
     ? (agendaOk ? `<div class="head cadd"><div></div><button class="btn primary cbtn" type="button" id="agAdd">${ICON.plus} Añadir</button></div>${agendaCore(kinds, clients, client.id)}` : '<div class="glass emptybox">Falta la migración de la agenda.</div>')
     : t === 'seguimiento'
       ? `<div class="head cadd"><div></div><button class="btn primary cbtn" type="button" id="mtAdd">${ICON.plus} Anotar datos</button></div><div id="mtBoard" class="mtboard"></div>
@@ -943,8 +970,8 @@ export function clientePage({ user, client, clients, metrics, fonts, networks, k
 <div class="csfoot"><button class="btn danger" type="button" id="csDel">${ICON.trash} Borrar cliente</button><span class="spacer"></span><button class="btn primary" type="submit">Guardar</button></div></form>`;
   return appPage({
     title: client.name,
-    scripts: ['/app.js', '/icons.js'].concat(t === 'calendario' ? ['/agenda.js'] : ['/cliente.js']),
-    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}" data-clients="${esc(JSON.stringify(clients))}" data-client="${client.id}" data-nets="${esc(JSON.stringify(networks))}" data-metrics="${esc(JSON.stringify(metrics))}"`,
+    scripts: ['/app.js', '/icons.js'].concat(t === 'calendario' ? ['/agenda.js'] : t === 'contenidos' ? ['/contenidos.js'] : ['/cliente.js']),
+    bodyAttrs: `data-agenda="${esc(JSON.stringify(kinds))}" data-clients="${esc(JSON.stringify(clients))}" data-client="${client.id}" data-nets="${esc(JSON.stringify(networks))}" data-statuses="${esc(JSON.stringify(statuses || {}))}" data-formats="${esc(JSON.stringify(formats || {}))}" data-metrics="${esc(JSON.stringify(metrics))}"`,
     body: shell({
       user, active: 'redes', crumbs: '<a href="/redes">Redes sociales</a>', collapsible: true,
       main: `<div class="cliente" style="--cc:${esc(client.color)};--ci:${inkOn(client.color)};--cf:${esc(fontCss(fonts, client.font))};--cw:${fontW(fonts, client.font)}">

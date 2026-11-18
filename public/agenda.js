@@ -277,7 +277,7 @@
     const ck = t.closest('[data-check]'); if (ck) { toggle(ck.dataset.check); return; }
     const add = t.closest('[data-add]'); if (add) { openForm(null, add.dataset.add, 'evento'); return; }
     const ent = t.closest('.agent[data-id], .agchip[data-id], .agnx[data-id]');
-    if (ent) { const it = items.find((x) => x.id === ent.dataset.id); if (it) { if ($('agDay').open) $('agDay').close(); openForm(it); } return; }
+    if (ent) { const it = items.find((x) => x.id === ent.dataset.id); if (it) { if (it.post && it.client_id) { location.href = '/redes/' + it.client_id + '?t=contenidos&post=' + it.id; return; } if ($('agDay').open) $('agDay').close(); openForm(it); } return; }
     const dn = t.closest('.agnum, .agmore'); if (dn) { openDay(dn.dataset.day); return; }
     const cell = t.closest('.agcell'); if (cell && !t.closest('.agchip')) openDay(cell.dataset.day);
   });

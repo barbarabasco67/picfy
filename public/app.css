@@ -1439,3 +1439,39 @@ body.app .cliente .btn.primary { background: var(--cc); border-color: var(--cc);
 .mthist .mtnote { text-align: left; color: var(--muted, #6b6558); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .agent.cl { border-left: 4px solid var(--c); padding-left: 10px; border-radius: 6px; }
 .agchip { border-left: 3px solid var(--c); }
+
+/* Calendario de contenidos */
+.cadd .vtog button { width: auto; padding: 0 16px; font: inherit; font-size: 14px; }
+.ctchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--glass-line); background: var(--glass); border-radius: 99px; padding: 6px 12px; font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
+.ctchip i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.ctchip.on { background: var(--cc, var(--accent)); color: var(--ci, var(--accent-ink, #fff)); border-color: transparent; }
+.ctdow, .ctgrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.ctdow { margin: 10px 0 6px; } .ctdow span { font-size: 12px; text-transform: uppercase; color: var(--muted); text-align: center; }
+.ctcell { position: relative; min-height: 120px; background: rgba(255,255,255,.7); border: 1px solid var(--glass-line); border-radius: 12px; padding: 6px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.ctcell.off { background: none; border: 0; } .ctcell.today { outline: 2px solid var(--cc, var(--accent)); }
+.ctn { font-size: 12px; color: var(--muted); }
+.ctplus { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; opacity: 0; font-size: 16px; line-height: 1; }
+.ctcell:hover .ctplus, .ctplus:focus-visible { opacity: 1; }
+.ctcard { display: flex; flex-direction: column; text-align: left; border: 0; border-left: 4px solid var(--s); background: #fff; border-radius: 8px; padding: 0; overflow: hidden; cursor: pointer; font: inherit; color: var(--ink); font-family: var(--cf, inherit); }
+.ctcard img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+.ctc-t { font-size: 12px; line-height: 1.25; padding: 4px 6px 2px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ctc-m { display: flex; gap: 4px; padding: 0 6px 4px; } .ctc-m i { width: 8px; height: 8px; border-radius: 50%; }
+.ctlist { display: grid; gap: 10px; }
+.ctrow { display: flex; gap: 12px; align-items: center; text-align: left; width: 100%; padding: 10px 14px; border: 0; border-left: 5px solid var(--s); cursor: pointer; font: inherit; color: var(--ink); }
+.ctd { flex: none; width: 46px; text-align: center; font-size: 12px; text-transform: uppercase; color: var(--muted); } .ctd b { display: block; font-size: 22px; color: var(--ink); font-family: var(--cf); }
+.ctth { flex: none; width: 64px; height: 64px; border-radius: 10px; background: rgba(0,0,0,.05); overflow: hidden; } .ctth img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ctmain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; } .ctmain strong { font-family: var(--cf); } .ctmain .ctc-m { padding: 0; }
+.ctsnip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctpill { flex: none; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: color-mix(in srgb, var(--s) 14%, #fff); color: var(--s); }
+.ctfeed { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-width: 520px; }
+.ctf { position: relative; padding: 0; border: 0; background: none; cursor: pointer; aspect-ratio: 4/5; overflow: hidden; } .ctf img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ctf em { position: absolute; top: 6px; right: 6px; font-style: normal; font-size: 11px; background: rgba(0,0,0,.55); color: #fff; padding: 1px 7px; border-radius: 99px; }
+.ctf span { position: absolute; left: 0; right: 0; bottom: 0; font-size: 11px; padding: 3px 6px; background: var(--s); color: #fff; opacity: 0; } .ctf:hover span { opacity: 1; }
+.ctdlg { width: min(620px, calc(100vw - 24px)); }
+.ctnets { display: flex; flex-wrap: wrap; gap: 6px; } .ctnet input { position: absolute; opacity: 0; } .ctnet span { display: inline-block; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--glass-line); background: #fff; font-size: 13px; cursor: pointer; } .ctnet input:checked + span { background: var(--c); color: #fff; border-color: transparent; } .ctnet input:focus-visible + span { outline: 2px solid var(--ink); }
+.ctimgs { display: flex; gap: 8px; flex-wrap: wrap; }
+.ctim { width: 92px; } .ctim img { display: block; width: 92px; height: 92px; object-fit: cover; border-radius: 10px; } .ctim div { display: flex; justify-content: space-between; margin-top: 2px; } .ctim button { width: 28px; height: 24px; border: 0; background: none; cursor: pointer; font-size: 16px; color: var(--ink); } .ctim button:disabled { opacity: .25; cursor: default; }
+.ctimadd { width: 92px; height: 92px; border: 1.5px dashed var(--muted); border-radius: 10px; background: none; cursor: pointer; color: var(--muted); font: inherit; font-size: 13px; }
+.ctcms { display: grid; gap: 6px; } .ctcm { font-size: 14px; background: rgba(0,0,0,.05); padding: 6px 10px; border-radius: 10px; } .ctcm.cl { background: color-mix(in srgb, var(--cc, var(--accent)) 18%, #fff); } .ctcm b { margin-right: 4px; }
+.ctcmadd { display: flex; gap: 8px; margin-top: 6px; } .ctcmadd input { flex: 1; }
+@media (max-width: 700px) { .ctcell { min-height: 64px; padding: 3px; } .ctc-t { display: none; } .ctdow, .ctgrid { gap: 3px; } .ctplus { opacity: 1; } }

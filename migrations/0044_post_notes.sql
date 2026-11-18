@@ -1,0 +1,1 @@
+CREATE TABLE post_notes (id TEXT PRIMARY KEY, item_id TEXT NOT NULL, author TEXT NOT NULL, body TEXT NOT NULL, created_at INTEGER NOT NULL);
