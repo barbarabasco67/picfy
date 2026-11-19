@@ -8,9 +8,9 @@
 <meta name="description" content="Propuesta de diseño web para Lex Talionis Abogados, C/ Rafael de Riego 8, Madrid.">
 <meta name="theme-color" content="#0d0620">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;1,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#0d0620;--d1:#150a30;--d2:#1f1046;--vio:#5b32b4;--vio2:#7c52dc;--lav:#cbbcf6;--gold:#d8b46c;--gold2:#f0d9a2;--gold3:#9c7d3f;--iv:#f6f2ea;--paper:#ece5d6;--tx:#1d1533;--mu:#6d6585;--mud:#a99fc4;--hd:'Libre Caslon Display',Georgia,serif;--it:'Libre Caslon Text',Georgia,serif;--bd:'Instrument Sans',system-ui,sans-serif}
+:root{--ink:#0b0519;--d1:#130a2e;--d2:#1d1045;--vio:#8850f8;--vio2:#a67bff;--lav:#cdbcff;--gold:#a67bff;--gold2:#d6c6ff;--gold3:#6d37e0;--iv:#f5f2fc;--paper:#ebe6f8;--tx:#170f33;--mu:#6a6288;--mud:#a79ec8;--hd:'Lato',system-ui,sans-serif;--it:'Lato',system-ui,sans-serif;--bd:'Lato',system-ui,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{background:var(--ink);color:var(--iv);font-family:var(--bd);font-weight:400;line-height:1.65;overflow-x:hidden;-webkit-font-smoothing:antialiased}
@@ -19,9 +19,10 @@ img,svg{display:block;max-width:100%}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .wrap{width:min(1240px,90vw);margin:0 auto}
-h1,h2,h3{font-family:var(--hd);font-weight:400;line-height:1.06;letter-spacing:-.005em}
-h1 em,h2 em{font-family:var(--it);font-style:italic}
-.gold{background:linear-gradient(100deg,var(--gold3),var(--gold2) 30%,var(--gold) 50%,var(--gold2) 70%,var(--gold3));background-size:240% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sh 8s linear infinite}
+h1,h2,h3{font-family:var(--hd);font-weight:900;line-height:1.04;letter-spacing:.005em;text-transform:uppercase}
+h1 em,h2 em{font-style:normal}
+h3{font-weight:700;letter-spacing:.01em}
+.gold{color:var(--vio2);background:linear-gradient(100deg,#7a45e8,#d6c6ff 40%,#a67bff 60%,#7a45e8);background-size:240% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:sh 8s linear infinite}
 @keyframes sh{to{background-position:-240% 0}}
 .sec{font-size:.74rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);display:flex;gap:.9rem;align-items:center;font-weight:500}
 .sec i{font-style:normal;font-family:var(--hd);font-size:1.15rem;letter-spacing:0}
@@ -44,11 +45,11 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:900;opa
 #cur{width:38px;height:38px;border:1px solid var(--gold);transition:width .3s,height .3s,background .3s,opacity .3s,border-color .3s}
 #curd{width:5px;height:5px;background:var(--gold)}
 body.hv #cur,body.hv #curd{opacity:1}
-body.hv #cur.big{width:74px;height:74px;background:rgba(216,180,108,.12)}
+body.hv #cur.big{width:74px;height:74px;background:rgba(136,80,248,.12)}
 @media(hover:none){#cur,#curd{display:none}}
 /* cabecera */
 header{position:fixed;left:0;right:0;top:0;z-index:100;transition:background .4s,padding .4s,backdrop-filter .4s;padding:1.5rem 0}
-header.s{background:rgba(13,6,32,.78);backdrop-filter:blur(14px);padding:.8rem 0;border-bottom:1px solid rgba(216,180,108,.18)}
+header.s{background:rgba(13,6,32,.78);backdrop-filter:blur(14px);padding:.8rem 0;border-bottom:1px solid rgba(136,80,248,.18)}
 header .wrap{display:flex;align-items:center;justify-content:space-between;gap:2rem}
 .logo{display:flex;flex-direction:column;line-height:1;gap:.35rem}
 .logo b{font-family:var(--hd);font-weight:400;font-size:1.45rem;letter-spacing:.2em}
@@ -57,10 +58,10 @@ nav{display:flex;gap:2.2rem;font-size:.86rem;letter-spacing:.04em}
 nav a{position:relative;padding:.3rem 0;color:rgba(246,242,234,.82);transition:color .3s}
 nav a:after{content:"";position:absolute;left:0;bottom:0;height:1px;width:100%;background:var(--gold);transform:scaleX(0);transform-origin:right;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
 nav a:hover{color:#fff}nav a:hover:after{transform:scaleX(1);transform-origin:left}
-.tel{display:flex;align-items:center;gap:.6rem;border:1px solid rgba(216,180,108,.5);padding:.6rem 1.2rem;border-radius:99px;font-size:.86rem;transition:background .3s,color .3s}
+.tel{display:flex;align-items:center;gap:.6rem;border:1px solid rgba(136,80,248,.5);padding:.6rem 1.2rem;border-radius:99px;font-size:.86rem;transition:background .3s,color .3s}
 .tel:hover{background:var(--gold);color:var(--ink)}
 .tel svg{width:15px;height:15px}
-#bg{display:none;width:44px;height:44px;border:1px solid rgba(216,180,108,.5);border-radius:50%;position:relative}
+#bg{display:none;width:44px;height:44px;border:1px solid rgba(136,80,248,.5);border-radius:50%;position:relative}
 #bg i{position:absolute;left:13px;right:13px;height:1px;background:var(--iv);transition:transform .3s,top .3s}
 #bg i:nth-child(1){top:18px}#bg i:nth-child(2){top:25px}
 #bg.o i:nth-child(1){top:21px;transform:rotate(45deg)}#bg.o i:nth-child(2){top:21px;transform:rotate(-45deg)}
@@ -77,7 +78,7 @@ nav a:hover{color:#fff}nav a:hover:after{transform:scaleX(1);transform-origin:le
 .btn:hover svg{transform:translateX(4px)}
 /* hero */
 .hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:8rem 0 7rem;background:radial-gradient(60% 70% at 78% 40%,rgba(91,50,180,.5),transparent 70%),radial-gradient(50% 60% at 10% 100%,rgba(31,16,70,.9),transparent 70%),var(--ink);overflow:hidden}
-.hero .mesh{position:absolute;inset:-20%;background:conic-gradient(from 0deg at 70% 45%,transparent,rgba(124,82,220,.16),transparent 30%,rgba(216,180,108,.08),transparent 60%);animation:spin 40s linear infinite;pointer-events:none}
+.hero .mesh{position:absolute;inset:-20%;background:conic-gradient(from 0deg at 70% 45%,transparent,rgba(136,80,248,.16),transparent 30%,rgba(136,80,248,.08),transparent 60%);animation:spin 40s linear infinite;pointer-events:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 .cols{position:absolute;right:-2%;bottom:0;display:flex;gap:2.4vw;opacity:.1;pointer-events:none;height:80%;align-items:flex-end;-webkit-mask-image:linear-gradient(to top,#000 20%,transparent);mask-image:linear-gradient(to top,#000 20%,transparent)}
 .cols i{display:block;width:3.4vw;min-width:28px;height:100%;border-top:10px double var(--gold);background:repeating-linear-gradient(90deg,transparent 0 12%,var(--gold) 12% 14%,transparent 14% 26%)}
@@ -92,7 +93,7 @@ nav a:hover{color:#fff}nav a:hover:after{transform:scaleX(1);transform-origin:le
 .fade{opacity:0;transform:translateY(24px);transition:opacity 1s .5s,transform 1s .5s}
 .go .fade{opacity:1;transform:none}
 .stage{position:relative;display:flex;justify-content:center}
-#scales{width:min(430px,86%);filter:drop-shadow(0 20px 50px rgba(124,82,220,.45))}
+#scales{width:min(430px,86%);filter:drop-shadow(0 20px 50px rgba(136,80,248,.45))}
 #scales *{fill:none;stroke:var(--gold);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 #scales .fillg{fill:url(#pg);stroke:none;opacity:.9}
 .seal{position:absolute;left:-2%;bottom:6%;width:132px;height:132px;animation:spin 28s linear infinite}
@@ -102,7 +103,7 @@ nav a:hover{color:#fff}nav a:hover:after{transform:scaleX(1);transform-origin:le
 .scrollh i{width:1px;height:46px;background:linear-gradient(var(--gold),transparent);transform-origin:top;animation:sc 2.2s ease-in-out infinite}
 @keyframes sc{0%{transform:scaleY(0)}50%{transform:scaleY(1)}100%{transform:scaleY(0);transform-origin:bottom}}
 /* ticker */
-.tick{position:absolute;left:0;right:0;bottom:0;border-top:1px solid rgba(216,180,108,.22);background:rgba(13,6,32,.6);backdrop-filter:blur(8px);overflow:hidden;padding:1.05rem 0}
+.tick{position:absolute;left:0;right:0;bottom:0;border-top:1px solid rgba(136,80,248,.22);background:rgba(13,6,32,.6);backdrop-filter:blur(8px);overflow:hidden;padding:1.05rem 0}
 .tick div{display:flex;gap:3rem;width:max-content;animation:mq 38s linear infinite;font-family:var(--hd);font-size:1.25rem;color:var(--lav);white-space:nowrap}
 .tick span:after{content:"§";margin-left:3rem;color:var(--gold)}
 @keyframes mq{to{transform:translateX(-50%)}}
@@ -115,7 +116,7 @@ nav a:hover{color:#fff}nav a:hover:after{transform:scaleX(1);transform-origin:le
 .stm .w.k.on{color:var(--vio)}
 .pil{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
 .card{position:relative;background:#fff;border:1px solid rgba(29,21,51,.1);border-radius:18px;padding:2.2rem 2rem;overflow:hidden;transition:transform .5s cubic-bezier(.2,.7,.2,1),box-shadow .5s}
-.card:before{content:"";position:absolute;inset:0;background:radial-gradient(380px circle at var(--mx,50%) var(--my,0%),rgba(124,82,220,.14),transparent 60%);opacity:0;transition:opacity .4s}
+.card:before{content:"";position:absolute;inset:0;background:radial-gradient(380px circle at var(--mx,50%) var(--my,0%),rgba(136,80,248,.14),transparent 60%);opacity:0;transition:opacity .4s}
 .card:hover{box-shadow:0 30px 60px -30px rgba(45,20,100,.35)}
 .card:hover:before{opacity:1}
 .card svg{width:40px;height:40px;stroke:var(--vio);fill:none;stroke-width:1.4;margin-bottom:1.4rem}
@@ -128,15 +129,15 @@ nav a:hover{color:#fff}nav a:hover:after{transform:scaleX(1);transform-origin:le
 .areas{background:linear-gradient(180deg,var(--ink),var(--d1))}
 .ar{display:grid;grid-template-columns:1fr 1fr;gap:5rem;margin-top:3.4rem;align-items:start}
 .ar h2{font-size:clamp(2.4rem,5vw,4.6rem)}
-.lst{border-top:1px solid rgba(216,180,108,.25)}
-.lst button{display:flex;width:100%;align-items:baseline;gap:1.4rem;text-align:left;padding:1.35rem .2rem;border-bottom:1px solid rgba(216,180,108,.25);transition:padding .4s cubic-bezier(.2,.7,.2,1),color .3s;color:rgba(246,242,234,.6)}
+.lst{border-top:1px solid rgba(136,80,248,.25)}
+.lst button{display:flex;width:100%;align-items:baseline;gap:1.4rem;text-align:left;padding:1.35rem .2rem;border-bottom:1px solid rgba(136,80,248,.25);transition:padding .4s cubic-bezier(.2,.7,.2,1),color .3s;color:rgba(246,242,234,.6)}
 .lst button i{font-style:normal;font-size:.8rem;letter-spacing:.2em;color:var(--gold);width:2rem}
 .lst button b{font-family:var(--hd);font-weight:400;font-size:clamp(1.4rem,2.5vw,2.1rem);flex:1;line-height:1.1}
 .lst button svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.4;opacity:0;transform:translateX(-10px);transition:.4s}
 .lst button:hover,.lst button.on{color:#fff;padding-left:1.2rem}
 .lst button.on svg,.lst button:hover svg{opacity:1;transform:none}
-.pan{position:sticky;top:7rem;border:1px solid rgba(216,180,108,.3);border-radius:22px;padding:2.6rem;min-height:24rem;background:linear-gradient(160deg,rgba(91,50,180,.28),rgba(21,10,48,.6));overflow:hidden}
-.pan .big{position:absolute;right:-1rem;top:-2.6rem;font-family:var(--hd);font-size:14rem;line-height:1;color:transparent;-webkit-text-stroke:1px rgba(216,180,108,.28);pointer-events:none}
+.pan{position:sticky;top:7rem;border:1px solid rgba(136,80,248,.3);border-radius:22px;padding:2.6rem;min-height:24rem;background:linear-gradient(160deg,rgba(91,50,180,.28),rgba(21,10,48,.6));overflow:hidden}
+.pan .big{position:absolute;right:-1rem;top:-2.6rem;font-family:var(--hd);font-size:14rem;line-height:1;color:transparent;-webkit-text-stroke:1px rgba(136,80,248,.28);pointer-events:none}
 .pan .in{position:relative;transition:opacity .35s,transform .35s}
 .pan .in.sw{opacity:0;transform:translateY(12px)}
 .pan h3{font-size:2.2rem;margin:.6rem 0 1rem}
@@ -178,12 +179,12 @@ nav a:hover{color:#fff}nav a:hover:after{transform:scaleX(1);transform-origin:le
 .dig .g{display:grid;grid-template-columns:1.1fr .9fr;gap:4rem;align-items:center}
 .dig h2{font-size:clamp(2.2rem,4.6vw,4.2rem);margin:1.4rem 0 1.4rem}
 .dig p{color:rgba(246,242,234,.75);max-width:32rem}
-.badge{display:flex;align-items:center;gap:1.4rem;border:1px solid rgba(216,180,108,.4);border-radius:20px;padding:1.6rem 1.8rem;background:rgba(246,242,234,.04);margin-top:2rem;max-width:32rem}
+.badge{display:flex;align-items:center;gap:1.4rem;border:1px solid rgba(136,80,248,.4);border-radius:20px;padding:1.6rem 1.8rem;background:rgba(246,242,234,.04);margin-top:2rem;max-width:32rem}
 .badge svg{flex:none;width:46px;height:46px;stroke:var(--gold);fill:none;stroke-width:1.3}
 .badge b{display:block;font-family:var(--hd);font-weight:400;font-size:1.3rem;line-height:1.2}
 .badge span{font-size:.86rem;color:var(--mud)}
 .devs{position:relative;height:420px}
-.win{position:absolute;border-radius:14px;border:1px solid rgba(216,180,108,.35);background:linear-gradient(160deg,rgba(31,16,70,.95),rgba(13,6,32,.95));box-shadow:0 40px 80px -30px #000;padding:1rem 1.1rem;overflow:hidden;transition:transform .2s}
+.win{position:absolute;border-radius:14px;border:1px solid rgba(136,80,248,.35);background:linear-gradient(160deg,rgba(31,16,70,.95),rgba(13,6,32,.95));box-shadow:0 40px 80px -30px #000;padding:1rem 1.1rem;overflow:hidden;transition:transform .2s}
 .win .bar{display:flex;gap:6px;margin-bottom:.9rem}.win .bar i{width:7px;height:7px;border-radius:50%;background:rgba(246,242,234,.25)}
 .win .ln2{height:7px;border-radius:4px;background:rgba(246,242,234,.14);margin-bottom:.55rem}
 .win .ln2.a{background:linear-gradient(90deg,var(--gold),transparent);width:46%}
@@ -201,7 +202,7 @@ nav a:hover{color:#fff}nav a:hover:after{transform:scaleX(1);transform-origin:le
 .inf div small{display:block;font-size:.68rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem}
 .inf a:hover{color:var(--gold)}
 .inf .big{font-family:var(--hd);font-size:1.7rem;line-height:1.2}
-.hrs{border:1px solid rgba(216,180,108,.3);border-radius:18px;padding:1.4rem 1.6rem;margin-top:.4rem}
+.hrs{border:1px solid rgba(136,80,248,.3);border-radius:18px;padding:1.4rem 1.6rem;margin-top:.4rem}
 .hrs .r{display:flex;justify-content:space-between;padding:.45rem 0;font-size:.95rem;border-bottom:1px solid rgba(246,242,234,.08)}
 .hrs .r:last-of-type{border:0}
 .hrs .r.t{color:var(--gold)}
@@ -210,14 +211,14 @@ nav a:hover{color:#fff}nav a:hover:after{transform:scaleX(1);transform-origin:le
 .open i{width:9px;height:9px;border-radius:50%;background:#e25c5c;box-shadow:0 0 0 0 rgba(226,92,92,.6)}
 .open.y i{background:#5bd68a;animation:pu 2s infinite}
 @keyframes pu{0%{box-shadow:0 0 0 0 rgba(91,214,138,.55)}100%{box-shadow:0 0 0 12px rgba(91,214,138,0)}}
-form{background:linear-gradient(160deg,rgba(91,50,180,.25),rgba(13,6,32,.5));border:1px solid rgba(216,180,108,.3);border-radius:22px;padding:2.2rem;display:grid;gap:1.2rem}
+form{background:linear-gradient(160deg,rgba(91,50,180,.25),rgba(13,6,32,.5));border:1px solid rgba(136,80,248,.3);border-radius:22px;padding:2.2rem;display:grid;gap:1.2rem}
 form label{font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:.4rem}
 form input,form select,form textarea{width:100%;background:transparent;border:0;border-bottom:1px solid rgba(246,242,234,.3);color:var(--iv);font:inherit;font-size:1rem;padding:.6rem 0;outline:0;transition:border-color .3s;border-radius:0}
 form select option{color:#000}
 form input:focus,form select:focus,form textarea:focus{border-color:var(--gold)}
 form textarea{resize:vertical;min-height:90px}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem}
-footer{background:var(--ink);padding:3rem 0 5.5rem;border-top:1px solid rgba(216,180,108,.2);text-align:center;font-size:.8rem;color:var(--mud);letter-spacing:.05em}
+footer{background:var(--ink);padding:3rem 0 5.5rem;border-top:1px solid rgba(136,80,248,.2);text-align:center;font-size:.8rem;color:var(--mud);letter-spacing:.05em}
 footer b{display:block;font-family:var(--hd);font-weight:400;letter-spacing:.35em;color:var(--gold);font-size:1rem;margin-bottom:.6rem}
 .fab{position:fixed;right:1.4rem;bottom:1.4rem;z-index:80;display:flex;align-items:center;gap:.7rem;background:linear-gradient(110deg,var(--gold3),var(--gold),var(--gold2));color:var(--ink);padding:.9rem 1.4rem;border-radius:99px;font-weight:600;font-size:.88rem;box-shadow:0 12px 40px -8px rgba(0,0,0,.6);transform:translateY(120px);transition:transform .5s cubic-bezier(.2,.7,.2,1)}
 .fab.s{transform:none}.fab svg{width:16px;height:16px}
@@ -239,14 +240,89 @@ footer b{display:block;font-family:var(--hd);font-weight:400;letter-spacing:.35e
  .tl{padding-left:3.6rem}.st .n{left:-3.6rem}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.ln>span,.fade,.rv{transform:none!important;opacity:1!important}.stm .w{opacity:1}#pre{display:none}}
+
+/* ---- v2: marca ---- */
+.logo{display:block}.logo img{display:block;height:46px;width:auto}header.s .logo img{height:40px}
+#pre img{width:200px;height:auto;opacity:0;animation:fi 1s .2s forwards}
+#pre .ld{width:200px;height:2px;background:rgba(255,255,255,.12);overflow:hidden;border-radius:2px}
+#pre .ld i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6d37e0,#a67bff);animation:ld 1.9s .3s ease forwards}
+@keyframes ld{to{width:100%}}
+.hero{background:var(--ink)}
+.hero .ph{position:absolute;inset:0;background-size:cover;background-position:center 30%;opacity:.5;transform:scale(1.08);will-change:transform}
+.hero .ov{position:absolute;inset:0;background:linear-gradient(90deg,var(--ink) 8%,rgba(11,5,25,.78) 48%,rgba(60,24,140,.45)),radial-gradient(60% 70% at 80% 40%,rgba(136,80,248,.45),transparent 70%)}
+.hero h1{font-size:clamp(2.2rem,4.5vw,4.7rem);letter-spacing:.01em}
+.hero h1 .ln{white-space:nowrap}
+.hero h1 .lt{font-weight:300}
+.hl{display:inline-block;padding:.02em .2em .04em;border:1.5px solid var(--vio);border-radius:.12em;color:#fff;background:rgba(136,80,248,.22);box-shadow:0 0 40px rgba(136,80,248,.35)}
+.deck{position:relative;width:min(440px,100%);height:480px}
+.dk{position:absolute;left:0;right:0;border:1px solid rgba(166,123,255,.55);border-radius:20px;padding:1.5rem 1.6rem;background:linear-gradient(160deg,rgba(40,18,95,.82),rgba(14,7,34,.86));backdrop-filter:blur(10px);box-shadow:0 30px 70px -25px rgba(0,0,0,.8);transition:transform .25s}
+.dk small{font-size:.7rem;letter-spacing:.3em;color:var(--vio2);font-weight:700}
+.dk b{display:block;margin:.5rem 0 .4rem;font-size:1.5rem;line-height:1.1;font-weight:900;text-transform:uppercase;letter-spacing:.02em}
+.dk span{font-size:.92rem;color:var(--mud)}
+.dk svg{position:absolute;right:1.4rem;top:1.3rem;width:34px;height:34px;stroke:var(--vio2);fill:none;stroke-width:1.4}
+.d1{top:0;transform:rotate(-4deg)}.d2{top:150px;transform:translateX(26px) rotate(2deg)}.d3{top:300px;transform:translateX(-10px) rotate(-1.5deg)}
+.opn{position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);display:flex;align-items:center;gap:.6rem;border:1px solid rgba(166,123,255,.5);background:rgba(11,5,25,.8);padding:.5rem 1.1rem;border-radius:99px;font-size:.82rem;white-space:nowrap}
+.opn i{width:8px;height:8px;border-radius:50%;background:#e25c5c}.opn.y i{background:#5bd68a;animation:pu 2s infinite}
+.sec i{font-family:var(--hd);font-weight:900}
+.tick div{font-family:var(--hd);font-weight:700;text-transform:uppercase;font-size:1rem;letter-spacing:.14em}
+.stm{font-weight:300;font-size:clamp(1.7rem,3.4vw,3.1rem);line-height:1.22;letter-spacing:-.005em;text-transform:none}
+.stm .w.k{font-weight:900}.stm .w.k.on{color:var(--vio)}
+.band{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:1rem;margin:0 0 3rem;height:clamp(240px,34vw,420px)}
+.band figure{position:relative;border-radius:20px;overflow:hidden;border:1px solid rgba(23,15,51,.12);clip-path:inset(0 0 100% 0);transition:clip-path 1.2s cubic-bezier(.2,.7,.2,1)}
+.band figure.in{clip-path:inset(0)}.band figure:nth-child(2){transition-delay:.15s}.band figure:nth-child(3){transition-delay:.3s}
+.band img{width:100%;height:100%;object-fit:cover;filter:saturate(.85);transition:transform 1.2s}.band figure:hover img{transform:scale(1.06)}
+.band figure:after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(136,80,248,.32),rgba(11,5,25,.25))}
+.card h3{font-size:1.1rem;line-height:1.25;text-transform:uppercase;letter-spacing:.04em;font-weight:900}
+.lst button b{font-weight:300;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(1.05rem,1.8vw,1.5rem)}
+.lst button.on b,.lst button:hover b{font-weight:900}
+.pan h3{font-size:1.8rem}.pan .big{font-weight:900;font-size:13rem}
+.areas h2,.dig h2,.ct h2,.proc h2,.wzt{font-size:clamp(1.9rem,4vw,3.6rem)}
+.wzs{background:var(--iv);color:var(--tx)}
+.wzt{margin:1.4rem 0 2.4rem}
+.wz{background:#fff;border:1px solid rgba(23,15,51,.14);border-radius:26px;padding:clamp(1.4rem,3vw,2.6rem);box-shadow:0 40px 80px -50px rgba(60,24,140,.5)}
+.stp{display:flex;gap:1.4rem;margin-bottom:1.4rem;flex-wrap:wrap}
+.stp i{font-style:normal;font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--mu);display:flex;align-items:center;gap:.6rem}
+.stp i b{width:26px;height:26px;border-radius:50%;border:1px solid currentColor;display:grid;place-items:center;font-size:.72rem}
+.stp i.on{color:var(--vio)}.stp i.on b{background:var(--vio);color:#fff;border-color:var(--vio)}
+.pb{height:3px;background:rgba(23,15,51,.1);border-radius:3px;margin-bottom:2rem;overflow:hidden}.pb u{display:block;height:100%;width:33%;background:linear-gradient(90deg,#6d37e0,#a67bff);transition:width .6s cubic-bezier(.2,.7,.2,1);text-decoration:none}
+.wzq{font-weight:900;text-transform:uppercase;font-size:clamp(1.2rem,2.2vw,1.8rem);margin-bottom:1.4rem;line-height:1.15;letter-spacing:.02em}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem}
+.tile{border:1px solid rgba(23,15,51,.16);border-radius:18px;padding:1.3rem 1.2rem;text-align:left;display:flex;flex-direction:column;gap:2rem;background:#fff;transition:.3s cubic-bezier(.2,.7,.2,1);min-height:150px;justify-content:space-between}
+.tile svg{width:34px;height:34px;stroke:var(--vio);fill:none;stroke-width:1.5;transition:.3s}
+.tile span{font-weight:700;font-size:.98rem;line-height:1.25}
+.tile:hover{border-color:var(--vio);transform:translateY(-4px);box-shadow:0 20px 40px -24px rgba(136,80,248,.6)}
+.tile.on{background:var(--vio);color:#fff;border-color:var(--vio)}.tile.on svg{stroke:#fff}
+.wzf{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem 2rem}.wzf .full{grid-column:1/-1}
+.wzf label{display:block;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--vio);font-weight:700;margin-bottom:.4rem}
+.wzf input,.wzf textarea{width:100%;font:inherit;font-size:1rem;border:0;border-bottom:1.5px solid rgba(23,15,51,.2);padding:.6rem 0;outline:0;background:transparent;transition:border-color .3s;color:var(--tx)}
+.wzf input:focus,.wzf textarea:focus{border-color:var(--vio)}
+.seg{display:flex;gap:.6rem;flex-wrap:wrap}.seg button{border:1px solid rgba(23,15,51,.2);border-radius:99px;padding:.6rem 1.2rem;font-size:.9rem;font-weight:700;transition:.25s}.seg button.on{background:var(--vio);border-color:var(--vio);color:#fff}
+.wzn{display:flex;justify-content:space-between;gap:1rem;margin-top:2rem;flex-wrap:wrap}
+.btn.d{border:1px solid rgba(23,15,51,.25);color:var(--tx)}.btn.d:hover{border-color:var(--vio);color:var(--vio)}
+.sum{border:1px solid rgba(136,80,248,.4);border-radius:18px;padding:1.4rem 1.6rem;background:linear-gradient(160deg,rgba(136,80,248,.08),transparent);margin-bottom:1.6rem}
+.sum small{display:block;font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--vio);font-weight:700}
+.sum div{padding:.5rem 0;border-bottom:1px solid rgba(23,15,51,.08);font-size:.98rem}.sum div:last-child{border:0}
+.pw{display:grid;grid-template-columns:1.1fr .9fr;gap:4rem;align-items:start}
+.pph{position:sticky;top:7rem;border-radius:24px;overflow:hidden;aspect-ratio:4/5;border:1px solid rgba(23,15,51,.12)}
+.pph img{width:100%;height:100%;object-fit:cover}.pph:after{content:"";position:absolute;inset:0;background:linear-gradient(170deg,rgba(136,80,248,.3),rgba(11,5,25,.5))}
+.pph em{position:absolute;z-index:2;left:1.4rem;bottom:1.4rem;right:1.4rem;font-style:normal;font-weight:900;text-transform:uppercase;font-size:1.25rem;color:#fff;line-height:1.15;letter-spacing:.02em}
+.st h3{font-size:1.2rem;text-transform:uppercase;letter-spacing:.04em;font-weight:900}.st .n{font-family:var(--hd);font-weight:900}
+.ct{position:relative;overflow:hidden}.ct .bgp{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14}.ct .wrap{position:relative}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-content:start}
+.act{border:1px solid rgba(166,123,255,.4);border-radius:20px;padding:1.5rem;display:flex;flex-direction:column;gap:1.6rem;background:linear-gradient(160deg,rgba(136,80,248,.14),rgba(11,5,25,.3));transition:.35s cubic-bezier(.2,.7,.2,1)}
+.act:hover{border-color:var(--vio2);transform:translateY(-5px);background:linear-gradient(160deg,rgba(136,80,248,.3),rgba(11,5,25,.3))}
+.act svg{width:30px;height:30px;stroke:var(--vio2);fill:none;stroke-width:1.5}
+.act small{display:block;font-size:.66rem;letter-spacing:.26em;text-transform:uppercase;color:var(--vio2);margin-bottom:.3rem;font-weight:700}
+.act b{font-weight:700;font-size:1.05rem;word-break:break-word;line-height:1.25}
+.foot{display:flex;flex-direction:column;align-items:center;gap:1rem}.foot img{height:44px;width:auto}
+@media(max-width:960px){.deck{height:430px;width:min(380px,100%)}.d2{top:135px}.d3{top:270px}.tiles{grid-template-columns:1fr 1fr}.wzf{grid-template-columns:1fr}.pw{grid-template-columns:1fr}.pph{position:relative;top:0;aspect-ratio:16/10}.band{grid-template-columns:1fr 1fr;height:auto}.band figure:first-child{grid-column:1/-1;height:220px}.band figure{height:180px}.acts{grid-template-columns:1fr}.logo img{height:38px}.hero .ov{background:linear-gradient(180deg,rgba(11,5,25,.7),var(--ink) 95%),radial-gradient(60% 40% at 80% 30%,rgba(136,80,248,.4),transparent 70%)}}
 </style>
-</head>
 <body>
-<div id="pre"><svg viewBox="0 0 120 130"><g class="b"><line x1="60" y1="22" x2="60" y2="104"/><line x1="22" y1="34" x2="98" y2="34"/><circle cx="60" cy="16" r="5"/><path d="M22 34L8 70h28zM98 34L84 70h28z"/><path d="M6 70q16 22 32 0M82 70q16 22 32 0"/></g><path d="M34 112h52M42 104h36"/></svg><b>LEX TALIONIS</b></div>
+<div id="pre"><img src="logo.png" alt="Lex Talionis Abogados"><div class="ld"><i></i></div></div>
 <div id="prog"></div><div id="cur"></div><div id="curd"></div>
 
 <header id="hd"><div class="wrap">
- <a class="logo" href="#top"><b>LEX TALIONIS</b><span>Abogados</span></a>
+ <a class="logo" href="#top"><img src="logo.png" alt="Lex Talionis Abogados" width="153" height="46"></a>
  <nav><a href="#despacho">El despacho</a><a href="#areas">Áreas de práctica</a><a href="#caso">Tu caso</a><a href="#proceso">Cómo trabajamos</a><a href="#contacto">Contacto</a></nav>
  <a class="tel" href="tel:600872226"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>600 872 226</a>
  <button id="bg" aria-label="Menú"><i></i><i></i></button>
@@ -254,31 +330,21 @@ footer b{display:block;font-family:var(--hd);font-weight:400;letter-spacing:.35e
 <div id="mn"><a href="#despacho">El despacho</a><a href="#areas">Áreas de práctica</a><a href="#caso">Tu caso</a><a href="#proceso">Cómo trabajamos</a><a href="#contacto">Contacto</a></div>
 
 <section class="hero" id="top">
- <div class="mesh"></div>
- <div class="cols"><i></i><i></i><i></i><i></i><i></i></div>
+ <div class="ph" id="ph" style="background-image:url(https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1800&q=70)"></div><div class="ov"></div>
  <div class="wrap">
   <div>
    <div class="sec fade"><i>§</i> Madrid · junto a Atocha</div>
-   <h1><span class="ln"><span>Protegemos</span></span><span class="ln"><span>tus <em class="gold">derechos.</em></span></span></h1>
+   <h1><span class="ln"><span class="lt">Protegemos</span></span><span class="ln"><span>tus <em class="hl">derechos</em></span></span></h1>
    <p class="lead fade">Con un equipo de expertos a tu lado, luchamos incansablemente por lo que te pertenece. Cada caso es único y merece nuestra atención dedicada.</p>
    <div class="ctas fade"><a class="btn g mag" href="#caso">Cuéntanos tu caso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn o mag" href="#areas">Descubre más</a></div>
   </div>
-  <div class="stage fade">
-   <svg id="scales" viewBox="0 0 400 440" aria-label="Balanza de la justicia">
-    <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8b46c" stop-opacity=".35"/><stop offset="1" stop-color="#d8b46c" stop-opacity="0"/></linearGradient></defs>
-    <path d="M120 420h160M140 420l10-26h100l10 26M160 394l8-22h64l8 22"/>
-    <line x1="200" y1="372" x2="200" y2="92"/>
-    <circle cx="200" cy="74" r="12"/><circle cx="200" cy="74" r="4"/>
-    <g id="beam"><line x1="56" y1="96" x2="344" y2="96"/><circle cx="56" cy="96" r="5"/><circle cx="344" cy="96" r="5"/><circle cx="200" cy="96" r="7"/>
-     <g id="pl"><path d="M56 96L8 230M56 96L104 230M56 96V230"/><path class="fillg" d="M-4 230q60 66 120 0z" transform="translate(0 0)"/><path d="M-4 230q60 66 120 0z"/></g>
-     <g id="pr"><path d="M344 96L296 230M344 96L392 230M344 96V230"/><path class="fillg" d="M284 230q60 66 120 0z"/><path d="M284 230q60 66 120 0z"/></g>
-    </g>
-   </svg>
-   <svg class="seal" viewBox="0 0 132 132"><defs><path id="cp" d="M66 66m-52 0a52 52 0 1 1 104 0a52 52 0 1 1-104 0"/></defs><circle cx="66" cy="66" r="62" fill="none" stroke="#d8b46c" stroke-opacity=".5"/><text><textPath href="#cp">Lex Talionis Abogados · Madrid · Atocha ·</textPath></text></svg>
-   <div class="sealc">LT</div>
-  </div>
+  <div class="stage fade"><div class="deck" id="deck">
+   <div class="dk d1" data-z="26"><svg viewBox="0 0 34 34"><rect x="4" y="9" width="26" height="19" rx="4"/><path d="M4 15h26M24 21h3"/><path d="M9 9l14-5 2 5"/></svg><small>01</small><b>Segunda<br>oportunidad</b><span>Cancelación total de deudas</span></div>
+   <div class="dk d2" data-z="-18"><svg viewBox="0 0 34 34"><path d="M4 16L17 5l13 11M8 14v16h18V14M14 30v-8h6v8"/></svg><small>02</small><b>Derecho<br>bancario</b><span>Cláusulas abusivas y usura</span></div>
+   <div class="dk d3" data-z="12"><svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="13"/><path d="M4 17h26M17 4c5 4 5 22 0 26M17 4c-5 4-5 22 0 26"/></svg><small>03</small><b>Extranjería</b><span>Permisos, arraigo y nacionalidad</span></div>
+   <div class="opn" id="opn"><i></i><span></span></div>
+  </div></div>
  </div>
- <div class="scrollh"><span>Desliza</span><i></i></div>
  <div class="tick"><div id="tk"></div></div>
 </section>
 
@@ -286,6 +352,11 @@ footer b{display:block;font-family:var(--hd);font-weight:400;letter-spacing:.35e
  <div class="wrap">
   <div class="sec rv"><i>§ 01</i> El despacho</div>
   <p class="stm" id="stm">Abogados especializados en <span class="k">derecho mercantil y concursal</span>, <span class="k">ley de segunda oportunidad</span> y <span class="k">derecho bancario</span>. Y también a tu lado en familia, extranjería, herencias y accidentes de tráfico.</p>
+  <div class="band">
+   <figure><img src="https://images.unsplash.com/photo-1758518729912-bf3a84c400e0?auto=format&fit=crop&w=1200&q=70" alt="Abogados revisando documentos" loading="lazy"></figure>
+   <figure><img src="https://images.unsplash.com/photo-1758519288495-5f79a4bbab83?auto=format&fit=crop&w=800&q=70" alt="Reunión con un cliente" loading="lazy"></figure>
+   <figure><img src="https://images.unsplash.com/photo-1758519288480-1489c17b1519?auto=format&fit=crop&w=800&q=70" alt="Firma de un documento" loading="lazy"></figure>
+  </div>
   <div class="pil">
    <div class="card rv"><svg viewBox="0 0 40 40"><circle cx="20" cy="14" r="7"/><path d="M6 36c0-8 6-13 14-13s14 5 14 13"/></svg><h3>Experiencia a tu medida</h3><p>Atención personalizada para resolver cada caso de manera integral y cercana.</p></div>
    <div class="card rv"><svg viewBox="0 0 40 40"><rect x="5" y="8" width="30" height="21" rx="3"/><path d="M14 35h12M20 29v6M12 16l4 4-4 4M20 24h8"/></svg><h3>Excelencia digital</h3><p>Hemos modernizado nuestros procesos para ofrecerte un servicio más rápido y cercano.</p></div>
@@ -298,7 +369,7 @@ footer b{display:block;font-family:var(--hd);font-weight:400;letter-spacing:.35e
  <div class="wrap">
   <div class="sec rv"><i>§ 02</i> Áreas de práctica</div>
   <div class="ar">
-   <div class="rv"><h2>Cada problema tiene una <em class="gold">salida legal.</em></h2>
+   <div class="rv"><h2>Cada problema tiene una <em class="hl">salida legal</em></h2>
     <div class="lst" id="lst" style="margin-top:2.4rem"></div>
     <p class="alsoo">También llevamos <b>accidentes de tráfico</b> y <b>divorcios</b>.</p>
    </div>
@@ -307,29 +378,27 @@ footer b{display:block;font-family:var(--hd);font-weight:400;letter-spacing:.35e
  </div>
 </section>
 
-<section class="sp light" id="caso">
+<section class="sp wzs" id="caso">
  <div class="wrap">
   <div class="sec rv"><i>§ 03</i> Tu caso</div>
-  <div class="tri">
-   <div class="rv"><h2>¿Qué te <em style="color:var(--vio)">preocupa?</em></h2>
-    <div class="chips" id="chips" style="margin-top:2rem"></div>
-    <div class="res" id="res"><div class="empty">Elige la situación que más se parece a la tuya.</div></div>
-   </div>
-   <div class="sc2 rv"><svg id="sc2" viewBox="0 0 400 440"><path d="M120 420h160M140 420l10-26h100l10 26M160 394l8-22h64l8 22"/><line x1="200" y1="372" x2="200" y2="92"/><circle cx="200" cy="74" r="12"/><g id="b2"><line x1="56" y1="96" x2="344" y2="96"/><circle cx="200" cy="96" r="7"/><g id="l2"><path d="M56 96L8 230M56 96L104 230M56 96V230"/><path d="M-4 230q60 66 120 0z"/></g><g id="r2"><path d="M344 96L296 230M344 96L392 230M344 96V230"/><path d="M284 230q60 66 120 0z"/></g></g></svg></div>
-  </div>
+  <h2 class="wzt rv">Cuéntanos tu <em class="hl" style="color:#fff;background:var(--vio)">caso</em></h2>
+  <div class="wz rv"><div class="stp" id="stp"><i class="on"><b>1</b>Tu situación</i><i><b>2</b>Tus datos</i><i><b>3</b>Enviar</i></div><div class="pb"><u id="pbu"></u></div><div id="wzb"></div></div>
  </div>
 </section>
 
-<section class="sp proc" id="proceso">
- <div class="wrap light" style="background:none">
-  <div class="sec rv"><i>§ 04</i> Cómo trabajamos</div>
-  <h2 class="rv" style="font-size:clamp(2.2rem,4.6vw,4.2rem);margin-top:1.4rem;color:var(--tx)">De tu primera llamada <em style="color:var(--vio)">a la solución.</em></h2>
-  <div class="tl" id="tl"><div class="fl" id="fl"></div>
-   <div class="st"><div class="n">1</div><h3>Nos cuentas tu caso</h3><p>Por teléfono, por correo o en nuestro despacho, junto a Atocha. Te escuchamos con calma.</p></div>
-   <div class="st"><div class="n">2</div><h3>Estudiamos tu situación</h3><p>Analizamos tus documentos y te explicamos con claridad qué opciones reales tienes.</p></div>
-   <div class="st"><div class="n">3</div><h3>Diseñamos la estrategia</h3><p>Cada caso es único: planteamos el camino más adecuado para proteger lo que te pertenece.</p></div>
-   <div class="st"><div class="n">4</div><h3>Te acompañamos hasta el final</h3><p>Procesos digitalizados y trato cercano para que siempre sepas en qué punto está tu asunto.</p></div>
+<section class="sp proc light" id="proceso">
+ <div class="wrap pw">
+  <div>
+   <div class="sec rv"><i>§ 04</i> Cómo trabajamos</div>
+   <h2 class="rv" style="margin-top:1.4rem;color:var(--tx)">De tu primera llamada <em class="hl" style="color:#fff;background:var(--vio)">a la solución</em></h2>
+   <div class="tl" id="tl"><div class="fl" id="fl"></div>
+    <div class="st"><div class="n">1</div><h3>Nos cuentas tu caso</h3><p>Por teléfono, por correo o en nuestro despacho, junto a Atocha. Te escuchamos con calma.</p></div>
+    <div class="st"><div class="n">2</div><h3>Estudiamos tu situación</h3><p>Analizamos tus documentos y te explicamos con claridad qué opciones reales tienes.</p></div>
+    <div class="st"><div class="n">3</div><h3>Diseñamos la estrategia</h3><p>Cada caso es único: planteamos el camino más adecuado para proteger lo que te pertenece.</p></div>
+    <div class="st"><div class="n">4</div><h3>Te acompañamos hasta el final</h3><p>Procesos digitalizados y trato cercano para que siempre sepas en qué punto está tu asunto.</p></div>
+   </div>
   </div>
+  <div class="pph rv"><img src="https://images.unsplash.com/photo-1589578527966-fdac0f44566c?auto=format&fit=crop&w=1000&q=70" alt="Justicia" loading="lazy"><em>Cada caso es único y merece nuestra atención dedicada</em></div>
  </div>
 </section>
 
@@ -337,7 +406,7 @@ footer b{display:block;font-family:var(--hd);font-weight:400;letter-spacing:.35e
  <div class="wrap g">
   <div>
    <div class="sec rv"><i>§ 05</i> Compromiso</div>
-   <h2 class="rv">Comprometidos con la <em class="gold">excelencia digital.</em></h2>
+   <h2 class="rv" style="margin:1.4rem 0">Comprometidos con la <em class="hl">excelencia digital</em></h2>
    <p class="rv">Hemos modernizado nuestros procesos para que el servicio sea más rápido y más cercano, sin perder el trato humano que cada caso necesita.</p>
    <div class="badge rv"><svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="19"/><path d="M14 24l6 6 12-14"/></svg><div><b>Despacho colaborador del grupo Atresmedia</b><span>Experiencia contrastada ante los medios y ante los tribunales.</span></div></div>
   </div>
@@ -349,107 +418,100 @@ footer b{display:block;font-family:var(--hd);font-weight:400;letter-spacing:.35e
 </section>
 
 <section class="sp ct" id="contacto">
+ <div class="bgp" style="background-image:url(https://images.unsplash.com/photo-1593115057322-e94b77572f20?auto=format&fit=crop&w=1600&q=70)"></div>
  <div class="wrap">
   <div class="sec rv"><i>§ 06</i> Contrátanos</div>
   <div class="g">
-   <div class="rv"><h2>Hablemos de <em class="gold">tu caso.</em></h2>
+   <div class="rv"><h2>Llámanos <em class="hl">ya</em></h2>
     <div class="inf">
-     <div><small>Llámanos ya</small><a class="big" href="tel:600872226">600 872 226</a><br><a class="big" href="tel:912247396">91 224 73 96</a></div>
-     <div><small>Despacho</small><a href="https://www.google.com/maps/search/?api=1&query=Calle+Rafael+de+Riego+8+Madrid" target="_blank" rel="noopener">C/ Rafael de Riego, 8 · Primera planta<br>Junto a la estación de Atocha · Madrid</a></div>
-     <div><small>Correo</small><a href="mailto:contacto@lextalionisabogados.com">contacto@lextalionisabogados.com</a></div>
+     <div><small>Despacho</small><a href="https://www.google.com/maps/search/?api=1&query=Calle+Rafael+de+Riego+8+Madrid" target="_blank" rel="noopener" style="font-weight:700;font-size:1.15rem">C/ Rafael de Riego, 8 · Primera planta<br>Junto a la estación de Atocha · Madrid</a></div>
      <div><small>Horario</small><div class="hrs"><div class="open" id="open"><i></i><span></span></div><div class="r" data-d="1,2,3,4"><span>Lunes a jueves</span><b>9:00 – 18:00</b></div><div class="r" data-d="5"><span>Viernes</span><b>9:00 – 14:00</b></div></div></div>
     </div>
    </div>
-   <form class="rv" id="f"><div class="r2"><div><label>Nombre</label><input name="n" required></div><div><label>Teléfono</label><input name="p" type="tel"></div></div>
-    <div><label>Tu consulta</label><select name="t" id="ft"></select></div>
-    <div><label>Cuéntanos brevemente</label><textarea name="m"></textarea></div>
-    <button class="btn g mag" type="submit">Enviar consulta <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-   </form>
+   <div class="acts rv">
+    <a class="act" href="tel:600872226"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><div><small>Móvil</small><b>600 872 226</b></div></a>
+    <a class="act" href="tel:912247396"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><div><small>Fijo</small><b>91 224 73 96</b></div></a>
+    <a class="act" href="https://wa.me/34600872226" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-.8.8a3.5 3.5 0 0 1-1.5-1.5l.8-.8-1-2z"/></svg><div><small>WhatsApp</small><b>Escríbenos</b></div></a>
+    <a class="act" href="mailto:contacto@lextalionisabogados.com"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M4 7l8 6 8-6"/></svg><div><small>Correo</small><b>contacto@lextalionis<wbr>abogados.com</b></div></a>
+    <a class="act" style="grid-column:1/-1" href="https://www.google.com/maps/search/?api=1&query=Calle+Rafael+de+Riego+8+Madrid" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><div><small>Cómo llegar</small><b>C/ Rafael de Riego, 8 · Atocha</b></div></a>
+   </div>
   </div>
  </div>
 </section>
 
-<footer><b>LEX TALIONIS ABOGADOS</b>C/ Rafael de Riego, 8 · Madrid · Propuesta de diseño temporal</footer>
+<footer><div class="foot"><img src="logo.png" alt="Lex Talionis Abogados"><span>C/ Rafael de Riego, 8 · Madrid · Propuesta de diseño temporal</span></div></footer>
 <a class="fab" id="fab" href="tel:600872226"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Llámanos ya</a>
 
 <script>
 const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
 const st=location.search.includes('static');if(st)document.documentElement.classList.add('static'),document.body.classList.add('static');
 const AREAS=[
- {n:'Ley de Segunda Oportunidad',d:'Una salida real cuando las deudas te ahogan: empezar de cero con un plan legal.',l:['Cancelación total de deudas','Suspensión de embargos','Estudio previo de tu situación']},
- {n:'Concursos de empresa',d:'Cuando la empresa no puede hacer frente a sus pagos, hay un camino ordenado.',l:['Concurso de acreedores','Recuperación de la actividad','Una salida justa y ordenada']},
- {n:'Derecho bancario',d:'Reclamamos lo que el banco te cobró de más.',l:['Cláusulas hipotecarias abusivas y cláusula suelo','Reclamación de gastos de hipoteca','Intereses usurarios']},
- {n:'Extranjería',d:'Acompañamiento en todos los trámites para vivir y trabajar con seguridad.',l:['Permisos y autorizaciones','Reagrupación familiar y arraigo','Solicitudes de nacionalidad']},
- {n:'Herencias y sucesiones',d:'Asuntos familiares delicados, resueltos con claridad y sin conflictos innecesarios.',l:['Testamentos','Reparto y división de la herencia','Desheredación']},
- {n:'Familia y divorcios',d:'Defendemos tus intereses y los de los tuyos con tacto y firmeza.',l:['Divorcios y separación de bienes','Custodia de menores','Acuerdos y convenios']}
+ {n:'Ley de Segunda Oportunidad',t:'Tengo deudas que no puedo pagar',i:'bag',d:'Una salida real cuando las deudas te ahogan: empezar de cero con un plan legal.',l:['Cancelación total de deudas','Suspensión de embargos','Estudio previo de tu situación']},
+ {n:'Concursos de empresa',t:'Mi empresa no llega a fin de mes',i:'bld',d:'Cuando la empresa no puede hacer frente a sus pagos, hay un camino ordenado.',l:['Concurso de acreedores','Recuperación de la actividad','Una salida justa y ordenada']},
+ {n:'Derecho bancario',t:'Mi hipoteca tiene cláusulas o gastos abusivos',i:'home',d:'Reclamamos lo que el banco te cobró de más.',l:['Cláusulas hipotecarias abusivas y cláusula suelo','Reclamación de gastos de hipoteca','Intereses usurarios']},
+ {n:'Extranjería',t:'Necesito mis papeles o la nacionalidad',i:'glb',d:'Acompañamiento en todos los trámites para vivir y trabajar con seguridad.',l:['Permisos y autorizaciones','Reagrupación familiar y arraigo','Solicitudes de nacionalidad']},
+ {n:'Herencias y sucesiones',t:'He heredado o quiero hacer testamento',i:'doc',d:'Asuntos familiares delicados, resueltos con claridad y sin conflictos innecesarios.',l:['Testamentos','Reparto y división de la herencia','Desheredación']},
+ {n:'Familia y divorcios',t:'Me divorcio o hay hijos de por medio',i:'fam',d:'Defendemos tus intereses y los de los tuyos con tacto y firmeza.',l:['Divorcios y separación de bienes','Custodia de menores','Acuerdos y convenios']},
+ {n:'Accidentes de tráfico',t:'He tenido un accidente de tráfico',i:'car',d:'Te ayudamos a reclamar lo que te corresponde tras un accidente.',l:['Lesiones y daños','Reclamación a la aseguradora','Seguimiento de todo el proceso']}
 ];
-const WORRY=[
- ['Tengo deudas que no puedo pagar',0],['Mi empresa no llega a fin de mes',1],['Mi hipoteca tiene cláusulas o gastos abusivos',2],['Necesito mis papeles o la nacionalidad',3],['He heredado o quiero hacer testamento',4],['Me divorcio o hay hijos de por medio',5],['He tenido un accidente de tráfico',-1]
-];
+const IC={bag:'<svg viewBox="0 0 34 34"><rect x="4" y="9" width="26" height="19" rx="4"/><path d="M4 15h26M24 21h3"/><path d="M9 9l14-5 2 5"/></svg>',bld:'<svg viewBox="0 0 34 34"><path d="M6 30V8l12-4v26M18 12l10 4v14M3 30h28M11 12h2M11 17h2M11 22h2M23 21h2M23 26h2"/></svg>',home:'<svg viewBox="0 0 34 34"><path d="M4 16L17 5l13 11M8 14v16h18V14M14 30v-8h6v8"/></svg>',glb:'<svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="13"/><path d="M4 17h26M17 4c5 4 5 22 0 26M17 4c-5 4-5 22 0 26"/></svg>',doc:'<svg viewBox="0 0 34 34"><path d="M8 3h13l6 6v22H8zM21 3v6h6M13 16h8M13 21h8M13 26h5"/></svg>',fam:'<svg viewBox="0 0 34 34"><circle cx="11" cy="11" r="4"/><circle cx="24" cy="13" r="3.2"/><path d="M3 28c0-5 3.5-8 8-8s8 3 8 8M20 28c0-3.5 2-5.5 5-5.5s5 2 5 5.5"/></svg>',car:'<svg viewBox="0 0 34 34"><path d="M5 22l2.5-8A3 3 0 0 1 10.3 12h13.4a3 3 0 0 1 2.8 2L29 22v5h-4v-3H9v3H5zM9 18h16"/></svg>'};
 const ARR='<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-/* ticker */
-q('#tk').innerHTML=(AREAS.map(a=>'<span>'+a.n+'</span>').join('')+'<span>Accidentes de tráfico</span>').repeat(2);
-/* preloader y entrada */
+q('#tk').innerHTML=AREAS.map(a=>'<span>'+a.n+'</span>').join('').repeat(2);
 addEventListener('load',()=>setTimeout(()=>{q('#pre').classList.add('out');document.body.classList.add('go');q('.hero').classList.add('go')},st?0:2300));
-/* cabecera, barra, fab */
-const hd=q('#hd'),prog=q('#prog'),fab=q('#fab');
-function onS(){const y=scrollY,h=document.documentElement.scrollHeight-innerHeight;hd.classList.toggle('s',y>60);prog.style.transform='scaleX('+(h?y/h:0)+')';fab.classList.toggle('s',y>innerHeight*.8);words();line()}
+const hd=q('#hd'),prog=q('#prog'),fab=q('#fab'),ph=q('#ph');
+function onS(){const y=scrollY,h=document.documentElement.scrollHeight-innerHeight;hd.classList.toggle('s',y>60);prog.style.transform='scaleX('+(h?y/h:0)+')';fab.classList.toggle('s',y>innerHeight*.8);if(!st&&y<innerHeight*1.2)ph.style.transform='translateY('+y*.18+'px) scale(1.08)';words();line()}
 addEventListener('scroll',()=>requestAnimationFrame(onS),{passive:true});
 q('#bg').onclick=()=>{q('#bg').classList.toggle('o');q('#mn').classList.toggle('o')};
 qa('#mn a').forEach(a=>a.onclick=()=>{q('#bg').classList.remove('o');q('#mn').classList.remove('o')});
-/* reveal */
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
-qa('.rv').forEach(e=>io.observe(e));
-/* frase palabra a palabra */
+qa('.rv,.band figure').forEach(e=>io.observe(e));
+if(st)qa('.band figure').forEach(f=>f.classList.add('in'));
 const stm=q('#stm');
 function wrapWords(el){[...el.childNodes].forEach(n=>{if(n.nodeType===3){const f=document.createDocumentFragment();n.textContent.split(/(\s+)/).forEach(t=>{if(!t.trim()){f.appendChild(document.createTextNode(t));return}const s=document.createElement('span');s.className='w';s.textContent=t;f.appendChild(s)});n.replaceWith(f)}else if(n.classList&&n.classList.contains('k')){const t=n.textContent;n.textContent='';t.split(/(\s+)/).forEach(w=>{if(!w.trim()){n.appendChild(document.createTextNode(w));return}const s=document.createElement('span');s.className='w k';s.textContent=w;n.appendChild(s)})}})}
 wrapWords(stm);const W=qa('#stm .w');
 function words(){const r=stm.getBoundingClientRect(),p=Math.min(1,Math.max(0,(innerHeight*.85-r.top)/(r.height+innerHeight*.35)));const n=Math.round(p*W.length*1.15);W.forEach((w,i)=>w.classList.toggle('on',st||i<n))}
-/* línea de tiempo */
 const tl=q('#tl'),fl=q('#fl'),sts=qa('.st');
 function line(){const r=tl.getBoundingClientRect(),p=Math.min(1,Math.max(0,(innerHeight*.6-r.top)/r.height));fl.style.height=(st?100:p*100)+'%';sts.forEach(s=>{const t=s.getBoundingClientRect().top;s.classList.toggle('on',st||t<innerHeight*.62)})}
-/* balanza del hero: sigue al ratón */
-const beam=q('#beam'),pl=q('#pl'),pr=q('#pr');let ang=0,tgt=0,t0=0;
-function setA(a){beam.setAttribute('transform','rotate('+a+' 200 96)');pl.setAttribute('transform','rotate('+(-a)+' 56 96)');pr.setAttribute('transform','rotate('+(-a)+' 344 96)')}
-function tick(t){const idle=Math.sin(t/1500)*3.2;ang+=((tgt+idle)-ang)*.06;setA(ang.toFixed(2));requestAnimationFrame(tick)}
-if(!st)requestAnimationFrame(tick);else setA(0);
-addEventListener('mousemove',e=>{tgt=(e.clientX/innerWidth-.5)*-20});
-/* balanza pequeña de «tu caso» */
-const b2=q('#b2'),l2=q('#l2'),r2=q('#r2');let a2=0,t2=0;
-function setB(a){b2.setAttribute('transform','rotate('+a+' 200 96)');l2.setAttribute('transform','rotate('+(-a)+' 56 96)');r2.setAttribute('transform','rotate('+(-a)+' 344 96)')}
-function tk2(t){a2+=(t2+Math.sin(t/1700)*1.6-a2)*.07;setB(a2.toFixed(2));requestAnimationFrame(tk2)}
-if(!st)requestAnimationFrame(tk2);else setB(0);
-/* áreas */
 const lst=q('#lst'),pin=q('#pin');
 lst.innerHTML=AREAS.map((a,i)=>'<button data-i="'+i+'"><i>0'+(i+1)+'</i><b>'+a.n+'</b>'+ARR+'</button>').join('');
 let cur=-1;
-function area(i){if(i===cur)return;cur=i;qa('#lst button').forEach((b,k)=>b.classList.toggle('on',k===i));pin.classList.add('sw');setTimeout(()=>{const a=AREAS[i];q('#pbig').textContent=i+1;pin.innerHTML='<div class="sec"><i>0'+(i+1)+'</i> Área</div><h3>'+a.n+'</h3><p>'+a.d+'</p><ul>'+a.l.map(x=>'<li>'+x+'</li>').join('')+'</ul><a class="btn g mag" href="#contacto" data-t="'+i+'">Consultar este caso '+ARR+'</a>';pin.classList.remove('sw')},st?0:220)}
+function area(i){if(i===cur)return;cur=i;qa('#lst button').forEach((b,k)=>b.classList.toggle('on',k===i));pin.classList.add('sw');setTimeout(()=>{const a=AREAS[i];q('#pbig').textContent=i+1;pin.innerHTML='<div class="sec"><i>0'+(i+1)+'</i> Área</div><h3>'+a.n+'</h3><p>'+a.d+'</p><ul>'+a.l.map(x=>'<li>'+x+'</li>').join('')+'</ul><a class="btn g mag" href="#caso" data-t="'+i+'">Consultar este caso '+ARR+'</a>';pin.classList.remove('sw')},st?0:220)}
 lst.addEventListener('click',e=>{const b=e.target.closest('button');if(b)area(+b.dataset.i)});
 if(matchMedia('(hover:hover)').matches)lst.addEventListener('mouseover',e=>{const b=e.target.closest('button');if(b)area(+b.dataset.i)});
-area(0);if(st){pin.classList.remove('sw')}
-pin.addEventListener('click',e=>{const a=e.target.closest('[data-t]');if(a)q('#ft').value=AREAS[+a.dataset.t].n});
-/* triaje */
-q('#chips').innerHTML=WORRY.map((w,i)=>'<button data-i="'+i+'">'+w[0]+'</button>').join('');
-const res=q('#res'),WA='https://wa.me/34600872226?text=';
-q('#chips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;qa('#chips button').forEach(x=>x.classList.toggle('on',x===b));const w=WORRY[+b.dataset.i],a=w[1]>=0?AREAS[w[1]]:{n:'Accidentes de tráfico',d:'Te ayudamos a reclamar lo que te corresponde tras un accidente.'};t2=(+b.dataset.i%2?1:-1)*7;setTimeout(()=>t2=0,1600);
- res.innerHTML='<div class="k">Lo habitual en estos casos</div><h3>'+a.n+'</h3><p>'+a.d+'</p><a class="btn g mag" target="_blank" rel="noopener" href="'+WA+encodeURIComponent('Hola, me gustaría consultar un caso de '+a.n.toLowerCase()+'.')+'">Contárselo al despacho '+ARR+'</a>'});
-/* formulario */
-q('#ft').innerHTML=AREAS.map(a=>'<option>'+a.n+'</option>').join('')+'<option>Accidentes de tráfico</option><option>Otra consulta</option>';
-q('#f').onsubmit=e=>{e.preventDefault();const f=e.target;location.href='mailto:contacto@lextalionisabogados.com?subject='+encodeURIComponent('Consulta: '+f.t.value)+'&body='+encodeURIComponent('Nombre: '+f.n.value+'\nTeléfono: '+f.p.value+'\n\n'+f.m.value)};
-/* horario en directo (hora de Madrid) */
-(function(){const o=q('#open');const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Madrid',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());const g=t=>parts.find(p=>p.type===t).value;const day={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:7}[g('weekday')],m=+g('hour')*60+ +g('minute');
+area(0);
+pin.addEventListener('click',e=>{const a=e.target.closest('[data-t]');if(a){W2.a=+a.dataset.t;W2.step=2;wz()}});
+const W2={step:1,a:-1,pref:'Llamada',n:'',p:'',m:''};
+const wb=q('#wzb');
+function wz(){
+ qa('#stp i').forEach((e,k)=>e.classList.toggle('on',k<W2.step));q('#pbu').style.width=(W2.step*33.4)+'%';
+ const A=AREAS[W2.a];
+ if(W2.step===1){wb.innerHTML='<div class="wzq">¿Cuál es tu situación?</div><div class="tiles">'+AREAS.map((a,i)=>'<button class="tile'+(i===W2.a?' on':'')+'" data-i="'+i+'">'+IC[a.i]+'<span>'+a.t+'</span></button>').join('')+'</div>'}
+ else if(W2.step===2){wb.innerHTML='<div class="wzq">'+A.n+'</div><div class="wzf"><div><label>Nombre</label><input id="wn" value="'+W2.n+'" autocomplete="name"></div><div><label>Teléfono</label><input id="wp" type="tel" value="'+W2.p+'" autocomplete="tel"></div><div class="full"><label>¿Cómo prefieres que te contactemos?</label><div class="seg" id="seg">'+['Llamada','WhatsApp','Correo'].map(x=>'<button type="button" class="'+(W2.pref===x?'on':'')+'">'+x+'</button>').join('')+'</div></div><div class="full"><label>Cuéntanos brevemente</label><textarea id="wm" rows="3">'+W2.m+'</textarea></div></div><div class="wzn"><button class="btn d mag" data-go="1">Atrás</button><button class="btn g mag" data-go="3">Continuar '+ARR+'</button></div>'}
+ else{wb.innerHTML='<div class="wzq">Revisa y envía</div><div class="sum"><div><small>Consulta</small>'+A.n+'</div><div><small>Nombre</small>'+(W2.n||'—')+'</div><div><small>Teléfono</small>'+(W2.p||'—')+'</div><div><small>Preferencia</small>'+W2.pref+'</div>'+(W2.m?'<div><small>Mensaje</small>'+W2.m.replace(/</g,'&lt;')+'</div>':'')+'</div><div class="wzn"><button class="btn d mag" data-go="2">Atrás</button><span style="display:flex;gap:.8rem;flex-wrap:wrap"><a class="btn d mag" id="wmail" href="#">Por correo</a><a class="btn g mag" id="wwa" target="_blank" rel="noopener" href="#">Enviar por WhatsApp '+ARR+'</a></span></div>';
+  const txt='Hola, me gustaría consultar un caso de '+A.n.toLowerCase()+'.\nNombre: '+W2.n+'\nTeléfono: '+W2.p+'\nPrefiero que me contacten por: '+W2.pref.toLowerCase()+(W2.m?'\n'+W2.m:'');
+  q('#wwa').href='https://wa.me/34600872226?text='+encodeURIComponent(txt);q('#wmail').href='mailto:contacto@lextalionisabogados.com?subject='+encodeURIComponent('Consulta: '+A.n)+'&body='+encodeURIComponent(txt)}
+}
+wb.addEventListener('click',e=>{
+ const t=e.target.closest('.tile');if(t){W2.a=+t.dataset.i;qa('.tile').forEach(x=>x.classList.toggle('on',x===t));setTimeout(()=>{W2.step=2;wz()},st?0:380);return}
+ const g=e.target.closest('[data-go]');if(g){if(q('#wn')){W2.n=q('#wn').value;W2.p=q('#wp').value;W2.m=q('#wm').value}W2.step=+g.dataset.go;wz();return}
+ const s=e.target.closest('#seg button');if(s){W2.pref=s.textContent;qa('#seg button').forEach(x=>x.classList.toggle('on',x===s))}
+});
+wz();
+(function(){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Madrid',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());const g=t=>parts.find(p=>p.type===t).value;const day={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:7}[g('weekday')],m=+g('hour')*60+ +g('minute');
  const close=day<=4?18*60:day===5?14*60:0;const isOpen=day<=5&&m>=540&&m<close;
  let txt;if(isOpen)txt='Abierto ahora · cierra a las '+(close/60)+':00';else{const nd=day<5&&m>=close?'mañana':day===5&&m>=close||day>5?'el lunes':'hoy';txt='Cerrado ahora · abre '+nd+' a las 9:00'}
- o.classList.toggle('y',isOpen);o.querySelector('span').textContent=txt;
+ [q('#open'),q('#opn')].forEach(o=>{o.classList.toggle('y',isOpen);o.querySelector('span').textContent=txt});
  qa('.hrs .r').forEach(r=>r.classList.toggle('t',r.dataset.d.split(',').includes(String(day))))})();
-/* cursor, imanes, foco en tarjetas, ventanas con inclinación */
 if(!st&&matchMedia('(hover:hover)').matches){
  const c=q('#cur'),d=q('#curd');let x=0,y=0,cx=0,cy=0;
  addEventListener('mousemove',e=>{document.body.classList.add('hv');x=e.clientX;y=e.clientY;d.style.left=x+'px';d.style.top=y+'px'});
  (function l(){cx+=(x-cx)*.18;cy+=(y-cy)*.18;c.style.left=cx+'px';c.style.top=cy+'px';requestAnimationFrame(l)})();
- document.addEventListener('mouseover',e=>{c.classList.toggle('big',!!e.target.closest('a,button,.card'))});
- qa('.mag').forEach(b=>{b.addEventListener('mousemove',e=>{const r=b.getBoundingClientRect();b.style.transform='translate('+((e.clientX-r.left-r.width/2)*.22)+'px,'+((e.clientY-r.top-r.height/2)*.35)+'px)'});b.addEventListener('mouseleave',()=>b.style.transform='')});
- qa('.card').forEach(k=>k.addEventListener('mousemove',e=>{const r=k.getBoundingClientRect();k.style.setProperty('--mx',(e.clientX-r.left)+'px');k.style.setProperty('--my',(e.clientY-r.top)+'px');k.style.transform='perspective(900px) rotateX('+(-(e.clientY-r.top-r.height/2)/r.height*5)+'deg) rotateY('+((e.clientX-r.left-r.width/2)/r.width*5)+'deg) translateY(-4px)'}),qa('.card').forEach(k=>k.addEventListener('mouseleave',()=>k.style.transform='')));
+ document.addEventListener('mouseover',e=>{c.classList.toggle('big',!!e.target.closest('a,button,.card,.tile'))});
+ document.addEventListener('mousemove',e=>{const b=e.target.closest&&e.target.closest('.mag');if(b){const r=b.getBoundingClientRect();b.style.transform='translate('+((e.clientX-r.left-r.width/2)*.2)+'px,'+((e.clientY-r.top-r.height/2)*.3)+'px)'}});
+ document.addEventListener('mouseout',e=>{const b=e.target.closest&&e.target.closest('.mag');if(b)b.style.transform=''});
+ qa('.card').forEach(k=>{k.addEventListener('mousemove',e=>{const r=k.getBoundingClientRect();k.style.setProperty('--mx',(e.clientX-r.left)+'px');k.style.setProperty('--my',(e.clientY-r.top)+'px');k.style.transform='perspective(900px) rotateX('+(-(e.clientY-r.top-r.height/2)/r.height*5)+'deg) rotateY('+((e.clientX-r.left-r.width/2)/r.width*5)+'deg) translateY(-4px)'});k.addEventListener('mouseleave',()=>k.style.transform='')});
+ const base=['rotate(-4deg)','translateX(26px) rotate(2deg)','translateX(-10px) rotate(-1.5deg)'];
+ addEventListener('mousemove',e=>{const px=e.clientX/innerWidth-.5,py=e.clientY/innerHeight-.5;qa('.dk').forEach((k,i)=>{const z=+k.dataset.z;k.style.transform='translate('+(px*z*-1.4)+'px,'+(py*z*-1.4)+'px) '+base[i]})});
  const dv=q('#devs');dv.addEventListener('mousemove',e=>{const r=dv.getBoundingClientRect(),px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;qa('.win').forEach(w=>{const k=+w.dataset.d;w.style.transform='translate('+px*k*1.6+'px,'+py*k*1.6+'px) rotate('+px*k*.18+'deg)'})});
  dv.addEventListener('mouseleave',()=>qa('.win').forEach(w=>w.style.transform=''));
 }
