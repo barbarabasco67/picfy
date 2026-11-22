@@ -40,7 +40,7 @@ h1{font-size:clamp(54px,7.4vw,118px);line-height:.93;margin:26px 0 30px}
 .fr .im{position:absolute;inset:0;overflow:hidden;clip-path:inset(100% 0 0 0);transition:clip-path 1.5s .5s cubic-bezier(.77,0,.18,1)}html.ready .fr .im{clip-path:inset(0)}
 .fr .im img{width:100%;height:100%;object-fit:cover;object-position:88% center;transform:scale(1.25);transition:transform 2.4s .5s cubic-bezier(.2,.8,.2,1)}html.ready .fr .im img{transform:scale(1.05)}
 .fr:before{content:"";position:absolute;inset:-16px -16px 16px 16px;border:1px solid var(--cu);z-index:-1;opacity:0;transition:opacity 1s 1.4s}html.ready .fr:before{opacity:1}
-.fc{position:absolute;left:-52px;bottom:34px;background:var(--pa);color:var(--ink);padding:22px 26px;min-width:230px;opacity:0;transform:translateY(20px);transition:all 1s 1.6s;box-shadow:0 20px 50px rgba(0,0,0,.35)}html.ready .fc{opacity:1;transform:none}
+.fc{position:absolute;left:-52px;bottom:-26px;background:var(--pa);color:var(--ink);padding:22px 26px;min-width:230px;opacity:0;transform:translateY(20px);transition:all 1s 1.6s;box-shadow:0 20px 50px rgba(0,0,0,.35)}html.ready .fc{opacity:1;transform:none}
 .fc small{display:block;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--cu);font-weight:600;margin-bottom:8px}.fc b{font-family:'Instrument Serif',serif;font-weight:400;font-size:30px;line-height:1}.fc span{display:block;font-size:13px;color:var(--mu);margin-top:8px}
 .yr{position:absolute;right:-1%;bottom:-6%;font-family:'Instrument Serif',serif;font-size:clamp(200px,34vw,520px);line-height:.8;color:transparent;-webkit-text-stroke:1px rgba(242,238,232,.09);pointer-events:none;user-select:none;z-index:1}
 /* marquee */
@@ -57,6 +57,7 @@ h2{font-size:clamp(42px,5.6vw,86px);line-height:.98}
 .sv{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;margin-top:70px}
 .cd{position:relative;overflow:hidden;background:var(--ink);color:#fff;display:flex;align-items:flex-end;min-height:360px;cursor:pointer}
 .cd img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 1.3s cubic-bezier(.2,.8,.2,1),opacity .6s;opacity:.85}.cd:hover img{transform:scale(1.08);opacity:.55}
+.cd img.z{object-position:100% 0;transform:scale(1.65);transform-origin:100% 0}.cd:hover img.z{transform:scale(1.75)}
 .cd:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(16,18,20,.92))}
 .cd .tx{position:relative;z-index:2;padding:28px;width:100%}.cd .n{font-size:12px;letter-spacing:.24em;color:var(--cu2);font-weight:600}.cd h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:38px;line-height:1;margin:10px 0 0}
 .cd p{font-size:14px;line-height:1.6;color:rgba(255,255,255,.8);max-height:0;opacity:0;overflow:hidden;transition:all .6s;margin-top:0}.cd:hover p{max-height:100px;opacity:1;margin-top:12px}
@@ -108,9 +109,9 @@ footer{background:var(--ink);color:rgba(242,238,232,.55);padding:36px 0;font-siz
 <section class="sp" id="servicios" style="background:var(--sa)"><div class="w"><div class="rv" style="display:flex;justify-content:space-between;align-items:flex-end;gap:40px;flex-wrap:wrap"><h2 class="s">Todo lo que tu imagen <em>necesita</em></h2><p style="max-width:380px;color:var(--mu);line-height:1.7">Peluquería y estética para ella y para él, con tratamientos, novedades y el asesoramiento de un equipo en formación continua.</p></div>
 <div class="sv">
 <div class="cd a rv"><img src="https://www.jublanpeluqueros.com/images/slide_home/slide_home1.jpg" alt="Peluquería" loading="lazy"><div class="tx"><span class="n">01</span><h3>Peluquería para ella y para él</h3><p>Corte, color y tratamientos con productos de L'Oréal y American Crew.</p></div></div>
-<div class="cd b rv"><img src="https://www.jublanpeluqueros.com/images/home/fotos4_novios1.jpg" alt="Novias" loading="lazy" style="object-position:70% 15%;transform-origin:70% 20%;"><div class="tx"><span class="n">02</span><h3>Novias</h3><p>Sofisticación y estilo para el día más importante.</p></div></div>
+<div class="cd b rv"><img src="https://www.jublanpeluqueros.com/images/home/fotos4_novios1.jpg" alt="Novias" loading="lazy" class="z"><div class="tx"><span class="n">02</span><h3>Novias</h3><p>Sofisticación y estilo para el día más importante.</p></div></div>
 <div class="cd c rv"><img src="https://www.jublanpeluqueros.com/images/slide_home/slide_home3.jpg" onerror="this.src='https://www.jublanpeluqueros.com/images/slide_home/slide_home6.jpg'" alt="Estética" loading="lazy"><div class="tx"><span class="n">03</span><h3>Estética</h3><p>Tratamientos de estética con Germaine de Capuccini.</p></div></div>
-<div class="cd d rv"><img src="https://www.jublanpeluqueros.com/images/home/fotos4_trendy1.jpg" alt="Tendencias" loading="lazy" style="object-position:60% 15%"><div class="tx"><span class="n">04</span><h3>Tendencias</h3><p>Inspírate con las últimas novedades y propuestas de temporada.</p></div></div>
+<div class="cd d rv"><img src="https://www.jublanpeluqueros.com/images/home/fotos4_trendy1.jpg" alt="Tendencias" loading="lazy" class="z"><div class="tx"><span class="n">04</span><h3>Tendencias</h3><p>Inspírate con las últimas novedades y propuestas de temporada.</p></div></div>
 <div class="cd e t rv"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18" opacity=".5"/><circle cx="12" cy="12" r="3"/></svg><div class="tx"><span class="n" style="color:#fff">05</span><h3>Depilación láser</h3><p>Tecnología láser para ella y para él en nuestros centros.</p></div></div>
 </div></div></section>
 
