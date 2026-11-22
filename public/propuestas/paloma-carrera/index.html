@@ -35,18 +35,18 @@ nav{display:flex;gap:30px;font-size:13px;font-weight:500;letter-spacing:.04em}na
 #mm a{font-family:'Cormorant Garamond',serif;font-size:44px}
 /* hero */
 .hero{min-height:100vh;position:relative;display:flex;align-items:center;padding:130px 0 70px;overflow:hidden;background:#fff}
-.hero .im{position:absolute;inset:0;background:url(https://palomacarrera.com/wp-content/uploads/2019/04/slide_5-1.jpg) right center/cover no-repeat;transform:scaleX(-1);will-change:transform}
-.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#fff 0%,#fff 34%,rgba(255,255,255,.0) 62%);pointer-events:none}
-.hero svg.st{position:absolute;left:-5%;top:0;width:75%;height:100%;z-index:1;pointer-events:none;opacity:.9}
+.hero .im{position:absolute;inset:0;background:url(https://palomacarrera.com/wp-content/uploads/2019/04/slide_5-1.jpg) left center/cover no-repeat;will-change:transform}
+.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(270deg,#fff 0%,#fff 38%,rgba(255,255,255,0) 66%);pointer-events:none}
+.hero svg.st{position:absolute;right:-5%;top:0;width:70%;height:100%;z-index:1;pointer-events:none;opacity:.9}
 .st path{fill:none;stroke:url(#gg);stroke-width:1.1;stroke-dasharray:1400;stroke-dashoffset:1400;animation:dr 4.5s 2.2s ease forwards}
 .st path:nth-child(2n){animation-delay:2.5s}.st path:nth-child(3n){animation-delay:2.9s}
-.hero .w{position:relative;z-index:2;width:100%}
+.hero .w{position:relative;z-index:2;width:100%;padding-left:max(32px,52%)}
 .tag{display:inline-flex;align-items:center;gap:12px;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--go3);font-weight:500}.tag:before{content:"";width:38px;height:1px;background:var(--go)}
 h1{font-size:clamp(50px,7.2vw,108px);line-height:.95;margin:26px 0 28px;max-width:720px}
 .ln{display:block;overflow:hidden;padding-bottom:.08em}.ln>span{display:block;transform:translateY(110%);transition:transform 1.2s cubic-bezier(.2,.8,.2,1)}html.ready .ln>span{transform:none}.ln:nth-child(2)>span{transition-delay:.12s}.ln:nth-child(3)>span{transition-delay:.24s}
 .hero p.lead{max-width:430px;font-size:16.5px;line-height:1.75;color:#4a4039;opacity:0;transform:translateY(20px);transition:all 1s .5s}html.ready .hero .lead,html.ready .hero .cta,html.ready .hero .tag{opacity:1;transform:none}
 .hero .tag{opacity:0;transition:opacity 1s .2s}.cta{display:flex;gap:14px;margin-top:38px;flex-wrap:wrap;opacity:0;transform:translateY(20px);transition:all 1s .7s}
-.badge{position:absolute;right:6%;bottom:12%;z-index:3;width:140px;height:140px}.badge svg{width:100%;height:100%;animation:sp 22s linear infinite}.badge text{font-size:10.5px;letter-spacing:.34em;fill:var(--ink);text-transform:uppercase;font-weight:500}
+.badge{position:absolute;left:38%;bottom:10%;z-index:3;width:140px;height:140px}.badge svg{width:100%;height:100%;animation:sp 22s linear infinite}.badge text{font-size:10.5px;letter-spacing:.34em;fill:var(--ink);text-transform:uppercase;font-weight:500}
 .badge b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:38px;color:var(--go3)}
 @keyframes sp{to{transform:rotate(360deg)}}
 /* marquee */
@@ -94,8 +94,8 @@ form{background:rgba(246,241,232,.05);border:1px solid rgba(196,161,90,.3);borde
 footer{background:#0d0a09;color:rgba(246,241,232,.55);padding:34px 0;font-size:12.5px}footer .w{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}footer b{color:var(--go2);font-weight:500}
 .fa{position:fixed;right:22px;bottom:22px;z-index:40;width:58px;height:58px;border-radius:50%;background:var(--go);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(20,16,14,.35);transition:transform .3s}.fa:hover{transform:scale(1.1)}.fa svg{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:1.5}
 #cur{position:fixed;width:360px;height:360px;border-radius:50%;pointer-events:none;z-index:1;background:radial-gradient(circle,rgba(196,161,90,.16),transparent 65%);transform:translate(-50%,-50%);left:-400px;top:-400px;mix-blend-mode:multiply}
-@media(max-width:980px){nav,header .bt{display:none}#bg{display:block}.cards{grid-template-columns:1fr 1fr}.intro,.ex,.ct{grid-template-columns:1fr;gap:44px}.pr{grid-template-columns:1fr 1fr;gap:44px 0}.pr:before,.pr:after{display:none}.stm .pi{opacity:.25}.sp{padding:90px 0}.badge{display:none}.ex .ph .b{right:-10px}}
-@media(max-width:600px){.w{padding:0 22px}.cards{grid-template-columns:1fr}.cd{height:480px}.hero{align-items:flex-end;padding-bottom:50px}.hero .im{background-position:62% center;transform:scaleX(-1)}.hero:after{background:linear-gradient(0deg,#fff 30%,rgba(255,255,255,0) 70%)}h1{font-size:50px}.cols{grid-template-columns:1fr;gap:26px}form{padding:28px}.gt div{width:220px;height:320px}.pr{grid-template-columns:1fr}}
+@media(max-width:980px){.hero .w{padding-left:max(32px,46%)}.hero svg.st{display:none}nav,header .bt{display:none}#bg{display:block}.cards{grid-template-columns:1fr 1fr}.intro,.ex,.ct{grid-template-columns:1fr;gap:44px}.pr{grid-template-columns:1fr 1fr;gap:44px 0}.pr:before,.pr:after{display:none}.stm .pi{opacity:.25}.sp{padding:90px 0}.badge{display:none}.ex .ph .b{right:-10px}}
+@media(max-width:600px){.w{padding:0 22px}.cards{grid-template-columns:1fr}.cd{height:480px}.hero{align-items:flex-end;padding-bottom:50px}.hero .im{background-position:8% top;background-size:auto 62%}.hero:after{background:linear-gradient(0deg,#fff 42%,rgba(255,255,255,0) 66%)}.hero .w{padding-left:22px}h1{font-size:50px}.cols{grid-template-columns:1fr;gap:26px}form{padding:28px}.gt div{width:220px;height:320px}.pr{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
 </style></head><body>
 <div id="pre"><svg viewBox="0 0 220 80"><path d="M5 40 C50 -10 80 90 120 40 S190 0 215 40"/><path d="M5 48 C50 0 80 98 120 48 S190 8 215 48"/><path d="M5 56 C50 8 80 106 120 56 S190 16 215 56"/></svg><p>Paloma Carrera</p></div>
@@ -156,7 +156,7 @@ function init(){
 var R=document.documentElement,pre=document.getElementById('pre');
 setTimeout(function(){R.classList.add('ready');pre.classList.add('done');setTimeout(function(){pre.classList.add('gone')},1100)},2100);
 var hd=document.getElementById('hd'),ly=0;addEventListener('scroll',function(){var y=scrollY;hd.classList.toggle('h',y>ly&&y>300);ly=y;
-var h=document.querySelector('.hero .im');if(h&&y<900)h.style.transform='scaleX(-1) translateY('+(y*.12)+'px) scale(1.06)';
+var h=document.querySelector('.hero .im');if(h&&y<900)h.style.transform='translateY('+(y*.12)+'px) scale(1.06)';
 document.querySelectorAll('[data-p]').forEach(function(e){var r=e.parentNode.getBoundingClientRect();e.style.transform='translateY('+((r.top-innerHeight/2)*-.08)+'px)'});
 var s=document.querySelectorAll('#sm span'),sm=document.getElementById('sm').getBoundingClientRect(),p=(innerHeight*.85-sm.top)/(sm.height+innerHeight*.35);s.forEach(function(w,i){w.classList.toggle('on',i/s.length<p)})},{passive:true});
 var bg=document.getElementById('bg'),mm=document.getElementById('mm');bg.onclick=function(){bg.classList.toggle('o');mm.classList.toggle('o')};mm.querySelectorAll('a').forEach(function(a){a.onclick=function(){bg.classList.remove('o');mm.classList.remove('o')}});
