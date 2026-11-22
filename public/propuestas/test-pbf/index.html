@@ -1185,18 +1185,19 @@ img{max-width:100%; display:block;}
 })();
 </script><style id="pbf-editorial">
 /* Capa editorial sobria: fondo plano, tipografía grande, bordes finos, un solo acento */
-html,body#pbfLandingV2Body{background:#0b0b0c !important;background-image:none !important;}
+html{background:#0b0b0c !important;}
+body#pbfLandingV2Body{background-color:#0b0b0c !important;background-image:radial-gradient(900px 520px at 50% -4%,rgba(221,0,0,.13),transparent 65%),radial-gradient(700px 480px at 100% 55%,rgba(190,128,66,.07),transparent 65%) !important;background-size:auto !important;background-repeat:no-repeat !important;background-attachment:scroll !important;}
 :root{--bg:#0b0b0c;--panel:#111113;--panel2:#0e0e10;--border:rgba(255,255,255,.10);--muted:#9a9ca1;--radius-lg:6px;--radius-md:4px;}
 .pv2-hero-bg,.pv2-hero-grid::before,.pv2-hero-grid::after,.pv2-hero-shot-fade{display:none !important;}
 .pv2-hero [class*="glow"],.pv2-hero [class*="orb"]{display:none !important;}
 
 /* cabecera plana */
-.pv2-header-solid,.pv2-header{background:#0b0b0c !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;border-bottom:1px solid var(--border);}
+.pv2-header-solid,.pv2-header{background:rgba(11,11,12,.88) !important;backdrop-filter:blur(12px) !important;-webkit-backdrop-filter:blur(12px) !important;border-bottom:1px solid var(--border);}
 
 /* tipografía editorial */
 h1,h2,h3{font-family:'Space Grotesk',sans-serif !important;text-transform:uppercase;letter-spacing:-.035em !important;line-height:.98 !important;font-weight:700;}
 .pv2-hero h1{font-size:clamp(46px,8.4vw,128px) !important;line-height:.92 !important;letter-spacing:-.045em !important;}
-.pv2-hero h1 em,.pv2-hero h1 span,.pv2-hero h1 b{color:transparent !important;-webkit-text-stroke:1.5px #fff;background:none !important;font-style:normal;}
+.pv2-hero h1 em,.pv2-hero h1 span,.pv2-hero h1 b{color:transparent !important;-webkit-text-stroke:1.5px #fff;font-style:normal;}
 .pv2-hero p{color:var(--muted);}
 .pv2-head{max-width:none !important;margin:0 0 64px !important;text-align:left !important;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px 64px;align-items:end;}
 .pv2-head h2{font-size:clamp(34px,5.2vw,76px) !important;margin:0 !important;grid-column:1;}
@@ -1218,13 +1219,14 @@ body{counter-reset:pbfsec;}
 /* tarjetas planas */
 .pv2-tool-card,.pv2-mini-card,.pv2-price-card,.pv2-dual-shot-card,.pv2-feature-item,.pv2-carousel-panel{background:var(--panel) !important;border:1px solid var(--border) !important;border-radius:6px !important;box-shadow:none !important;transition:border-color .25s ease,background .25s ease,transform .35s cubic-bezier(.2,.7,.2,1);}
 .pv2-tool-card:hover,.pv2-mini-card:hover{border-color:rgba(255,255,255,.28) !important;background:#151517 !important;transform:translateY(-3px);}
-.pv2-price-card.featured{border-color:var(--accent) !important;}
+.pv2-price-card.featured{border-color:rgba(221,0,0,.7) !important;background:linear-gradient(180deg,rgba(221,0,0,.10),#111113 55%) !important;}
+.pv2-hero h1 em,.pv2-hero h1 span.accent{background:linear-gradient(90deg,#ff3b30,#be8042) !important;-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:0 !important;color:transparent !important;}
 .pv2-hero-shot,.pv2-split-shot img,.pv2-carousel-shot img,.pv2-mini-card-shot img,.pv2-timeline-shot img{border-radius:4px !important;box-shadow:none !important;}
 .pv2-hero-shot-wrap,.pv2-split-shot,.pv2-carousel-shot,.pv2-timeline-shot{border:1px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:none !important;}
 
 /* botones sólidos, rectos y limpios */
 .pv2-btn{border-radius:999px !important;font-weight:600;letter-spacing:.01em;box-shadow:none !important;background-image:none !important;transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease;}
-.pv2-btn-primary{background:var(--accent) !important;color:#fff !important;}
+.pv2-btn-primary{background:linear-gradient(180deg,#ee1111,#c00000) !important;color:#fff !important;}
 .pv2-btn-primary:hover{background:#fff !important;color:#0b0b0c !important;}
 .pv2-btn-ghost{background:transparent !important;border:1px solid rgba(255,255,255,.28) !important;color:#fff !important;}
 .pv2-btn-ghost:hover{background:#fff !important;color:#0b0b0c !important;}
