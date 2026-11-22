@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Almudena Valcas · Estética avanzada y micropigmentación · Propuesta de diseño</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--iv:#f8f3ed;--iv2:#f1e8df;--bl:#ead7cd;--rs:#b9695d;--rs2:#8f4a41;--pl:#2b1c22;--pl2:#3a2830;--sd:#c9a27c;--mu:#6d5b5e;--ez:cubic-bezier(.2,.8,.2,1);--dp:'Bodoni Moda',serif;--sn:'DM Sans',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{font-family:var(--sn);font-weight:400;color:var(--pl);background:var(--iv);line-height:1.7;font-size:17px;overflow-x:hidden}
+img{display:block;max-width:100%}a{text-decoration:none;color:inherit}
+h1,h2,h3{font-family:var(--dp);font-weight:400;line-height:1.04;letter-spacing:-.02em}
+em{font-style:italic;color:var(--rs)}
+.w{width:min(1260px,90vw);margin:0 auto;position:relative}
+.eb{font-size:.74rem;letter-spacing:.3em;text-transform:uppercase;font-weight:500;color:var(--rs);display:inline-flex;align-items:center;gap:.9rem}
+.eb:before{content:"";width:34px;height:1px;background:currentColor}
+/* reveal */
+.js .r{opacity:0;transform:translateY(46px);transition:opacity 1.1s var(--ez),transform 1.1s var(--ez)}
+.js .r.in{opacity:1;transform:none}.js .r.d1{transition-delay:.12s}.js .r.d2{transition-delay:.24s}.js .r.d3{transition-delay:.36s}
+.l{display:block;overflow:hidden;padding:.05em 0 .14em}.l>span{display:block}
+.js .l>span{transform:translateY(115%);transition:transform 1.3s var(--ez)}
+.js .in .l>span,.js .l.in>span{transform:none}
+.js .l:nth-child(2)>span{transition-delay:.1s}.js .l:nth-child(3)>span{transition-delay:.2s}
+/* botones */
+.btn{position:relative;display:inline-flex;align-items:center;gap:.9rem;padding:1.15rem 2.1rem;border-radius:60px;background:var(--pl);color:var(--iv);font-size:.76rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;overflow:hidden;isolation:isolate;cursor:pointer;border:0;transition:transform .3s}
+.btn:before{content:"";position:absolute;inset:0;background:var(--rs);transform:translateY(102%);border-radius:50% 50% 0 0/100% 100% 0 0;transition:transform .6s var(--ez),border-radius .6s;z-index:-1}
+.btn:hover:before{transform:none;border-radius:0}
+.btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.6;transition:transform .4s}.btn:hover svg{transform:translateX(5px)}
+.btn.o{background:transparent;color:var(--pl);box-shadow:inset 0 0 0 1px rgba(43,28,34,.35)}.btn.o:hover{color:#fff}
+.btn.lt{background:var(--iv);color:var(--pl)}.btn.lt:hover{color:#fff}
+/* cursor */
+.cd,.cr{position:fixed;left:0;top:0;pointer-events:none;z-index:2147483000;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .4s,width .35s var(--ez),height .35s var(--ez),background .3s}
+.cd{width:6px;height:6px;background:var(--rs)}.cr{width:38px;height:38px;border:1px solid rgba(185,105,93,.7)}.cr.h{width:76px;height:76px;background:rgba(185,105,93,.12)}
+.on .cd,.on .cr{opacity:1}
+/* preloader */
+#pre{position:fixed;inset:0;z-index:2147483100;background:var(--iv);display:grid;place-items:center;transition:clip-path 1.3s var(--ez);clip-path:inset(0 0 0 0)}
+#pre.out{clip-path:inset(0 0 100% 0);pointer-events:none}
+#pre .m{font-family:var(--dp);font-style:italic;font-size:clamp(4rem,11vw,8rem);color:var(--pl);letter-spacing:-.04em;opacity:0;transform:scale(.92);transition:opacity 1s var(--ez),transform 1.4s var(--ez)}
+#pre.go .m{opacity:1;transform:none}#pre.out .m{opacity:0;transition:opacity .4s}
+#pre .m b{color:var(--rs);font-weight:400}
+#pre .ln{position:absolute;left:50%;bottom:18vh;height:1px;width:0;background:var(--rs);transform:translateX(-50%);transition:width 1.6s var(--ez)}#pre.go .ln{width:min(220px,50vw)}
+/* header */
+.hd{position:fixed;top:18px;left:0;right:0;z-index:9990;transition:transform .7s var(--ez)}
+.js:not(.ready) .hd{transform:translateY(-190%)}.ready:not(.done) .hd{transition-delay:.9s}
+.hd.hide{transform:translateY(-170%)}
+.hd .bar{width:min(1260px,94vw);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.6rem .6rem .6rem 1.2rem;border-radius:70px;background:rgba(248,243,237,.62);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:0 14px 40px rgba(43,28,34,.1),inset 0 0 0 1px rgba(255,255,255,.7);transition:.5s}
+.hd.s .bar{background:rgba(248,243,237,.88)}
+.lg{font-family:var(--dp);font-style:italic;font-size:1.55rem;letter-spacing:-.02em;white-space:nowrap}.lg b{color:var(--rs);font-weight:400}
+.nv{display:flex;gap:.1rem}.nv a{padding:.7rem 1.1rem;font-size:.72rem;letter-spacing:.17em;text-transform:uppercase;font-weight:500;border-radius:40px;transition:.35s;white-space:nowrap}.nv a:hover{background:rgba(185,105,93,.12);color:var(--rs2)}
+.hr{display:flex;align-items:center;gap:.6rem}.hr .btn{padding:.95rem 1.7rem}
+.bg{display:none;width:46px;height:46px;border-radius:50%;background:var(--pl);border:0;position:relative;cursor:pointer}.bg i{position:absolute;left:14px;right:14px;height:1.5px;background:#fff;transition:.5s var(--ez)}.bg i:nth-child(1){top:19px}.bg i:nth-child(2){top:26px}
+.mn{position:fixed;inset:0;background:var(--pl);z-index:9980;display:flex;flex-direction:column;justify-content:center;padding:0 8vw;clip-path:circle(0% at calc(100% - 50px) 50px);transition:clip-path 1s var(--ez)}.mn.o{clip-path:circle(150% at calc(100% - 50px) 50px)}
+.mn a{font-family:var(--dp);font-size:clamp(2.2rem,9vw,3.6rem);color:var(--iv);line-height:1.3;opacity:0;transform:translateY(30px);transition:.8s var(--ez)}.mn.o a{opacity:1;transform:none}
+.mn.o a:nth-child(2){transition-delay:.07s}.mn.o a:nth-child(3){transition-delay:.14s}.mn.o a:nth-child(4){transition-delay:.21s}.mn.o a:nth-child(5){transition-delay:.28s}
+.hd.mo .bar{background:transparent;box-shadow:none;backdrop-filter:none}.hd.mo .lg{color:var(--iv)}.hd.mo .bg{background:var(--rs)}.hd.mo .bg i:nth-child(1){top:22px;transform:rotate(45deg)}.hd.mo .bg i:nth-child(2){top:22px;transform:rotate(-45deg)}
+@media(max-width:1080px){.nv,.hr .btn{display:none}.bg{display:block}}
+/* hero */
+.hero{position:relative;min-height:100vh;padding:9.5rem 0 5.5rem;overflow:hidden;background:radial-gradient(90% 70% at 85% 10%,#f2dfd5,transparent 60%),var(--iv)}
+.hero .w{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(2rem,5vw,6rem);align-items:center}
+.hero h1{font-size:clamp(3.4rem,7.6vw,7.4rem);margin:1.8rem 0 1.8rem;letter-spacing:-.035em}
+.hero .sub{max-width:520px;color:var(--mu);font-size:1.08rem;margin-bottom:2.3rem}
+.hero .cta{display:flex;gap:1rem;flex-wrap:wrap}
+.js:not(.ready) .hero .r{opacity:0!important;transform:translateY(46px)!important}.js:not(.ready) .hero .l>span{transform:translateY(115%)!important}
+.ready .hero .r{transition-delay:1.1s!important}.ready .hero .l>span{transform:none!important;transition-delay:.75s}.ready .hero .l:nth-child(2)>span{transition-delay:.9s}.ready .hero .l:nth-child(3)>span{transition-delay:1.05s}
+.hv{position:relative;height:min(78vh,640px)}
+.arch{position:absolute;right:0;top:0;width:76%;height:100%;border-radius:999px 999px 28px 28px;overflow:hidden;box-shadow:0 40px 90px rgba(43,28,34,.28)}
+.arch img{width:100%;height:116%;object-fit:cover;will-change:transform}
+.circ{position:absolute;left:0;bottom:6%;width:44%;aspect-ratio:1;border-radius:50%;overflow:hidden;border:8px solid var(--iv);box-shadow:0 30px 60px rgba(43,28,34,.25)}.circ img{width:100%;height:100%;object-fit:cover}
+.spin{position:absolute;right:-2%;top:10%;width:150px;height:150px;border-radius:50%;background:var(--rs);color:#fff;display:grid;place-items:center;animation:fl 8s ease-in-out infinite}
+.spin svg{position:absolute;inset:0;width:100%;height:100%;animation:rot 22s linear infinite}.spin text{font-family:var(--sn);font-size:9.4px;letter-spacing:.24em;text-transform:uppercase;font-weight:500;fill:#fff}
+.spin span{font-family:var(--dp);font-style:italic;font-size:2.1rem;line-height:1}
+@keyframes rot{to{transform:rotate(360deg)}}@keyframes fl{50%{transform:translateY(-14px)}}
+.sc{position:absolute;left:5vw;bottom:2rem;display:flex;align-items:center;gap:1rem;font-size:.64rem;letter-spacing:.4em;text-transform:uppercase;color:var(--mu)}.sc i{width:1px;height:48px;background:linear-gradient(var(--rs),transparent);animation:scl 2.2s infinite;transform-origin:top}@keyframes scl{0%{transform:scaleY(0)}50%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+/* marquee */
+.mq{background:var(--pl);color:var(--iv);overflow:hidden;padding:1.5rem 0}.mq div{display:flex;gap:3rem;width:max-content;animation:mqa 38s linear infinite;align-items:center;white-space:nowrap}
+.mq span{font-family:var(--dp);font-style:italic;font-size:clamp(1.6rem,3vw,2.6rem)}.mq i{width:9px;height:9px;background:var(--sd);transform:rotate(45deg);flex:none}@keyframes mqa{to{transform:translateX(-50%)}}
+/* intro */
+.sec{padding:clamp(6rem,11vw,11rem) 0}
+.it .big{font-family:var(--dp);font-size:clamp(1.9rem,4.2vw,3.7rem);line-height:1.18;letter-spacing:-.02em;max-width:1100px;margin:1.8rem 0 3.5rem}
+.it .big .wd{opacity:.16;transition:opacity .5s}.it .big .wd.on{opacity:1}
+.it .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2.4rem;border-top:1px solid rgba(43,28,34,.18);padding-top:2.4rem}
+.it .row h3{font-size:1.7rem;margin-bottom:.6rem}.it .row p{color:var(--mu);font-size:.98rem}
+/* servicios */
+.sv{background:var(--iv2);position:relative}
+.sv .hd2{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;margin-bottom:4rem;flex-wrap:wrap}
+.sv h2{font-size:clamp(2.6rem,5.8vw,5.4rem);margin-top:1.2rem}.sv .hd2 p{max-width:340px;color:var(--mu)}
+.svl{list-style:none;border-top:1px solid rgba(43,28,34,.2)}
+.svl li{display:grid;grid-template-columns:90px 1fr 1.1fr 60px;gap:2rem;align-items:center;padding:2.1rem .5rem;border-bottom:1px solid rgba(43,28,34,.2);position:relative;transition:padding .6s var(--ez),background .5s;cursor:pointer}
+.svl li:hover{padding-left:2rem;background:linear-gradient(90deg,rgba(185,105,93,.1),transparent)}
+.svl .n{font-family:var(--dp);font-style:italic;color:var(--rs);font-size:1.4rem}.svl h3{font-size:clamp(1.9rem,3.6vw,3.2rem)}.svl p{color:var(--mu);font-size:.98rem}
+.svl .ar{width:52px;height:52px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(43,28,34,.3);display:grid;place-items:center;transition:.5s var(--ez)}.svl .ar svg{width:19px;stroke:currentColor;fill:none;stroke-width:1.5}
+.svl li:hover .ar{background:var(--rs);color:#fff;box-shadow:none;transform:rotate(-45deg)}
+.svl .th{display:none}
+#fl{position:fixed;left:0;top:0;width:260px;height:340px;border-radius:130px 130px 20px 20px;background:#ccc center/cover;pointer-events:none;z-index:50;opacity:0;transform:translate(-50%,-50%) scale(.7) rotate(-6deg);transition:opacity .4s,transform .5s var(--ez);box-shadow:0 30px 70px rgba(43,28,34,.3)}
+#fl.v{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-3deg)}
+/* micropigmentación */
+.mp{background:var(--pl);color:var(--iv);position:relative;overflow:hidden}
+.mp .w{display:grid;grid-template-columns:.95fr 1.05fr;gap:clamp(2rem,6vw,7rem);align-items:center}
+.mp .ph{position:relative;height:640px}
+.mp .a1,.mp .a2{position:absolute;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.45)}
+.mp .a1{left:0;top:0;width:66%;height:86%;border-radius:999px 999px 24px 24px}.mp .a2{right:0;bottom:0;width:50%;height:48%;border-radius:24px 999px 24px 24px;border:6px solid var(--pl)}
+.mp img{width:100%;height:118%;object-fit:cover;will-change:transform}
+.mp h2{font-size:clamp(2.6rem,5.2vw,4.8rem);margin:1.4rem 0 1.6rem}.mp h2 em{color:var(--sd)}.mp .eb{color:var(--sd)}
+.mp p{color:#d8c9c8;max-width:520px;margin-bottom:1.1rem}
+.mp ul{list-style:none;margin:2rem 0 2.4rem;display:grid;gap:.9rem}.mp li{display:flex;gap:1rem;align-items:center;font-size:1.02rem;padding-bottom:.9rem;border-bottom:1px solid rgba(255,255,255,.14)}
+.mp li:before{content:"";width:8px;height:8px;background:var(--sd);transform:rotate(45deg);flex:none}
+.mp:before{content:"";position:absolute;width:640px;height:640px;border-radius:50%;right:-200px;top:-220px;background:radial-gradient(circle,rgba(185,105,93,.4),transparent 65%)}
+/* proceso */
+.pr .hd2{max-width:760px;margin-bottom:4rem}.pr h2{font-size:clamp(2.4rem,5vw,4.6rem);margin-top:1.2rem}
+.pr .g{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6rem}
+.pc{border-radius:28px;padding:2.4rem 2.1rem 2.5rem;background:#fff;box-shadow:0 24px 60px rgba(43,28,34,.08);position:relative;overflow:hidden;transition:transform .7s var(--ez)}.pc:hover{transform:translateY(-10px)}
+.pc .no{font-family:var(--dp);font-style:italic;font-size:4.6rem;line-height:1;color:var(--bl);margin-bottom:1.4rem;transition:color .5s}.pc:hover .no{color:var(--rs)}
+.pc h3{font-size:1.8rem;margin-bottom:.7rem}.pc p{color:var(--mu)}
+/* galería */
+.gl{padding:0 0 clamp(6rem,10vw,9rem);overflow:hidden}
+.gl .hd2{margin-bottom:3rem}.gl h2{font-size:clamp(2.4rem,5vw,4.6rem);margin-top:1.2rem}
+.gt{display:flex;gap:1.4rem;width:max-content;animation:mqa 55s linear infinite}.gt:hover{animation-play-state:paused}
+.gt div{width:270px;height:380px;flex:none;border-radius:135px 135px 22px 22px;overflow:hidden;box-shadow:0 24px 50px rgba(43,28,34,.18)}.gt div:nth-child(even){margin-top:48px;border-radius:22px 22px 135px 135px}
+.gt img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s var(--ez)}.gt div:hover img{transform:scale(1.08)}
+/* contacto */
+.ct{background:linear-gradient(160deg,var(--bl),#e4c3b7);position:relative;overflow:hidden}
+.ct .w{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(2rem,6vw,6rem);align-items:center}
+.ct h2{font-size:clamp(2.8rem,6vw,5.6rem);margin:1.3rem 0 1.6rem}.ct .w>div>p{max-width:480px;color:#5d4a4e;margin-bottom:2.2rem}
+.ct .cta{display:flex;gap:1rem;flex-wrap:wrap}
+.cc{display:grid;gap:1rem}.cc a,.cc div{display:flex;gap:1.3rem;align-items:center;padding:1.4rem 1.7rem;border-radius:24px;background:rgba(255,255,255,.55);backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),0 16px 40px rgba(43,28,34,.08);transition:transform .5s var(--ez)}.cc a:hover{transform:translateX(8px)}
+.cc .ic{width:50px;height:50px;border-radius:50%;background:var(--pl);display:grid;place-items:center;flex:none}.cc .ic svg{width:22px;stroke:var(--iv);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.cc small{display:block;font-size:.7rem;letter-spacing:.26em;text-transform:uppercase;color:var(--rs2);font-weight:500}.cc b{display:block;font-family:var(--dp);font-weight:400;font-size:1.35rem;line-height:1.25}
+/* footer */
+footer{background:var(--pl);color:var(--iv);padding:clamp(4rem,7vw,6rem) 0 2rem}
+footer .top{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:3rem;padding-bottom:3rem;border-bottom:1px solid rgba(255,255,255,.14)}
+footer .lg{font-size:2.2rem;display:block;margin-bottom:1rem}footer p{color:#cdbdbd;max-width:340px;font-size:.96rem}
+footer h4{font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--sd);margin-bottom:1.2rem;font-weight:500}
+footer ul{list-style:none;display:grid;gap:.7rem}footer li a{color:#e6d9d8;transition:.4s;display:inline-block}footer li a:hover{color:var(--sd);transform:translateX(6px)}
+footer .bt{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1.6rem;font-size:.82rem;color:#b9a6a6}
+.wa{position:fixed;right:22px;bottom:22px;z-index:9970;width:60px;height:60px;border-radius:50%;background:var(--rs);display:grid;place-items:center;box-shadow:0 14px 34px rgba(143,74,65,.5);transition:transform .4s}.wa:hover{transform:scale(1.1)}.wa svg{width:28px;fill:#fff}
+@media(max-width:1000px){.hero .w,.mp .w,.ct .w{grid-template-columns:1fr}.hv{height:520px;max-width:460px;margin:2rem auto 0;width:100%}.it .row,.pr .g{grid-template-columns:1fr}.svl li{grid-template-columns:50px 1fr 52px;gap:1rem}.svl p{display:none}.mp .ph{height:480px;max-width:460px}.cd,.cr,.sc,#fl{display:none}footer .top{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){footer .top{grid-template-columns:1fr}.spin{width:112px;height:112px}.spin text{font-size:10px}}
+</style></head><body>
+<div id="pre"><div class="m">A<b>V</b></div><i class="ln"></i></div>
+<div class="cd"></div><div class="cr"></div><div id="fl"></div>
+<header class="hd" id="hd"><div class="bar"><a class="lg" href="#inicio">Almudena <b>Valcas</b></a>
+<nav class="nv"><a href="#inicio">Inicio</a><a href="#servicios">Servicios</a><a href="#micropigmentacion">Micropigmentación</a><a href="#centro">El centro</a><a href="#contacto">Contacto</a></nav>
+<div class="hr"><a class="btn mag" href="#contacto">Reservar cita</a><button class="bg" id="bg" aria-label="Menú"><i></i><i></i></button></div></div></header>
+<div class="mn" id="mn"><a href="#servicios">Servicios</a><a href="#micropigmentacion">Micropigmentación</a><a href="#centro">El centro</a><a href="#contacto">Contacto</a><a href="#contacto">Reservar cita</a></div>
+
+<section class="hero" id="inicio"><div class="w"><div>
+<span class="eb r">Estética avanzada · Torrejón de Ardoz</span>
+<h1><span class="l"><span>Cuidamos tu</span></span><span class="l"><span>cuerpo <em>como</em></span></span><span class="l"><span><em>te mereces</em></span></span></h1>
+<p class="sub r d1">Centro de estética avanzada y micropigmentación. Tratamientos faciales y corporales, depilación láser y maquillaje semipermanente, con trato cercano y resultados naturales.</p>
+<div class="cta r d2"><a class="btn mag" href="#contacto">Reservar cita <svg viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></svg></a><a class="btn o mag" href="#servicios">Ver servicios</a></div></div>
+<div class="hv r d2"><div class="arch"><img data-p="-.06" src="https://le-de.cdn-website.com/6211032f5f75437cb69defc9e553edd4/dms3rep/multi/opt/shutterstock_494148292-1920w.jpg" alt="Tratamiento facial"></div>
+<div class="circ"><img src="https://storage.googleapis.com/d_images/ServiceImage/525/598/ServiceImage/525/254/278785443_1047114386151208_6531098551234594246_n.webp" alt="Micropigmentación de labios"></div>
+<div class="spin"><svg viewBox="0 0 150 150"><defs><path id="cp" d="M75,75 m-58,0 a58,58 0 1,1 116,0 a58,58 0 1,1 -116,0"/></defs><text><textPath href="#cp">Micropigmentación · Láser · Estética ·</textPath></text></svg><span>AV</span></div></div></div>
+<div class="sc"><i></i>Desliza</div></section>
+<div class="mq"><div><span>Estética avanzada</span><i></i><span>Depilación láser</span><i></i><span>Micropigmentación</span><i></i><span>Tratamientos faciales</span><i></i><span>Corporal</span><i></i><span>Estética avanzada</span><i></i><span>Depilación láser</span><i></i><span>Micropigmentación</span><i></i><span>Tratamientos faciales</span><i></i><span>Corporal</span><i></i></div></div>
+
+<section class="sec it" id="centro"><div class="w"><span class="eb r">El centro</span>
+<p class="big">Un espacio donde cuidarte es lo primero: tratamientos con tecnología profesional y atención personal, en pleno Torrejón de Ardoz.</p>
+<div class="row"><div class="r"><h3>Atención cercana</h3><p>Cada persona es distinta. Valoramos tu piel y tus objetivos antes de recomendarte cualquier tratamiento.</p></div><div class="r d1"><h3>Tecnología avanzada</h3><p>Equipos profesionales para depilación láser y tratamientos de estética avanzada.</p></div><div class="r d2"><h3>Resultados naturales</h3><p>Acabados cuidados y discretos, tanto en estética como en maquillaje semipermanente.</p></div></div></div></section>
+
+<section class="sec sv" id="servicios"><div class="w"><div class="hd2"><div><span class="eb r">Servicios</span><h2 class="r d1">Todo para <em>tu cuidado</em></h2></div><p class="r d2">Pasa el cursor por cada servicio para verlo. Reserva el que necesites.</p></div>
+<ul class="svl">
+<li data-img="https://le-de.cdn-website.com/6211032f5f75437cb69defc9e553edd4/dms3rep/multi/opt/sesionalmudenavalcascolor-125-1920w.jpg"><span class="n">01</span><h3>Estética</h3><p>Tratamientos de estética para sentirte y verte bien en tu día a día.</p><span class="ar"><svg viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></svg></span></li>
+<li data-img="https://storage.googleapis.com/d_images/ServiceImage/525/550/ServiceImage/525/430/sesionalmudenavalcascolor-106.webp"><span class="n">02</span><h3>Depilación láser</h3><p>Tecnología láser para una depilación progresiva y cómoda.</p><span class="ar"><svg viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></svg></span></li>
+<li data-img="https://storage.googleapis.com/d_images/ServiceImage/525/221/ServiceImage/525/242/sesionalmudenavalcascolor-111.webp"><span class="n">03</span><h3>Maquillaje semipermanente</h3><p>Cejas, labios y ojos con un acabado natural y duradero.</p><span class="ar"><svg viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></svg></span></li>
+<li data-img="https://storage.googleapis.com/d_images/ServiceImage/525/954/ServiceImage/525/030/sesionalmudenavalcascolor-72.webp"><span class="n">04</span><h3>Corporal</h3><p>Tratamientos corporales para cuidar y tonificar tu piel.</p><span class="ar"><svg viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></svg></span></li>
+<li data-img="https://le-de.cdn-website.com/6211032f5f75437cb69defc9e553edd4/dms3rep/multi/opt/iStock_000080740295_Full-1920w.jpg"><span class="n">05</span><h3>Depilación con cera</h3><p>Depilación tradicional con cera, rápida y cuidada.</p><span class="ar"><svg viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></svg></span></li>
+<li data-img="https://storage.googleapis.com/d_images/ServiceImage/525/110/ServiceImage/525/361/sesionalmudenavalcascolor-42.webp"><span class="n">06</span><h3>Tratamientos faciales</h3><p>Limpieza, hidratación y cuidado personalizado para tu rostro.</p><span class="ar"><svg viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></svg></span></li>
+</ul></div></section>
+
+<section class="sec mp" id="micropigmentacion"><div class="w"><div class="ph r"><div class="a1"><img data-p=".05" src="https://storage.googleapis.com/d_images/ServiceImage/525/598/ServiceImage/525/254/278785443_1047114386151208_6531098551234594246_n.webp" alt="Labios micropigmentados"></div><div class="a2"><img data-p="-.04" src="https://storage.googleapis.com/d_images/ServiceImage/525/221/ServiceImage/525/242/sesionalmudenavalcascolor-111.webp" alt="Micropigmentación de cejas"></div></div>
+<div><span class="eb r">Micropigmentación</span><h2 class="r d1">Detalles que <em>realzan</em> tu mirada y tu sonrisa</h2><p class="r d2">El maquillaje semipermanente es un trabajo de precisión: diseñamos cada forma y cada tono según tu rostro, para un resultado natural que te acompaña cada día.</p>
+<ul class="r d2"><li>Cejas con diseño personalizado</li><li>Labios con color y definición naturales</li><li>Ojos y delineado semipermanente</li></ul><a class="btn lt mag r d3" href="#contacto">Pedir cita de valoración</a></div></div></section>
+
+<section class="sec pr"><div class="w"><div class="hd2"><span class="eb r">Tu cita</span><h2 class="r d1">Reservar es <em>muy sencillo</em></h2></div>
+<div class="g"><div class="pc r"><div class="no">01</div><h3>Reserva</h3><p>Elige tu tratamiento y pide cita en pocos pasos: online, por teléfono o por WhatsApp.</p></div><div class="pc r d1"><div class="no">02</div><h3>Valoración</h3><p>Antes de empezar, hablamos contigo y valoramos qué necesita tu piel.</p></div><div class="pc r d2"><div class="no">03</div><h3>Tratamiento</h3><p>Disfruta de tu sesión y llévate recomendaciones para cuidarte en casa.</p></div></div></div></section>
+
+<section class="gl"><div class="w"><div class="hd2"><span class="eb r">El trabajo</span><h2 class="r d1">Así se vive <em>en el centro</em></h2></div></div>
+<div class="gt" id="gt"></div></section>
+
+<section class="sec ct" id="contacto"><div class="w"><div><span class="eb r">Contacto</span><h2 class="r d1">Reserva tu cita <em>hoy</em></h2><p class="r d2">Cuéntanos qué tratamiento te interesa y te ayudamos a encontrar el mejor momento.</p><div class="cta r d3"><a class="btn mag" href="tel:+34670359627">Llámanos <svg viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></svg></a><a class="btn o mag" href="https://wa.me/34670359627">WhatsApp</a></div></div>
+<div class="cc r d2"><a href="tel:+34670359627"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span><span><small>Teléfono</small><b>670 359 627</b></span></a>
+<a href="mailto:almudenavalcas@gmail.com"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7l8.5 6 8.5-6"/></svg></span><span><small>Email</small><b>almudenavalcas@gmail.com</b></span></a>
+<div><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span><span><small>Dónde estamos</small><b>C/ Virgen de la Paloma 15, Torrejón de Ardoz</b></span></div>
+<div><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span><small>Horario</small><b>Lunes a viernes · 10:00 a 19:00</b></span></div></div></div></section>
+
+<footer><div class="w"><div class="top"><div><a class="lg" href="#inicio">Almudena <b>Valcas</b></a><p>Estética avanzada y micropigmentación en Torrejón de Ardoz.</p></div>
+<div><h4>Navegar</h4><ul><li><a href="#servicios">Servicios</a></li><li><a href="#micropigmentacion">Micropigmentación</a></li><li><a href="#centro">El centro</a></li><li><a href="#contacto">Contacto</a></li></ul></div>
+<div><h4>Síguenos</h4><ul><li><a href="https://www.instagram.com/almudenavalcas/">Instagram</a></li><li><a href="tel:+34670359627">670 359 627</a></li></ul></div></div>
+<div class="bt"><span>© Almudena Valcas · Estética avanzada</span><span>Propuesta de diseño por Bedigy</span></div></div></footer>
+<a class="wa" href="https://wa.me/34670359627" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.6.3.1.2.1.8-.2 1.4z"/></svg></a>
+<script>
+(function(){function init(){var d=document,h=d.documentElement;h.classList.add('js');var q=function(s,c){return[].slice.call((c||d).querySelectorAll(s))};
+var pre=d.getElementById('pre');setTimeout(function(){pre.classList.add('go')},60);var t0=Date.now(),op=false;
+function hide(){if(op){return}op=true;h.classList.add('ready');pre.classList.add('out');setTimeout(function(){pre.style.display='none';h.classList.add('done')},1600)}
+(function chk(){if(Date.now()-t0>2100){hide()}else{setTimeout(chk,120)}})();setTimeout(hide,5000);
+var G=['https://le-de.cdn-website.com/6211032f5f75437cb69defc9e553edd4/dms3rep/multi/opt/sesionalmudenavalcascolor-125-1920w.jpg','https://storage.googleapis.com/d_images/ServiceImage/525/221/ServiceImage/525/242/sesionalmudenavalcascolor-111.webp','https://storage.googleapis.com/d_images/ServiceImage/525/110/ServiceImage/525/361/sesionalmudenavalcascolor-42.webp','https://storage.googleapis.com/d_images/ServiceImage/525/550/ServiceImage/525/430/sesionalmudenavalcascolor-106.webp','https://storage.googleapis.com/d_images/ServiceImage/525/954/ServiceImage/525/030/sesionalmudenavalcascolor-72.webp','https://le-de.cdn-website.com/6211032f5f75437cb69defc9e553edd4/dms3rep/multi/opt/shutterstock_494148292-1920w.jpg','https://storage.googleapis.com/d_images/ServiceImage/525/598/ServiceImage/525/254/278785443_1047114386151208_6531098551234594246_n.webp'];
+var gt=d.getElementById('gt');gt.innerHTML=G.concat(G).map(function(s){return'<div><img loading="lazy" alt="" src="'+s+'"></div>'}).join('');
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.14});
+q('.r').forEach(function(e){io.observe(e)});
+var hd=d.getElementById('hd'),mn=d.getElementById('mn'),bg=d.getElementById('bg');
+bg.onclick=function(){var o=mn.classList.toggle('o');hd.classList.toggle('mo',o)};
+q('#mn a,.nv a').forEach(function(a){a.addEventListener('click',function(){mn.classList.remove('o');hd.classList.remove('mo')})});
+var bigs=q('.it .big');bigs.forEach(function(el){el.innerHTML=el.textContent.trim().split(/\s+/).map(function(w){return'<span class="wd">'+w+'</span>'}).join(' ')});
+var par=q('[data-p]'),ly=0;
+function sc(){var y=window.scrollY,vh=window.innerHeight;hd.classList.toggle('s',y>40);if(y>ly+4){if(y>320){hd.classList.add('hide')}}else{if(y<ly-4){hd.classList.remove('hide')}}ly=y;
+par.forEach(function(e){var r=e.parentNode.getBoundingClientRect();e.style.transform='translate3d(0,'+((r.top+r.height/2-vh/2)*parseFloat(e.getAttribute('data-p')))+'px,0)'});
+bigs.forEach(function(el){var r=el.getBoundingClientRect();var p=Math.min(1,Math.max(0,(vh*.85-r.top)/(r.height+vh*.35)));var ws=q('.wd',el),n=Math.floor(p*ws.length*1.05);ws.forEach(function(w,i){w.classList.toggle('on',i<n)})})}
+addEventListener('scroll',sc,{passive:true});sc();setTimeout(sc,700);
+if(matchMedia('(hover:hover) and (pointer:fine)').matches){var cd=q('.cd')[0],cr=q('.cr')[0],mx=0,my=0,rx=0,ry=0,fl=d.getElementById('fl');
+d.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;h.classList.add('on');cd.style.left=mx+'px';cd.style.top=my+'px';fl.style.left=(mx+190)+'px';fl.style.top=my+'px'});
+(function lp(){rx+=(mx-rx)*.16;ry+=(my-ry)*.16;cr.style.left=rx+'px';cr.style.top=ry+'px';requestAnimationFrame(lp)})();
+d.addEventListener('mouseover',function(e){var t=e.target.closest?e.target.closest('a,button,.svl li'):null;cr.classList.toggle('h',!!t)});
+q('.svl li').forEach(function(li){li.addEventListener('mouseenter',function(){fl.style.backgroundImage='url("'+li.getAttribute('data-img')+'")';fl.classList.add('v')});li.addEventListener('mouseleave',function(){fl.classList.remove('v')})});
+q('.mag').forEach(function(b){b.addEventListener('mousemove',function(e){var r=b.getBoundingClientRect();b.style.transform='translate('+((e.clientX-r.left-r.width/2)*.25)+'px,'+((e.clientY-r.top-r.height/2)*.35)+'px)'});b.addEventListener('mouseleave',function(){b.style.transform=''})})}
+}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init)}else{init()}})();
+</script></body></html>
