@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Jublan Peluqueros · Peluquería y estética en Madrid desde 1961 · Propuesta de diseño</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#101214;--ink2:#1a1d20;--pa:#f2eee8;--sa:#e5dccd;--cu:#b5522b;--cu2:#d9784a;--mu:#6e6a63;--B:https://www.jublanpeluqueros.com/images/}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:'Inter Tight',sans-serif;background:var(--pa);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+.s{font-family:'Instrument Serif',serif;font-weight:400;letter-spacing:-.015em}.s em{color:var(--cu)}.dk .s em{color:var(--cu2)}
+.w{max-width:1280px;margin:0 auto;padding:0 36px}
+#pre{position:fixed;inset:0;z-index:100;background:var(--ink);color:var(--pa);display:flex;align-items:center;justify-content:center;flex-direction:column;transition:transform 1s cubic-bezier(.77,0,.18,1)}
+#pre.done{transform:translateY(-100%)}#pre.gone{display:none}
+#pre b{font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(90px,18vw,220px);line-height:1;letter-spacing:-.03em}
+#pre small{letter-spacing:.4em;text-transform:uppercase;font-size:12px;color:var(--cu2);margin-top:10px}
+#pre i{position:absolute;left:0;bottom:0;height:3px;background:var(--cu);width:0;transition:width 2s cubic-bezier(.3,.7,.2,1)}
+header{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:22px 36px;color:var(--pa);transition:transform .5s,background .4s,color .4s}
+header.sc{background:rgba(242,238,232,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--ink);padding:14px 36px;box-shadow:0 1px 0 rgba(16,18,20,.08)}header.h{transform:translateY(-110%)}
+.lg{font-family:'Instrument Serif',serif;font-size:30px;letter-spacing:.14em;line-height:1}.lg small{display:block;font-family:'Inter Tight';font-size:9px;letter-spacing:.5em;text-transform:uppercase;color:var(--cu2);margin-top:4px;padding-left:2px}
+nav{display:flex;gap:34px;font-size:13px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}nav a{position:relative}nav a:after{content:"";position:absolute;left:0;right:100%;bottom:-6px;height:1px;background:var(--cu2);transition:right .35s}nav a:hover:after{right:0}
+.bt{display:inline-flex;align-items:center;gap:12px;padding:16px 30px;background:var(--cu);color:#fff;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;position:relative;overflow:hidden;transition:color .4s;border:0;cursor:pointer;font-family:inherit}
+.bt:before{content:"";position:absolute;inset:0;background:var(--pa);transform:translateX(-101%);transition:transform .45s cubic-bezier(.2,.8,.2,1)}.bt:hover:before{transform:none}.bt:hover{color:var(--ink)}.bt>*{position:relative;z-index:1}
+.bt.l{background:transparent;color:var(--pa);box-shadow:inset 0 0 0 1px rgba(242,238,232,.5)}.bt.l:before{background:var(--pa)}.bt.l:hover{color:var(--ink)}
+.bt.k{background:var(--ink)}.bt.k:before{background:var(--cu)}.bt.k:hover{color:#fff}
+.bt svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6}
+#bg{display:none;width:46px;height:46px;background:transparent;border:1px solid currentColor;color:inherit;cursor:pointer;position:relative}#bg i{position:absolute;left:12px;right:12px;height:1.5px;background:currentColor;transition:.3s}#bg i:nth-child(1){top:17px}#bg i:nth-child(2){top:26px}#bg.o i:nth-child(1){top:21px;transform:rotate(45deg)}#bg.o i:nth-child(2){top:21px;transform:rotate(-45deg)}
+#mm{position:fixed;inset:0;z-index:45;background:var(--ink);color:var(--pa);display:flex;flex-direction:column;justify-content:center;gap:10px;padding:40px;transform:translateY(-100%);transition:transform .7s cubic-bezier(.77,0,.18,1)}#mm.o{transform:none}#mm a{font-family:'Instrument Serif',serif;font-size:48px}
+/* hero */
+.hero{min-height:100vh;background:var(--ink);color:var(--pa);position:relative;display:flex;align-items:center;padding:130px 0 90px;overflow:hidden}
+.hero .g{display:grid;grid-template-columns:1.05fr .95fr;gap:70px;align-items:center;position:relative;z-index:2}
+.tag{display:inline-flex;gap:14px;align-items:center;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--cu2);font-weight:500}.tag:before{content:"";width:40px;height:1px;background:var(--cu2)}
+h1{font-size:clamp(54px,7.4vw,118px);line-height:.93;margin:26px 0 30px}
+.ln{display:block;overflow:hidden;padding-bottom:.1em}.ln>span{display:block;transform:translateY(112%);transition:transform 1.2s cubic-bezier(.2,.8,.2,1)}html.ready .ln>span{transform:none}.ln:nth-child(2)>span{transition-delay:.12s}.ln:nth-child(3)>span{transition-delay:.24s}
+.fd{opacity:0;transform:translateY(24px);transition:all 1s .55s}html.ready .fd{opacity:1;transform:none}.fd.b{transition-delay:.75s}.fd.c{transition-delay:.95s}
+.hero p.lead{max-width:470px;font-size:17px;line-height:1.7;color:rgba(242,238,232,.75)}
+.cta{display:flex;gap:14px;margin-top:38px;flex-wrap:wrap}
+.fr{position:relative;aspect-ratio:4/5;max-height:76vh;margin-left:auto;width:100%;max-width:540px}
+.fr .im{position:absolute;inset:0;overflow:hidden;clip-path:inset(100% 0 0 0);transition:clip-path 1.5s .5s cubic-bezier(.77,0,.18,1)}html.ready .fr .im{clip-path:inset(0)}
+.fr .im img{width:100%;height:100%;object-fit:cover;object-position:62% center;transform:scale(1.25);transition:transform 2.4s .5s cubic-bezier(.2,.8,.2,1)}html.ready .fr .im img{transform:scale(1.05)}
+.fr:before{content:"";position:absolute;inset:-16px -16px 16px 16px;border:1px solid var(--cu);z-index:-1;opacity:0;transition:opacity 1s 1.4s}html.ready .fr:before{opacity:1}
+.fc{position:absolute;left:-52px;bottom:34px;background:var(--pa);color:var(--ink);padding:22px 26px;min-width:230px;opacity:0;transform:translateY(20px);transition:all 1s 1.6s;box-shadow:0 20px 50px rgba(0,0,0,.35)}html.ready .fc{opacity:1;transform:none}
+.fc small{display:block;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--cu);font-weight:600;margin-bottom:8px}.fc b{font-family:'Instrument Serif',serif;font-weight:400;font-size:30px;line-height:1}.fc span{display:block;font-size:13px;color:var(--mu);margin-top:8px}
+.yr{position:absolute;right:-1%;bottom:-6%;font-family:'Instrument Serif',serif;font-size:clamp(200px,34vw,520px);line-height:.8;color:transparent;-webkit-text-stroke:1px rgba(242,238,232,.09);pointer-events:none;user-select:none;z-index:1}
+/* marquee */
+.mq{background:var(--cu);color:#fff;overflow:hidden;white-space:nowrap;padding:20px 0}.mq div{display:inline-flex;gap:44px;animation:mq 36s linear infinite;font-family:'Instrument Serif',serif;font-size:32px;padding-right:44px}.mq span:nth-child(even){font-family:'Inter Tight';font-size:14px;align-self:center;opacity:.7}@keyframes mq{to{transform:translateX(-50%)}}
+section{position:relative}.sp{padding:140px 0}.dk{background:var(--ink);color:var(--pa)}
+h2{font-size:clamp(42px,5.6vw,86px);line-height:.98}
+.rv{opacity:0;transform:translateY(44px);transition:opacity 1s,transform 1s cubic-bezier(.2,.8,.2,1)}.rv.in{opacity:1;transform:none}
+/* historia */
+.hi{display:grid;grid-template-columns:1fr 1fr;gap:90px;align-items:center}
+.big{font-family:'Instrument Serif',serif;font-size:clamp(150px,22vw,340px);line-height:.82;letter-spacing:-.04em;color:var(--ink)}.big em{color:var(--cu)}
+.hi p{font-size:17px;line-height:1.8;color:#46433e;max-width:520px;margin-top:26px}
+.pt{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:44px;border-top:1px solid rgba(16,18,20,.18)}.pt div{padding:22px 20px 22px 0;border-bottom:1px solid rgba(16,18,20,.18);font-size:15px;font-weight:500;display:flex;gap:14px;align-items:flex-start}.pt svg{width:22px;height:22px;stroke:var(--cu);fill:none;stroke-width:1.4;flex:none;margin-top:1px}
+/* servicios */
+.sv{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;margin-top:70px}
+.cd{position:relative;overflow:hidden;background:var(--ink);color:#fff;display:flex;align-items:flex-end;min-height:360px;cursor:pointer}
+.cd img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 1.3s cubic-bezier(.2,.8,.2,1),opacity .6s;opacity:.85}.cd:hover img{transform:scale(1.08);opacity:.55}
+.cd:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(16,18,20,.92))}
+.cd .tx{position:relative;z-index:2;padding:28px;width:100%}.cd .n{font-size:12px;letter-spacing:.24em;color:var(--cu2);font-weight:600}.cd h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:38px;line-height:1;margin:10px 0 0}
+.cd p{font-size:14px;line-height:1.6;color:rgba(255,255,255,.8);max-height:0;opacity:0;overflow:hidden;transition:all .6s;margin-top:0}.cd:hover p{max-height:100px;opacity:1;margin-top:12px}
+.cd.a{grid-column:span 7;min-height:460px}.cd.b{grid-column:span 5}.cd.c{grid-column:span 4}.cd.d{grid-column:span 4}.cd.e{grid-column:span 4}
+.cd.t{background:var(--cu)}.cd.t:after{display:none}.cd.t svg{position:absolute;right:26px;top:26px;width:60px;height:60px;stroke:#fff;fill:none;stroke-width:1}
+.cd.t p{max-height:none;opacity:1;margin-top:12px}
+/* centros horizontal */
+.hz{height:300vh;position:relative}.hz .st{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.hz .hd{padding:0 36px;max-width:1280px;margin:0 auto 40px;width:100%;display:flex;justify-content:space-between;align-items:flex-end;gap:30px}.hz .hd p{max-width:340px;color:rgba(242,238,232,.65);line-height:1.7;font-size:15px}
+.tk{display:flex;gap:26px;padding:0 36px;will-change:transform}
+.ct{flex:none;width:min(560px,78vw);height:min(52vh,440px);border:1px solid rgba(242,238,232,.22);padding:40px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;transition:border-color .4s,background .4s}.ct:hover{border-color:var(--cu2);background:rgba(181,82,43,.08)}
+.ct .nm{font-family:'Instrument Serif',serif;font-size:clamp(100px,12vw,170px);line-height:.8;color:transparent;-webkit-text-stroke:1px rgba(242,238,232,.28);position:absolute;right:26px;top:20px;transition:-webkit-text-stroke-color .4s}.ct:hover .nm{-webkit-text-stroke-color:var(--cu2)}
+.ct h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(40px,4.4vw,58px);line-height:1;position:relative}.ct h3 small{display:block;font-family:'Inter Tight';font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--cu2);margin-bottom:10px;font-weight:500}
+.ct address{font-style:normal;font-size:16px;line-height:1.6;color:rgba(242,238,232,.8);margin-top:12px}
+.ct .ph{display:flex;gap:12px;flex-wrap:wrap}.ct .ph a{display:inline-flex;gap:10px;align-items:center;padding:12px 18px;border:1px solid rgba(242,238,232,.3);font-size:14px;font-weight:500;transition:.3s}.ct .ph a:hover{background:var(--cu);border-color:var(--cu)}.ct .ph svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5}
+.pg{max-width:1280px;margin:34px auto 0;width:100%;padding:0 36px}.pg i{display:block;height:2px;background:rgba(242,238,232,.18)}.pg b{display:block;height:2px;background:var(--cu2);width:0}
+/* marcas */
+.br{display:flex;justify-content:space-between;align-items:center;gap:30px;flex-wrap:wrap;padding:60px 0;border-top:1px solid rgba(16,18,20,.15);border-bottom:1px solid rgba(16,18,20,.15)}.br small{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--mu)}.br span{font-family:'Instrument Serif',serif;font-size:clamp(30px,3.6vw,50px);color:var(--ink);opacity:.8}
+/* cita */
+.ci{background:var(--cu);color:#fff;padding:130px 0}.ci .g{display:grid;grid-template-columns:1.1fr .9fr;gap:80px;align-items:center}.ci .s em{color:var(--ink)}.ci p{font-size:17px;line-height:1.7;max-width:460px;margin-top:22px;color:rgba(255,255,255,.88)}
+.cl{display:grid;gap:0}.cl a{display:flex;justify-content:space-between;align-items:center;padding:26px 0;border-bottom:1px solid rgba(255,255,255,.35);transition:padding .4s}.cl a:first-child{border-top:1px solid rgba(255,255,255,.35)}.cl a:hover{padding-left:16px}
+.cl b{font-family:'Instrument Serif',serif;font-weight:400;font-size:34px}.cl span{font-size:15px;font-weight:500;display:flex;gap:10px;align-items:center}.cl svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5}
+footer{background:var(--ink);color:rgba(242,238,232,.55);padding:36px 0;font-size:13px}footer .w{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}footer b{color:var(--cu2);font-weight:500}
+#cur{position:fixed;width:300px;height:300px;border-radius:50%;pointer-events:none;z-index:1;background:radial-gradient(circle,rgba(181,82,43,.14),transparent 65%);transform:translate(-50%,-50%);left:-400px;top:-400px}
+@media(max-width:1000px){nav,header>.bt{display:none}#bg{display:block}header{padding:16px 22px}.hero .g,.hi,.ci .g{grid-template-columns:1fr;gap:50px}.fr{max-width:420px;margin:0}.fc{left:12px}.sv{grid-template-columns:1fr 1fr}.cd.a,.cd.b,.cd.c,.cd.d,.cd.e{grid-column:span 2}.cd{min-height:300px}.sp{padding:90px 0}.hz{height:auto}.hz .st{position:static;height:auto;padding:90px 0}.tk{flex-direction:column;padding:0 22px;transform:none!important}.ct{width:100%;height:auto;gap:40px}.pg{display:none}.hz .hd{flex-direction:column;align-items:flex-start;padding:0 22px}.w{padding:0 22px}.yr{display:none}}
+@media(max-width:560px){h1{font-size:54px}.pt{grid-template-columns:1fr}.cd p{max-height:none;opacity:1;margin-top:10px}.cl b{font-size:27px}.cl span{font-size:13px}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style></head><body>
+<div id="pre"><b id="pn">1900</b><small>Peluqueros · Madrid</small><i id="pb"></i></div>
+<div id="cur"></div>
+<header id="hd"><a href="#top" class="lg">JUBLAN<small>Peluqueros</small></a><nav><a href="#historia">Historia</a><a href="#servicios">Servicios</a><a href="#centros">Centros</a><a href="#cita">Cita</a></nav><a class="bt" href="#cita"><span>Pedir cita</span></a><button id="bg" aria-label="Menú"><i></i><i></i></button></header>
+<div id="mm"><a href="#historia">Historia</a><a href="#servicios">Servicios</a><a href="#centros">Centros</a><a href="#cita">Pedir cita</a></div>
+
+<section class="hero" id="top"><div class="yr">1961</div>
+<div class="w g"><div><span class="tag fd">Desde 1961 · Madrid</span>
+<h1 class="s"><span class="ln"><span>Déjanos cuidar</span></span><span class="ln"><span>tu <em>imagen</em></span></span></h1>
+<p class="lead fd b">Peluquería y estética para ella y para él, depilación láser y productos de primeras marcas. Tres centros en Madrid y Alcorcón con más de seis décadas de oficio.</p>
+<div class="cta fd c"><a class="bt" href="#cita"><span>Pedir cita</span><svg viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a><a class="bt l" href="#servicios"><span>Ver servicios</span></a></div></div>
+<div class="fr"><div class="im"><img src="https://www.jublanpeluqueros.com/images/slide_home/slide_home2.jpg" alt="Salón Jublan"></div>
+<div class="fc"><small>3 centros</small><b>Campamento · Aluche · Alcorcón</b><span>Flexibilidad horaria y puntualidad</span></div></div></div></section>
+
+<div class="mq"><div><span>Peluquería</span><span>◆</span><span>Estética</span><span>◆</span><span>Depilación láser</span><span>◆</span><span>Novias</span><span>◆</span><span>Para ella</span><span>◆</span><span>Para él</span><span>◆</span><span>Peluquería</span><span>◆</span><span>Estética</span><span>◆</span><span>Depilación láser</span><span>◆</span><span>Novias</span><span>◆</span><span>Para ella</span><span>◆</span><span>Para él</span><span>◆</span></div></div>
+
+<section class="sp" id="historia"><div class="w hi"><div class="rv"><div class="big" id="yr">19<em>61</em></div></div>
+<div class="rv"><span class="tag" style="color:var(--cu)">Nuestra historia</span><h2 class="s" style="margin-top:22px">Un salón nacido en un piso de la <em>calle Maqueda</em></h2>
+<p>Jublan Peluqueros nació en Madrid con la intención de satisfacer todas las necesidades de sus clientes, siempre con novedades y dentro de la moda. Hoy es un equipo con tres centros y la misma vocación de entonces.</p>
+<div class="pt"><div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>Flexibilidad horaria</div><div><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg>Puntualidad</div><div><svg viewBox="0 0 24 24"><path d="M3 9l9-5 9 5-9 5-9-5z"/><path d="M7 11v5c0 1.5 2.5 3 5 3s5-1.5 5-3v-5"/></svg>Formación continua del equipo</div><div><svg viewBox="0 0 24 24"><path d="M12 3l2.5 6 6.5.5-5 4.3 1.6 6.4L12 16.5 6.4 20.2 8 13.8 3 9.5 9.500 9z"/></svg>Productos de primeras marcas</div></div></div></div></section>
+
+<section class="sp" id="servicios" style="background:var(--sa)"><div class="w"><div class="rv" style="display:flex;justify-content:space-between;align-items:flex-end;gap:40px;flex-wrap:wrap"><h2 class="s">Todo lo que tu imagen <em>necesita</em></h2><p style="max-width:380px;color:var(--mu);line-height:1.7">Peluquería y estética para ella y para él, con tratamientos, novedades y el asesoramiento de un equipo en formación continua.</p></div>
+<div class="sv">
+<div class="cd a rv"><img src="https://www.jublanpeluqueros.com/images/slide_home/slide_home1.jpg" alt="Peluquería" loading="lazy"><div class="tx"><span class="n">01</span><h3>Peluquería para ella y para él</h3><p>Corte, color y tratamientos con productos de L'Oréal y American Crew.</p></div></div>
+<div class="cd b rv"><img src="https://www.jublanpeluqueros.com/images/home/fotos4_novios1.jpg" alt="Novias" loading="lazy" style="object-position:70% 15%;transform-origin:70% 20%;"><div class="tx"><span class="n">02</span><h3>Novias</h3><p>Sofisticación y estilo para el día más importante.</p></div></div>
+<div class="cd c rv"><img src="https://www.jublanpeluqueros.com/images/slide_home/slide_home3.jpg" onerror="this.src='https://www.jublanpeluqueros.com/images/slide_home/slide_home6.jpg'" alt="Estética" loading="lazy"><div class="tx"><span class="n">03</span><h3>Estética</h3><p>Tratamientos de estética con Germaine de Capuccini.</p></div></div>
+<div class="cd d rv"><img src="https://www.jublanpeluqueros.com/images/home/fotos4_trendy1.jpg" alt="Tendencias" loading="lazy" style="object-position:60% 15%"><div class="tx"><span class="n">04</span><h3>Tendencias</h3><p>Inspírate con las últimas novedades y propuestas de temporada.</p></div></div>
+<div class="cd e t rv"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18" opacity=".5"/><circle cx="12" cy="12" r="3"/></svg><div class="tx"><span class="n" style="color:#fff">05</span><h3>Depilación láser</h3><p>Tecnología láser para ella y para él en nuestros centros.</p></div></div>
+</div></div></section>
+
+<section class="dk hz" id="centros"><div class="st"><div class="hd"><h2 class="s">Tres centros, <em>una casa</em></h2><p>Elige el más cercano y llama para reservar tu cita.</p></div>
+<div class="tk" id="tk">
+<div class="ct"><span class="nm">01</span><div><h3><small>Central</small>Campamento</h3><address>C/ Illescas, 55<br>28024 Madrid</address></div><div class="ph"><a href="tel:+34915181070"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>91 518 10 70</a><a href="tel:+34917113822"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>91 711 38 22</a></div></div>
+<div class="ct"><span class="nm">02</span><div><h3><small>Madrid</small>Aluche</h3><address>C/ Guareña, 9<br>28044 Madrid</address></div><div class="ph"><a href="tel:+34917054860"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>91 705 48 60</a><a href="tel:+34917059826"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>91 705 98 26</a></div></div>
+<div class="ct"><span class="nm">03</span><div><h3><small>Alcorcón</small>Alcorcón</h3><address>C/ Carballino, 23<br>28925 Alcorcón</address></div><div class="ph"><a href="tel:+34916126272"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>91 612 62 72</a><a href="tel:+34916123828"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>91 612 38 28</a></div></div>
+</div><div class="pg"><i><b id="pgb"></b></i></div></div></section>
+
+<section class="sp"><div class="w"><div class="br rv"><small>Trabajamos con</small><span>L'Oréal Professionnel</span><span>Germaine de Capuccini</span><span>American Crew</span></div></div></section>
+
+<section class="ci" id="cita"><div class="w g"><div class="rv"><span class="tag" style="color:#fff"><span style="display:none"></span>Reserva tu cita</span><h2 class="s" style="margin-top:22px">Tu próxima cita, <em>a una llamada</em></h2><p>Llama al centro que te quede mejor y te atenderemos con la puntualidad de siempre.</p></div>
+<div class="cl rv"><a href="tel:+34915181070"><b>Campamento</b><span><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>91 518 10 70</span></a><a href="tel:+34917054860"><b>Aluche</b><span><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>91 705 48 60</span></a><a href="tel:+34916126272"><b>Alcorcón</b><span><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>91 612 62 72</span></a></div></div></section>
+
+<footer><div class="w"><span>© Jublan Peluqueros · Madrid · Desde 1961</span><span>Propuesta de diseño por <b>Bedigy</b></span></div></footer>
+<script>
+function init(){
+var R=document.documentElement,pre=document.getElementById('pre'),pn=document.getElementById('pn'),pb=document.getElementById('pb');
+requestAnimationFrame(function(){pb.style.width='100%'});var t0=Date.now();(function c(){var p=Math.min(1,(Date.now()-t0)/1800),e=1-Math.pow(1-p,3);pn.textContent=Math.round(1900+61*e);if(p<1)setTimeout(c,30)})();
+setTimeout(function(){pre.classList.add('done');R.classList.add('ready');setTimeout(function(){pre.classList.add('gone')},1100)},2200);
+var hd=document.getElementById('hd'),ly=0,tk=document.getElementById('tk'),hz=document.getElementById('centros'),pgb=document.getElementById('pgb');
+function sc(){var y=scrollY;hd.classList.toggle('sc',y>80);hd.classList.toggle('h',y>ly&&y>400);ly=y;
+if(innerWidth>1000){var r=hz.getBoundingClientRect(),tot=hz.offsetHeight-innerHeight,p=Math.max(0,Math.min(1,-r.top/tot)),mx=tk.scrollWidth-innerWidth+72;tk.style.transform='translateX('+(-p*Math.max(0,mx))+'px)';pgb.style.width=(p*100)+'%'}}
+addEventListener('scroll',sc,{passive:true});addEventListener('resize',sc);sc();
+var bg=document.getElementById('bg'),mm=document.getElementById('mm');bg.onclick=function(){bg.classList.toggle('o');mm.classList.toggle('o')};mm.querySelectorAll('a').forEach(function(a){a.onclick=function(){bg.classList.remove('o');mm.classList.remove('o')}});
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+document.querySelectorAll('.rv').forEach(function(e,i){e.style.transitionDelay=(i%3)*.1+'s';io.observe(e)});
+var cur=document.getElementById('cur');addEventListener('mousemove',function(e){cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px'});
+var yr=document.getElementById('yr'),done=false,io2=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!done){done=true;var t=Date.now();(function f(){var p=Math.min(1,(Date.now()-t)/1600),e=1-Math.pow(1-p,3),v=Math.round(1900+61*e);yr.innerHTML=String(v).slice(0,2)+'<em>'+String(v).slice(2)+'</em>';if(p<1)setTimeout(f,30)})()}},{threshold:.4});io2.observe(yr);
+}
+document.addEventListener('DOMContentLoaded',init);
+</script></body></html>
