@@ -96,6 +96,26 @@ footer{border-top:1px solid var(--ln)}
 @media(max-width:900px){.mb{grid-template-columns:1fr;gap:22px;padding:20px}.pair .tl{max-height:46vh}}
 #tt{position:fixed;left:50%;bottom:30px;transform:translate(-50%,40px);background:var(--bone);color:var(--ink);padding:12px 22px;border-radius:999px;font-weight:600;font-size:14px;opacity:0;transition:all .4s;z-index:600}#tt.o{opacity:1;transform:translate(-50%,0)}
 @media(prefers-reduced-motion:reduce){.ln>span,.fd,.cd{transform:none!important;opacity:1!important;transition:none!important}.rr{animation:none}}
+
+.nz{display:none}
+.top{padding-bottom:60px}
+.hb{position:absolute;right:-6%;top:50%;width:880px;height:880px;margin-top:-440px;z-index:1;pointer-events:none;-webkit-mask:radial-gradient(closest-side,#000 55%,transparent 100%);mask:radial-gradient(closest-side,#000 55%,transparent 100%)}
+.hb .cn{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0,rgba(227,207,174,.55) 12%,transparent 30%,rgba(201,173,132,.35) 52%,transparent 70%,rgba(150,104,62,.45) 86%,transparent 100%);filter:blur(46px);animation:spn 16s linear infinite}
+.hb .rg{position:absolute;border-radius:50%;border:1px solid rgba(227,207,174,.30);animation:pls 6s ease-in-out infinite}
+.hb .r1{inset:22%}.hb .r2{inset:12%;animation-delay:-2s;border-color:rgba(227,207,174,.18)}.hb .r3{inset:2%;animation-delay:-4s;border-color:rgba(227,207,174,.1)}
+.hb .rg:after{content:"";position:absolute;top:-4px;left:50%;width:7px;height:7px;margin-left:-3px;border-radius:50%;background:var(--ch2);box-shadow:0 0 14px 3px rgba(227,207,174,.8)}
+.hb .r1{animation:pls 6s ease-in-out infinite,spn 24s linear infinite}.hb .r2{animation:pls 6s ease-in-out -2s infinite,spn 36s linear infinite reverse}
+@keyframes spn{to{transform:rotate(360deg)}}@keyframes pls{50%{opacity:.35}}
+.mq{position:relative;z-index:1;overflow:hidden;padding:26px 0;display:flex;white-space:nowrap}
+.mq div{display:flex;flex:none;align-items:center;animation:mqa 36s linear infinite}
+.mq span{font-family:'Instrument Serif',serif;font-size:clamp(44px,6vw,84px);line-height:1;padding:0 .45em;color:transparent;-webkit-text-stroke:1px rgba(239,234,226,.5);letter-spacing:-.01em}
+.mq span:nth-child(3n+2){-webkit-text-stroke:0;color:var(--ch);font-style:italic}
+.mq i{flex:none;width:14px;height:14px;border-radius:50%;background:var(--ch)}
+@keyframes mqa{to{transform:translateX(-100%)}}
+.cta{position:relative;z-index:1;text-align:center;padding:40px 20px 120px}
+.cta .box{max-width:980px;margin:0 auto;padding:90px 30px;border-radius:44px;background:radial-gradient(ellipse at 50% 0,rgba(201,173,132,.20),transparent 65%),rgba(255,255,255,.03);border:1px solid var(--ln)}
+.cta h2{font-size:clamp(40px,6vw,82px);line-height:.98;margin-bottom:18px}.cta p{color:var(--mu);max-width:480px;margin:0 auto 34px;font-size:17px;line-height:1.5}
+.cta .bt{padding:18px 34px;font-size:16px;background:var(--ch);color:var(--ink)}.cta .bt:before{background:var(--bone)}
 </style></head><body>
 <div id="pg"></div><div id="cur"><span>Ver</span></div>
 <header id="hd"><div class="pill">
@@ -105,17 +125,20 @@ footer{border-top:1px solid var(--ln)}
 </div></header>
 
 <div class="bgfx"><i class="g1"></i><i class="g2"></i><i class="g3"></i></div>
-<section class="top" id="top"><div class="nz"></div>
+<section class="top" id="top"><div class="hb"><i class="cn"></i><i class="rg r1"></i><i class="rg r2"></i><i class="rg r3"></i></div>
   <div class="w"><div class="tg"><div><div class="tag fd">Micropigmentación capilar</div><h1 class="s"><span class="ln"><span>Antes</span></span><span class="ln"><span>y <em>después.</em></span></span></h1>
   <p class="lead fd">Resultados reales, cliente a cliente. Abre cualquier caso para verlo desde todos los ángulos.</p></div>
   <div class="fan" id="fan"></div></div></div>
 </section>
 
+<div class="mq" aria-hidden="true"><div><span>Micropigmentación capilar</span><i></i><span>Resultados reales</span><i></i><span>Antes y después</span><i></i><span>Cliente a cliente</span><i></i><span>Sin cirugía</span><i></i><span>Valoración gratuita</span><i></i></div><div><span>Micropigmentación capilar</span><i></i><span>Resultados reales</span><i></i><span>Antes y después</span><i></i><span>Cliente a cliente</span><i></i><span>Sin cirugía</span><i></i><span>Valoración gratuita</span><i></i></div></div>
 <section class="sp" id="casos"><div class="w">
   <div class="gb"><h2 class="s">Todos los <em>casos</em></h2><span id="cnt"></span></div>
   <div class="gr" id="gr"></div>
   <div class="more"><small id="cnt2"></small><div class="bar"><i id="bar"></i></div><button class="bt l" id="more">Ver más casos</button></div>
 </div></section>
+
+<section class="cta"><div class="box"><h2 class="s">¿Quieres ver <em>tu</em> resultado?</h2><p>Cuéntanos tu caso y te hacemos una valoración sin compromiso.</p><a class="bt" href="https://karbonblackcapilar.com/" target="_blank" rel="noopener">Valoración gratuita<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div></section>
 
 <footer><div class="w"><div class="ft"><span>© Karbon Black Capilar · Propuesta de diseño</span><span><a href="https://www.instagram.com/karbonblackcapilar/" target="_blank" rel="noopener">Instagram</a></span></div></div><div class="wm" id="wm"><span>Karbon</span></div></footer>
 
