@@ -126,14 +126,10 @@ footer{border-top:1px solid var(--ln)}
 footer{margin-top:0;background:linear-gradient(180deg,#1c1a17,#0e0d0c);border-top:1px solid rgba(201,173,132,.35);border-radius:56px 56px 0 0;box-shadow:0 -40px 90px -40px rgba(201,173,132,.25);padding-top:30px}
 .ft{padding:60px 0 40px;font-size:15px}
 
-footer{background:linear-gradient(180deg,#d9c19b,#c9ad84)!important;border-top:0!important;box-shadow:0 -30px 80px -30px rgba(201,173,132,.45)!important;color:#1a1612}
-footer .ft,footer .ft a{color:rgba(26,22,18,.75)}footer .ft a:hover{color:#0a0a09}
-footer .wm span{-webkit-text-stroke:1.5px rgba(26,22,18,.7)!important}
-h1.s .ln{cursor:default}
-h1.s .ln>span{transition:transform 1.2s cubic-bezier(.2,.8,.2,1),color .4s,-webkit-text-stroke-color .4s,text-shadow .4s,letter-spacing .5s}
-.ready h1.s .ln:hover>span{transform:translateX(18px)}
-h1.s .ln:first-child:hover>span{color:var(--ch);text-shadow:0 0 60px rgba(227,207,174,.5)}
-h1.s .ln:nth-child(2):hover>span{color:var(--bone)}h1.s .ln:nth-child(2):hover>span em{color:var(--ch2);text-shadow:0 0 60px rgba(227,207,174,.6)}
+footer{background:radial-gradient(ellipse 70% 100% at 50% 0,rgba(201,173,132,.10),transparent 70%),linear-gradient(180deg,#151311,#0d0c0b)!important;border-top:1px solid rgba(201,173,132,.16)!important;border-radius:56px 56px 0 0;box-shadow:none!important}
+h1.s .ln>span{transform:none!important;transition:none}
+.tc{opacity:0}.tc.on{opacity:1}.tc.cur{border-right:3px solid var(--ch);margin-right:-3px}.tc.blink{animation:bl .8s steps(1) infinite}
+@keyframes bl{50%{border-color:transparent}}
 </style></head><body>
 <div id="pg"></div><div id="cur"><span>Ver</span></div>
 <header id="hd"><div class="pill">
@@ -225,4 +221,12 @@ if(matchMedia('(hover:hover) and (pointer:fine)').matches){
  var cu=document.getElementById('cur');addEventListener('mousemove',function(e){cu.classList.add('on');cu.style.transform='translate('+e.clientX+'px,'+e.clientY+'px)';var t=e.target.closest&&e.target.closest('.cd');var o=e.target.closest&&e.target.closest('.ob');cu.classList.toggle('big',!!(t||o));cu.firstChild.textContent=o?'Girar':'Ver'});
  
  document.querySelectorAll('.bt').forEach(function(a){a.addEventListener('mousemove',function(e){var r=a.getBoundingClientRect();a.style.transform='translate('+((e.clientX-r.left)/r.width-.5)*10+'px,'+((e.clientY-r.top)/r.height-.5)*8+'px)'});a.addEventListener('mouseleave',function(){a.style.transform=''})})}
-</script></body></html>
+</script><script>
+(function(){var h=document.querySelector('h1.s');if(!h)return;var out=[];
+function wrap(node){Array.from(node.childNodes).forEach(function(n){if(n.nodeType===3){var f=document.createDocumentFragment();n.textContent.split('').forEach(function(c){var s=document.createElement('span');s.className='tc';s.textContent=c;f.appendChild(s);out.push(s)});n.replaceWith(f)}else wrap(n)})}
+wrap(h);var i=0,last=null;
+function tick(){if(last)last.classList.remove('cur','blink');if(i>=out.length){last.classList.add('cur','blink');setTimeout(function(){last.classList.remove('cur','blink')},3500);return}
+last=out[i++];last.classList.add('on','cur');setTimeout(tick,95+Math.random()*60)}
+setTimeout(tick,700)})();
+</script>
+</body></html>
