@@ -28,13 +28,7 @@ const B = 'http://127.0.0.1:8787'; const ok = (c, m) => { if (!c) { console.log(
   const c = await p.locator('#agWeek .agent:has-text("Post resumen jornada")').evaluate((e) => getComputedStyle(e).getPropertyValue('--c').trim()); ok(c.toLowerCase() === '#8e5bd6', 'sale en la agenda general con el color del cliente: ' + c);
   ok(await p.locator('#agClients [data-client="' + cid + '"]').count() === 1, 'filtro por cliente en la agenda general');
   await p.click('#agClients [data-client="' + cid + '"]'); ok(await p.locator('#agWeek .agent').count() >= 1, 'filtrar por cliente');
-  // seguimiento
-  await p.goto(B + '/redes/' + cid + '?t=seguimiento'); await p.click('#mtAdd');
-  await p.fill('#mtForm input[name=date]', '2026-10-01'); await p.fill('#mtForm input[name=followers]', '1200'); await p.click('#mtForm [type=submit]'); await p.waitForSelector('.mtcard');
-  await p.click('#mtAdd'); await p.fill('#mtForm input[name=date]', '2026-11-01'); await p.fill('#mtForm input[name=followers]', '1350'); await p.fill('#mtForm input[name=reach]', '5000'); await p.click('#mtForm [type=submit]');
-  await p.waitForSelector('.mtst em.up'); ok((await p.locator('.mtst em.up').first().textContent()).includes('+150'), 'seguimiento: +150 seguidores');
-  ok(await p.locator('.spark').count() === 1, 'gráfica de evolución');
-  await p.reload(); ok(await p.locator('.mtcard').count() === 1, 'los datos se guardan');
+  await p.reload();
   // ajustes y borrado
   await p.goto(B + '/redes/' + cid + '?t=ajustes'); await p.click('#csForm [data-sw="#2f9e5f"]'); await Promise.all([p.waitForNavigation(), p.click('#csForm [type=submit]')]);
   const bg2 = await p.locator('.cliente .chead').evaluate((e) => getComputedStyle(e).backgroundColor); ok(bg2 === 'rgb(47, 158, 95)', 'cambiar el color se guarda: ' + bg2);

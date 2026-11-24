@@ -920,15 +920,18 @@ ${clientFields(fonts, networks)}
   });
 }
 
-function contenidosView(ok, statuses, formats, networks) {
+export function contenidosView(ok, statuses, formats, networks, shared = false) {
   if (!ok) return '<div class="glass emptybox">Falta una actualización de la base de datos para activar el calendario de contenidos.</div>';
   const opt = (o) => Object.entries(o).map(([k, v]) => `<option value="${k}">${esc(v.label || v)}</option>`).join('');
   return `<div class="cttool"><div class="vtog" role="group" aria-label="Vista"><button type="button" data-cv="mes" class="on">Mes</button><button type="button" data-cv="lista">Lista</button><button type="button" data-cv="tablero">Tablero</button><button type="button" data-cv="feed">Feed</button></div>
 <input type="search" id="ctQ" class="ctq" placeholder="Buscar" aria-label="Buscar">
-<span class="spacer"></span><button class="btn cbtn" type="button" id="ctPlan" hidden>Estrategia</button><button class="btn cbtn" type="button" id="ctShare">${ICON.share} Enviar al cliente</button><button class="btn primary cbtn" type="button" id="ctAdd">${ICON.plus} Nueva publicación</button></div>
+<span class="spacer"></span>${shared ? '' : `<button class="btn cbtn" type="button" id="ctShare">${ICON.share} Enviar al cliente</button>`}<button class="btn cbtn" type="button" id="ctCamp" hidden>Campañas</button><button class="btn primary cbtn" type="button" id="ctAdd">${ICON.plus} Nueva publicación</button></div>
 <div class="ctstats" id="ctStats"></div>
 <div class="ctfilters"><div class="agchips" id="ctChips"></div><select id="ctFNet" aria-label="Red"></select><select id="ctFPil" aria-label="Pilar" hidden></select><select id="ctFOwn" aria-label="Responsable" hidden></select></div>
 <div id="ctBoard" class="ctboard"></div>
+<dialog id="ctCampDlg" class="glassdlg ctdlg"><form class="dlgbox" id="ctCampForm" autocomplete="off"><header><h2>Campañas</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div id="ctCamps"></div><button class="btn" type="button" id="ctCampAdd">+ Campaña</button>
+<footer><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer></form></dialog>
 <dialog id="ctDlg" class="glassdlg ctdlg"><form class="dlgbox" id="ctForm" autocomplete="off">
 <header><h2 id="ctDlgT">Nueva publicación</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
 <div class="ctcols"><div class="ctleft">
@@ -947,20 +950,29 @@ function contenidosView(ok, statuses, formats, networks) {
 <label class="field"><span>Enlace de la publicación</span><input type="text" name="link" maxlength="400" placeholder="https://"></label>
 <div class="field"><span>Resultados</span><div class="ctres"><label><span>Alcance</span><input type="number" min="0" name="s_reach"></label><label><span>Me gusta</span><input type="number" min="0" name="s_likes"></label><label><span>Comentarios</span><input type="number" min="0" name="s_comments"></label><label><span>Guardados</span><input type="number" min="0" name="s_saves"></label><label><span>Compartidos</span><input type="number" min="0" name="s_shares"></label></div></div>
 <label class="field"><span>Notas internas</span><textarea name="notes" rows="2" maxlength="2000"></textarea></label>
-<div class="field" id="ctCmWrap" hidden><span>Comentarios del cliente</span><div id="ctCms" class="ctcms"></div><div class="ctcmadd"><input type="text" id="ctCmIn" maxlength="1000" placeholder="Responder"><button class="btn" type="button" id="ctCmBtn">Enviar</button></div></div>
+<div class="field" id="ctCmWrap" hidden><span>Comentarios</span><div id="ctCms" class="ctcms"></div><div class="ctcmadd"><input type="text" id="ctCmIn" maxlength="1000" placeholder="Responder"><button class="btn" type="button" id="ctCmBtn">Enviar</button></div></div>
 </div></div>
 <footer><button class="btn danger" type="button" id="ctDel" hidden>${ICON.trash} Borrar</button><button class="btn" type="button" id="ctDup" hidden>Duplicar</button><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer>
 </form></dialog>
-<dialog id="ctShareDlg" class="glassdlg"><div class="dlgbox"><header><h2>Enviar al cliente</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
-<div id="ctShareBody"></div></div></dialog>
-<dialog id="ctPlanDlg" class="glassdlg ctdlg"><form class="dlgbox" id="ctPlanForm" autocomplete="off"><header><h2>Estrategia</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
-<div class="field"><span>Pilares de contenido</span><div id="ctPils"></div><button class="btn" type="button" id="ctPilAdd">+ Pilar</button></div>
-<div class="field"><span>Grupos de hashtags</span><div id="ctTags"></div><button class="btn" type="button" id="ctTagAdd">+ Grupo</button></div>
-<footer><span class="spacer"></span><button class="btn" type="button" data-close>Cancelar</button><button class="btn primary" type="submit">Guardar</button></footer></form></dialog>`;
+${shared ? '' : `<dialog id="ctShareDlg" class="glassdlg"><div class="dlgbox"><header><h2>Enviar al cliente</h2><button class="iconbtn" type="button" data-close aria-label="Cerrar">×</button></header>
+<div id="ctShareBody"></div></div></dialog>`}
+`;
+}
+
+export function compartidoPage({ client, fonts, networks, statuses, formats, token }) {
+  const nets = Object.entries(client.networks || {}).map(([k, n]) => (networks[k] ? `<span class="cnet" style="--c:${networks[k].color}">${esc(networks[k].label)}${n && n.handle ? ' · ' + esc(n.handle) : ''}</span>` : '')).join('');
+  return layout({
+    title: client.name,
+    bodyAttrs: `data-client="${client.id}" data-token="${esc(token)}" data-nets="${esc(JSON.stringify(networks))}" data-statuses="${esc(JSON.stringify(statuses))}" data-formats="${esc(JSON.stringify(formats))}"`,
+    scripts: ['/contenidos.js'],
+    body: `<div class="shared"><main class="main"><div class="cliente" style="--cc:${esc(client.color)};--ci:${inkOn(client.color)};--cf:${esc(fontCss(fonts, client.font))};--cw:${fontW(fonts, client.font)}">
+<header class="chead"><div><h1>${esc(client.name)}</h1><div class="cnets">${nets}</div></div></header>
+${contenidosView(true, statuses, formats, networks, true)}</div></main></div>`,
+  });
 }
 
 export function clientePage({ user, client, clients, metrics, fonts, networks, kinds, agendaOk, postsOk, statuses, formats, tab }) {
-  const tabs = [['contenidos', 'Contenidos'], ['calendario', 'Tareas'], ['seguimiento', 'Seguimiento'], ['ajustes', 'Ajustes']];
+  const tabs = [['contenidos', 'Contenidos'], ['calendario', 'Tareas'], ['ajustes', 'Ajustes']];
   const t = tabs.some((x) => x[0] === tab) ? tab : 'contenidos';
   const nets = Object.entries(client.networks).map(([k, n]) => {
     const label = esc(networks[k].label) + (n.handle ? ' · ' + esc(n.handle) : '');

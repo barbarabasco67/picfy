@@ -4,6 +4,9 @@
   const board = $('ctBoard');
   if (!board) return;
   const cid = document.body.dataset.client;
+  const SH = document.body.dataset.token || '';
+  const BASE = SH ? `/c/${SH}/api` : `/api/redes/${cid}`;
+  let RO = false;
   let ST, FM, NETS;
   try { ST = JSON.parse(document.body.dataset.statuses); FM = JSON.parse(document.body.dataset.formats); NETS = JSON.parse(document.body.dataset.nets); } catch { return; }
   const CHECKS = { copy: 'Texto', arte: 'Diseño', tags: 'Hashtags', prog: 'Programado' };
@@ -30,12 +33,12 @@
     img: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>',
   };
 
-  let posts = [], token = null, mode = 'review', modeOk = false, planOk = false, plan = { pillars: [], tagsets: [] };
+  let posts = [], token = null, mode = 'review', modeOk = false, planOk = false, plan = { pillars: [], tagsets: [] }, camps = [];
   let view = lsGet('picfy_ct_view'); if (!['mes', 'lista', 'tablero', 'feed'].includes(view)) view = 'mes';
   let fSt = '', fNet = '', fPil = '', fOwn = '', q = '';
   const now = new Date();
   let cy = now.getFullYear(), cm = now.getMonth();
-  const imgUrl = (i) => '/api/post-img/' + i;
+  const imgUrl = (i) => (SH ? `/c/${SH}/img/` : '/api/post-img/') + i;
   const pilarColor = (n) => (plan.pillars.find((x) => x.name === n) || {}).color || '#8a8f98';
 
   const shown = () => posts.filter((p) => (!fSt || p.status === fSt) && (!fNet || p.networks.includes(fNet)) && (!fPil || p.pillar === fPil) && (!fOwn || p.owner === fOwn)
@@ -92,7 +95,11 @@
     for (let i = 0; i < off; i++) cells += '<div class="ctcell off"></div>';
     for (let d = 1; d <= days; d++) {
       const iso = `${cy}-${pad(cm + 1)}-${pad(d)}`;
-      cells += `<div class="ctcell${iso === today ? ' today' : ''}" data-day="${iso}"><span class="ctn">${d}</span>${list.filter((p) => p.date === iso).map(card).join('')}<button type="button" class="ctplus" data-add="${iso}" aria-label="Añadir el ${d}">+</button></div>`;
+      const bars = camps.filter((k) => k.start <= iso && iso <= k.end).map((k) => {
+        const st = k.start === iso, en = k.end === iso || (off + d) % 7 === 0, show = st || d === 1 || (off + d - 1) % 7 === 0;
+        return `<span class="ctcamp${st ? ' s' : ''}${en ? ' e' : ''}" style="--k:${esc(k.color)};--ki:${ink(k.color)}" title="${esc(k.name)}">${show ? esc(k.name) : '&nbsp;'}</span>`;
+      }).join('');
+      cells += `<div class="ctcell${iso === today ? ' today' : ''}" data-day="${iso}"><span class="ctn">${d}</span>${bars}${list.filter((p) => p.date === iso).map(card).join('')}<button type="button" class="ctplus" data-add="${iso}" aria-label="Añadir el ${d}">+</button></div>`;
     }
     const und = list.filter((p) => !p.date);
     board.innerHTML = `<div class="ctnav"><button class="iconbtn" type="button" id="ctPrev" aria-label="Anterior">‹</button><h2>${MONTHS[cm]} ${cy}</h2><button class="iconbtn" type="button" id="ctNext" aria-label="Siguiente">›</button><button class="btn sm" type="button" id="ctToday">Hoy</button></div>
@@ -133,8 +140,10 @@ ${und.length ? `<div class="cttray" data-day=""><b>Sin fecha</b>${und.map(card).
   }
 
   async function load() {
-    try { const d = await api('GET', `/api/redes/${cid}/posts`); posts = d.posts; token = d.token; mode = d.mode; modeOk = d.modeOk; planOk = d.planOk; plan = { pillars: [], tagsets: [], ...(d.plan || {}) }; } catch { toast('No se pudieron cargar las publicaciones.'); }
-    $('ctPlan').hidden = !planOk;
+    try { const d = await api('GET', `${BASE}/posts`); posts = d.posts; token = d.token; mode = d.mode; modeOk = d.modeOk; planOk = d.planOk; plan = { pillars: [], tagsets: [], ...(d.plan || {}) }; camps = d.campaigns || []; } catch { toast('No se pudieron cargar las publicaciones.'); }
+    $('ctCamp').hidden = !planOk;
+    RO = !!SH && mode === 'view';
+    $('ctAdd').hidden = RO;
     render();
     const want = new URLSearchParams(location.search).get('post');
     if (want) { const p = posts.find((x) => x.id === want); if (p) { if (p.date) { cy = +p.date.slice(0, 4); cm = +p.date.slice(5, 7) - 1; render(); } openEdit(p); } history.replaceState(null, '', location.pathname + '?t=contenidos'); }
@@ -191,11 +200,16 @@ ${und.length ? `<div class="cttray" data-day=""><b>Sin fecha</b>${und.map(card).
     renderComments(); counter();
   }
   function renderComments() {
-    $('ctCms').innerHTML = cur && cur.comments.length ? cur.comments.map((x) => `<div class="ctcm ${x.author === 'cliente' ? 'cl' : ''}"><b>${x.author === 'cliente' ? 'Cliente' : 'Tú'}</b> ${esc(x.body)}</div>`).join('') : '';
+    $('ctCms').innerHTML = cur && cur.comments.length ? cur.comments.map((x) => `<div class="ctcm ${x.author === 'cliente' ? 'cl' : ''}"><b>${SH ? (x.author === 'cliente' ? 'Tú' : 'Equipo') : (x.author === 'cliente' ? 'Cliente' : 'Tú')}</b> ${esc(x.body)}</div>`).join('') : '';
   }
 
   function openNew(date, status) { cur = { id: null, images: [], comments: [] }; fill(null); if (date) form.date.value = date; if (status) form.status.value = status; renderImgs(); dlg.showModal(); form.title.focus(); }
-  function openEdit(p) { cur = JSON.parse(JSON.stringify(p)); fill(p); renderImgs(); dlg.showModal(); }
+  function openEdit(p) { cur = JSON.parse(JSON.stringify(p)); fill(p); renderImgs(); lock(); dlg.showModal(); }
+  function lock() {
+    form.querySelectorAll('input,select,textarea,button').forEach((el) => { if (el.id === 'ctCmIn' || el.id === 'ctCmBtn' || el.hasAttribute('data-close')) return; if (RO) el.disabled = true; });
+    form.querySelectorAll('footer .btn:not([data-close])').forEach((b) => { if (RO) b.hidden = true; });
+    if (RO) { $('ctCmWrap').hidden = !cur.id; $('ctImgs').classList.add('ro'); }
+  }
 
   function formData() {
     const check = {}; Object.keys(CHECKS).forEach((k) => { check[k] = form['ck_' + k].checked; });
@@ -208,7 +222,7 @@ ${und.length ? `<div class="cttray" data-day=""><b>Sin fecha</b>${und.map(card).
     if (cur.id) return;
     const d = formData();
     if (!d.title.trim()) d.title = 'Sin título';
-    cur.id = (await api('POST', `/api/redes/${cid}/posts`, d)).id; cur.created = true;
+    cur.id = (await api('POST', `${BASE}/posts`, d)).id; cur.created = true;
   }
 
   function shrink(file) {
@@ -233,7 +247,7 @@ ${und.length ? `<div class="cttray" data-day=""><b>Sin fecha</b>${und.map(card).
       await ensureSaved();
       for (let n = 0; n < list.length; n++) {
         $('ctImgHint').textContent = `Subiendo ${n + 1} de ${list.length}…`;
-        const r = await api('POST', `/api/redes/${cid}/posts/${cur.id}/images`, null, await shrink(list[n]));
+        const r = await api('POST', `${BASE}/posts/${cur.id}/images`, null, await shrink(list[n]));
         cur.images.push(r.id); renderImgs();
       }
       $('ctImgHint').textContent = '';
@@ -246,12 +260,12 @@ ${und.length ? `<div class="cttray" data-day=""><b>Sin fecha</b>${und.map(card).
     const ts = e.target.closest('[data-ts]');
     if (ts) { const t = plan.tagsets[+ts.dataset.ts].tags; form.hashtags.value = (form.hashtags.value ? form.hashtags.value.trim() + ' ' : '') + t; counter(); return; }
     const rm = e.target.closest('[data-rm]');
-    if (rm) { try { await api('DELETE', `/api/redes/${cid}/posts/${cur.id}/images/${rm.dataset.rm}`); cur.images = cur.images.filter((x) => x !== rm.dataset.rm); renderImgs(); } catch { toast('No se pudo quitar.'); } return; }
+    if (rm) { try { await api('DELETE', `${BASE}/posts/${cur.id}/images/${rm.dataset.rm}`); cur.images = cur.images.filter((x) => x !== rm.dataset.rm); renderImgs(); } catch { toast('No se pudo quitar.'); } return; }
     const mv = e.target.closest('[data-mv]');
     if (mv) {
       const [k, dir] = mv.dataset.mv.split(':').map(Number), a = cur.images;
       [a[k], a[k + dir]] = [a[k + dir], a[k]]; renderImgs();
-      try { await api('PUT', `/api/redes/${cid}/posts/${cur.id}/order`, { ids: a }); } catch { toast('No se pudo guardar el orden.'); }
+      try { await api('PUT', `${BASE}/posts/${cur.id}/order`, { ids: a }); } catch { toast('No se pudo guardar el orden.'); }
     }
   });
   $('ctFile').addEventListener('change', (e) => { upload(e.target.files); e.target.value = ''; });
@@ -262,74 +276,77 @@ ${und.length ? `<div class="cttray" data-day=""><b>Sin fecha</b>${und.map(card).
   $('ctCmBtn').addEventListener('click', async () => {
     const v = $('ctCmIn').value.trim();
     if (!v || !cur.id) return;
-    try { const r = await api('POST', `/api/redes/${cid}/posts/${cur.id}/notes`, { body: v }); cur.comments.push(r.comment); $('ctCmIn').value = ''; renderComments(); } catch { toast('No se pudo enviar.'); }
+    try { const r = await api('POST', `${BASE}/posts/${cur.id}/notes`, { body: v }); cur.comments.push(r.comment); $('ctCmIn').value = ''; renderComments(); } catch { toast('No se pudo enviar.'); }
   });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
       const d = formData();
-      if (cur.id) await api('PUT', `/api/redes/${cid}/posts/${cur.id}`, d); else await api('POST', `/api/redes/${cid}/posts`, d);
+      if (cur.id) await api('PUT', `${BASE}/posts/${cur.id}`, d); else await api('POST', `${BASE}/posts`, d);
       cur.saved = true; dlg.close(); await load();
     } catch { toast('No se pudo guardar.'); }
   });
 
   $('ctDel').addEventListener('click', async () => {
     if (!confirm('¿Borrar esta publicación y sus imágenes?')) return;
-    try { await api('DELETE', `/api/redes/${cid}/posts/${cur.id}`); cur.saved = true; dlg.close(); await load(); } catch { toast('No se pudo borrar.'); }
+    try { await api('DELETE', `${BASE}/posts/${cur.id}`); cur.saved = true; dlg.close(); await load(); } catch { toast('No se pudo borrar.'); }
   });
   $('ctDup').addEventListener('click', async () => {
-    try { await api('PUT', `/api/redes/${cid}/posts/${cur.id}`, formData()); const r = await api('POST', `/api/redes/${cid}/posts/${cur.id}/duplicate`); cur.saved = true; dlg.close(); await load(); const p = posts.find((x) => x.id === r.id); if (p) openEdit(p); } catch { toast('No se pudo duplicar.'); }
+    try { await api('PUT', `${BASE}/posts/${cur.id}`, formData()); const r = await api('POST', `${BASE}/posts/${cur.id}/duplicate`); cur.saved = true; dlg.close(); await load(); const p = posts.find((x) => x.id === r.id); if (p) openEdit(p); } catch { toast('No se pudo duplicar.'); }
   });
 
   /* ---------- estrategia: pilares y grupos de hashtags ---------- */
-  const pdlg = $('ctPlanDlg');
-  function planRows() {
-    $('ctPils').innerHTML = plan.pillars.map((x, i) => `<div class="ctprow"><input type="color" value="${esc(x.color)}" data-pc="${i}" aria-label="Color"><input type="text" value="${esc(x.name)}" maxlength="40" data-pn="${i}" aria-label="Nombre"><button type="button" class="iconbtn" data-pd="${i}" aria-label="Quitar">×</button></div>`).join('');
-    $('ctTags').innerHTML = plan.tagsets.map((x, i) => `<div class="ctprow tags"><input type="text" value="${esc(x.name)}" maxlength="40" data-tn="${i}" placeholder="Nombre" aria-label="Nombre"><input type="text" value="${esc(x.tags)}" maxlength="600" data-tt="${i}" placeholder="#hashtag #hashtag" aria-label="Hashtags"><button type="button" class="iconbtn" data-td="${i}" aria-label="Quitar">×</button></div>`).join('');
-  }
-  function planSync() {
-    pdlg.querySelectorAll('[data-pn]').forEach((i) => { plan.pillars[+i.dataset.pn].name = i.value; });
-    pdlg.querySelectorAll('[data-pc]').forEach((i) => { plan.pillars[+i.dataset.pc].color = i.value; });
-    pdlg.querySelectorAll('[data-tn]').forEach((i) => { plan.tagsets[+i.dataset.tn].name = i.value; });
-    pdlg.querySelectorAll('[data-tt]').forEach((i) => { plan.tagsets[+i.dataset.tt].tags = i.value; });
-  }
-  $('ctPlan').addEventListener('click', () => { planRows(); pdlg.showModal(); });
-  pdlg.addEventListener('click', (e) => {
-    if (e.target.closest('[data-close]')) { pdlg.close(); return; }
-    planSync();
-    if (e.target.closest('#ctPilAdd')) { plan.pillars.push({ name: '', color: '#8e5bd6' }); planRows(); return; }
-    if (e.target.closest('#ctTagAdd')) { plan.tagsets.push({ name: '', tags: '' }); planRows(); return; }
-    const pd = e.target.closest('[data-pd]'); if (pd) { plan.pillars.splice(+pd.dataset.pd, 1); planRows(); return; }
-    const td = e.target.closest('[data-td]'); if (td) { plan.tagsets.splice(+td.dataset.td, 1); planRows(); }
+  /* ---------- campañas ---------- */
+  const cdlg = $('ctCampDlg');
+  const campRows = () => {
+    $('ctCamps').innerHTML = camps.map((k, i) => `<div class="ctprow camp"><input type="color" value="${esc(k.color)}" data-kc="${i}" aria-label="Color"><input type="text" value="${esc(k.name)}" maxlength="60" data-kn="${i}" placeholder="Ej.: Black Friday" aria-label="Nombre"><input type="date" value="${esc(k.start)}" data-ks="${i}" aria-label="Desde"><input type="date" value="${esc(k.end)}" data-ke="${i}" aria-label="Hasta">${RO ? '' : `<button type="button" class="iconbtn" data-kd="${i}" aria-label="Quitar">×</button>`}</div>`).join('') || '<p class="muted small">Sin campañas.</p>';
+    cdlg.querySelectorAll('input').forEach((el) => { el.disabled = RO; });
+    $('ctCampAdd').hidden = RO; cdlg.querySelector('[type=submit]').hidden = RO;
+  };
+  const campSync = () => {
+    cdlg.querySelectorAll('[data-kn]').forEach((i) => { camps[+i.dataset.kn].name = i.value; });
+    cdlg.querySelectorAll('[data-kc]').forEach((i) => { camps[+i.dataset.kc].color = i.value; });
+    cdlg.querySelectorAll('[data-ks]').forEach((i) => { camps[+i.dataset.ks].start = i.value; });
+    cdlg.querySelectorAll('[data-ke]').forEach((i) => { camps[+i.dataset.ke].end = i.value; });
+  };
+  $('ctCamp').addEventListener('click', () => { campRows(); cdlg.showModal(); });
+  cdlg.addEventListener('click', (e) => {
+    if (e.target.closest('[data-close]')) { cdlg.close(); load(); return; }
+    if (RO) return;
+    campSync();
+    if (e.target.closest('#ctCampAdd')) { const t = isoOf(new Date(cy, cm, 1)); camps.push({ name: '', color: '#8e5bd6', start: t, end: t }); campRows(); return; }
+    const kd = e.target.closest('[data-kd]'); if (kd) { camps.splice(+kd.dataset.kd, 1); campRows(); }
   });
-  $('ctPlanForm').addEventListener('submit', async (e) => {
-    e.preventDefault(); planSync();
-    try { plan = { pillars: [], tagsets: [], ...(await api('PUT', `/api/redes/${cid}/plan`, plan)).plan }; pdlg.close(); render(); } catch { toast('No se pudo guardar.'); }
+  $('ctCampForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); campSync();
+    try { camps = (await api('PUT', `${BASE}/campaigns`, { campaigns: camps })).campaigns; cdlg.close(); render(); } catch { toast('No se pudo guardar.'); }
   });
 
   /* ---------- enlace para el cliente ---------- */
   const sdlg = $('ctShareDlg');
-  const MODES = [['view', 'Solo ver'], ['review', 'Comentar y aprobar'], ['edit', 'Editar']];
-  const modeRadios = () => (modeOk ? `<div class="ctmodes" role="radiogroup" aria-label="Permiso del cliente">${MODES.map(([k, l]) => `<label class="ctmode"><input type="radio" name="ctmode" value="${k}"${mode === k ? ' checked' : ''}><span>${l}</span></label>`).join('')}</div>` : '');
+  if (!SH) {
+  const MODES = [['edit', 'Trabajar juntos (ver y editar todo)'], ['view', 'Solo ver']];
+  const modeRadios = () => (modeOk ? `<div class="ctmodes" role="radiogroup" aria-label="Permiso del cliente">${MODES.map(([k, l]) => `<label class="ctmode"><input type="radio" name="ctmode" value="${k}"${(mode === k || (k === 'edit' && mode !== 'view')) ? ' checked' : ''}><span>${l}</span></label>`).join('')}</div>` : '');
   function renderShare() {
     const body = $('ctShareBody');
     if (!token) {
       body.innerHTML = `${modeRadios()}<footer><span class="spacer"></span><button class="btn primary" type="button" id="ctOn">Crear enlace</button></footer>`;
       body.querySelectorAll('[name=ctmode]').forEach((r) => r.addEventListener('change', () => { mode = r.value; }));
-      $('ctOn').onclick = async () => { try { const r = await api('POST', `/api/redes/${cid}/share`, { on: true, mode }); token = r.token; mode = r.mode; renderShare(); } catch { toast('No se pudo crear.'); } };
+      $('ctOn').onclick = async () => { try { const r = await api('POST', `${BASE}/share`, { on: true, mode }); token = r.token; mode = r.mode; renderShare(); } catch { toast('No se pudo crear.'); } };
       return;
     }
     const url = location.origin + '/c/' + token;
     body.innerHTML = `<label class="field"><span>Enlace</span><input type="text" id="ctUrl" readonly value="${esc(url)}"></label>${modeRadios()}
 <footer><button class="btn danger" type="button" id="ctOff">Desactivar</button><span class="spacer"></span><button class="btn" type="button" id="ctNew">Cambiar enlace</button><button class="btn primary" type="button" id="ctCopy">Copiar</button><a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Abrir</a></footer>`;
-    body.querySelectorAll('[name=ctmode]').forEach((r) => r.addEventListener('change', async () => { try { mode = (await api('POST', `/api/redes/${cid}/share`, { mode: r.value })).mode; toast('Permiso actualizado'); } catch { toast('No se pudo cambiar.'); } }));
+    body.querySelectorAll('[name=ctmode]').forEach((r) => r.addEventListener('change', async () => { try { mode = (await api('POST', `${BASE}/share`, { mode: r.value })).mode; toast('Permiso actualizado'); } catch { toast('No se pudo cambiar.'); } }));
     $('ctCopy').onclick = async () => { try { await navigator.clipboard.writeText(url); } catch { $('ctUrl').select(); document.execCommand('copy'); } toast('Enlace copiado'); };
-    $('ctOff').onclick = async () => { try { await api('POST', `/api/redes/${cid}/share`, { on: false }); token = null; renderShare(); } catch { toast('No se pudo.'); } };
-    $('ctNew').onclick = async () => { if (!confirm('El enlace anterior dejará de funcionar. ¿Continuar?')) return; try { token = (await api('POST', `/api/redes/${cid}/share`, { on: true, renew: true })).token; renderShare(); } catch { toast('No se pudo.'); } };
+    $('ctOff').onclick = async () => { try { await api('POST', `${BASE}/share`, { on: false }); token = null; renderShare(); } catch { toast('No se pudo.'); } };
+    $('ctNew').onclick = async () => { if (!confirm('El enlace anterior dejará de funcionar. ¿Continuar?')) return; try { token = (await api('POST', `${BASE}/share`, { on: true, renew: true })).token; renderShare(); } catch { toast('No se pudo.'); } };
   }
   sdlg.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) sdlg.close(); });
   $('ctShare').addEventListener('click', () => { renderShare(); sdlg.showModal(); });
+  }
 
   /* ---------- eventos ---------- */
   $('ctAdd').addEventListener('click', () => openNew('', ''));
@@ -348,7 +365,7 @@ ${und.length ? `<div class="cttray" data-day=""><b>Sin fecha</b>${und.map(card).
 
   /* arrastrar: cambiar de día (mes) o de estado (tablero) */
   let dragId = null;
-  board.addEventListener('dragstart', (e) => { const c = e.target.closest('[data-id]'); if (!c) return; dragId = c.dataset.id; e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch { /* sin datos */ } c.classList.add('drag'); });
+  board.addEventListener('dragstart', (e) => { if (RO) { e.preventDefault(); return; } const c = e.target.closest('[data-id]'); if (!c) return; dragId = c.dataset.id; e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch { /* sin datos */ } c.classList.add('drag'); });
   board.addEventListener('dragend', () => { dragId = null; board.querySelectorAll('.drag, .over').forEach((x) => x.classList.remove('drag', 'over')); });
   board.addEventListener('dragover', (e) => { const t = e.target.closest('.ctcell:not(.off), .cttray, .ctcol'); if (t && dragId) { e.preventDefault(); board.querySelectorAll('.over').forEach((x) => x !== t && x.classList.remove('over')); t.classList.add('over'); } });
   board.addEventListener('drop', async (e) => {
@@ -356,7 +373,7 @@ ${und.length ? `<div class="cttray" data-day=""><b>Sin fecha</b>${und.map(card).
     e.preventDefault();
     const id = dragId, body = t.dataset.status ? { status: t.dataset.status } : { date: t.dataset.day };
     const p = posts.find((x) => x.id === id); if (!p) return;
-    try { await api('PUT', `/api/redes/${cid}/posts/${id}`, body); Object.assign(p, body.status ? { status: body.status } : { date: body.date, time: body.date ? p.time : '' }); render(); } catch { toast('No se pudo mover.'); }
+    try { await api('PUT', `${BASE}/posts/${id}`, body); Object.assign(p, body.status ? { status: body.status } : { date: body.date, time: body.date ? p.time : '' }); render(); } catch { toast('No se pudo mover.'); }
   });
   load();
 })();
