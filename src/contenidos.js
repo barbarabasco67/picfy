@@ -120,11 +120,17 @@ export function contenidosRoutes(app) {
     return c.env.DB.prepare('SELECT * FROM agenda_items WHERE id = ? AND client_id = ? AND post IS NOT NULL').bind(id, cl.id).first();
   }
 
+  // Las campañas se guardan junto a los archivos del cliente: no necesitan cambios en la base de datos.
+  const campKey = (cl) => `social/campaigns/${cl.id}.json`;
+  async function loadCamps(c, cl) {
+    try { const o = await c.env.PHOTOS.get(campKey(cl)); return o ? JSON.parse(await o.text()) : []; } catch { return []; }
+  }
+
   function mount(base) {
     app.get(base + '/posts', async (c) => {
       const a = await auth(c); if (a.err) return a.err;
       const cl = await client(c, a); if (!cl) return json({ error: 'nf' }, 404);
-      return json({ posts: await loadPosts(c.env.DB, cl.id, false), token: cl.share_token || null, mode: MODES.includes(cl.share_mode) ? cl.share_mode : 'review', modeOk: 'share_mode' in cl, planOk: 'plan' in cl, plan: 'plan' in cl ? safeJson(cl.plan) : {}, campaigns: 'plan' in cl ? (safeJson(cl.plan).campaigns || []) : [] });
+      return json({ posts: await loadPosts(c.env.DB, cl.id, false), token: cl.share_token || null, mode: MODES.includes(cl.share_mode) ? cl.share_mode : 'review', modeOk: 'share_mode' in cl, planOk: 'plan' in cl, plan: 'plan' in cl ? safeJson(cl.plan) : {}, campaigns: await loadCamps(c, cl) });
     });
 
     app.post(base + '/posts', async (c) => {
@@ -218,7 +224,6 @@ export function contenidosRoutes(app) {
     app.put(base + '/campaigns', async (c) => {
       const a = await auth(c); if (a.err) return a.err;
       const cl = await client(c, a); if (!cl) return json({ error: 'nf' }, 404);
-      if (!('plan' in cl)) return json({ error: 'setup' }, 503);
       const b = await c.req.json().catch(() => ({}));
       const campaigns = (Array.isArray(b.campaigns) ? b.campaigns : []).slice(0, 40).map((x) => {
         const start = reDate.test(String(x && x.start)) ? x.start : '';
@@ -226,8 +231,7 @@ export function contenidosRoutes(app) {
         if (end < start) end = start;
         return { id: isHex(x && x.id, 16) ? x.id : randomHex(8), name: clip(x && x.name, 60), color: /^#[0-9a-fA-F]{6}$/.test(String(x && x.color)) ? x.color.toLowerCase() : '#8e5bd6', start, end };
       }).filter((x) => x.name && x.start);
-      const plan = { ...safeJson(cl.plan), campaigns };
-      await c.env.DB.prepare('UPDATE social_clients SET plan = ? WHERE id = ?').bind(JSON.stringify(plan), cl.id).run();
+      await c.env.PHOTOS.put(campKey(cl), JSON.stringify(campaigns), { httpMetadata: { contentType: 'application/json' } });
       return json({ campaigns });
     });
 

@@ -925,7 +925,7 @@ export function contenidosView(ok, statuses, formats, networks, shared = false) 
   const opt = (o) => Object.entries(o).map(([k, v]) => `<option value="${k}">${esc(v.label || v)}</option>`).join('');
   return `<div class="cttool"><div class="vtog" role="group" aria-label="Vista"><button type="button" data-cv="mes" class="on">Mes</button><button type="button" data-cv="lista">Lista</button><button type="button" data-cv="tablero">Tablero</button><button type="button" data-cv="feed">Feed</button></div>
 <input type="search" id="ctQ" class="ctq" placeholder="Buscar" aria-label="Buscar">
-<span class="spacer"></span>${shared ? '' : `<button class="btn cbtn" type="button" id="ctShare">${ICON.share} Enviar al cliente</button>`}<button class="btn cbtn" type="button" id="ctCamp" hidden>Campañas</button><button class="btn primary cbtn" type="button" id="ctAdd">${ICON.plus} Nueva publicación</button></div>
+<span class="spacer"></span>${shared ? '' : `<button class="btn cbtn" type="button" id="ctShare">${ICON.share} Enviar al cliente</button>`}<button class="btn cbtn" type="button" id="ctCamp">Campañas</button><button class="btn primary cbtn" type="button" id="ctAdd">${ICON.plus} Nueva publicación</button></div>
 <div class="ctstats" id="ctStats"></div>
 <div class="ctfilters"><div class="agchips" id="ctChips"></div><select id="ctFNet" aria-label="Red"></select><select id="ctFPil" aria-label="Pilar" hidden></select><select id="ctFOwn" aria-label="Responsable" hidden></select></div>
 <div id="ctBoard" class="ctboard"></div>

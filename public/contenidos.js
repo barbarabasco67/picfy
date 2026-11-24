@@ -141,7 +141,6 @@ ${und.length ? `<div class="cttray" data-day=""><b>Sin fecha</b>${und.map(card).
 
   async function load() {
     try { const d = await api('GET', `${BASE}/posts`); posts = d.posts; token = d.token; mode = d.mode; modeOk = d.modeOk; planOk = d.planOk; plan = { pillars: [], tagsets: [], ...(d.plan || {}) }; camps = d.campaigns || []; } catch { toast('No se pudieron cargar las publicaciones.'); }
-    $('ctCamp').hidden = !planOk;
     RO = !!SH && mode === 'view';
     $('ctAdd').hidden = RO;
     render();
